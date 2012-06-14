@@ -1,19 +1,20 @@
 from unittest import TestCase, main
 
-from pytomation import UPBInterface
+from pytomation.interfaces import UPBInterface, Serial, HACommand
 
 
 class UPBInterfaceTests(TestCase):
 
     def setUp(self):
-        self.upb = UPBInterface(serial='/dev/ttyS0')
+        self.serial = Serial('/dev/ttyUSB0')
+        self.upb = UPBInterface(self.serial)
 
-    def test_factory(self):
+    def test_instantiation(self):
         self.assertIsNotNone(self.upb,
                              'UPB interface could not be instantiated')
 
-    def test_firware(self):
-        pass
+    def test_get_firmware_version(self):
+        self.assertIsNone(self.upb.command('29', HACommand.ON))
 
 if __name__ == '__main__':
     main()

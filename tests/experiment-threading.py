@@ -1,3 +1,4 @@
+"""
 from Queue import Queue
 from threading import Thread
 
@@ -30,3 +31,4 @@ for item in source:
 
 q.join()       # block until all tasks are done
 
+"""
