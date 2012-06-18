@@ -1,2 +1,2 @@
-from .interface_upb import *
+from .upb import *
 from .common import *

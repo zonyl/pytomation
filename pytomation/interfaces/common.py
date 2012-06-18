@@ -69,9 +69,9 @@ class Interface(object):
         raise NotImplemented
 
 class AsynchronousInterface(threading.Thread, Interface):
-    def __init__(self, host, port):
+    def __init__(self):
         #threading.Thread.__init__(self)
-        super(HAInterface,self).__init__()
+        super(AsynchronousInterface,self).__init__()
 
     def command(self,deviceId,command):
         raise NotImplementedError
@@ -171,7 +171,7 @@ class Serial(Interface):
  #       self.__serialDevice = serial.Serial(serialDevicePath, 19200, timeout = 0.1) 
         self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout) 
     
-    def read(self, bufferSize):
+    def read(self, bufferSize=1024):
         return self.__serialDevice.read(bufferSize)
     
     def write(self, bytesToSend):
@@ -319,4 +319,44 @@ def convertStringFrequencyToSeconds(textFrequency):
         frequencyNumberPart *= 60
         
     return frequencyNumberPart
-        
+   
+class Conversions(object):
+    @staticmethod
+    def hex_to_ascii(hex_string):
+        return binascii.unhexlify(hex_string)
+
+    @staticmethod
+    def int_to_ascii(integer):
+#        ascii = str(unichr(integer))
+        ascii = chr(integer)
+        return ascii
+    
+    @staticmethod
+    def ascii_to_int(char):
+        return ord(char)
+
+    ## http://code.activestate.com/recipes/142812/ }}}
+    @staticmethod
+    def hex_dump(src, length=8):
+        N=0; result=''
+        while src:
+            s,src = src[:length],src[length:]
+            hexa = ' '.join(["%02X"%ord(x) for x in s])
+            s = s.translate(FILTER)
+            result += "%04X   %-*s   %s\n" % (N, length*3, hexa, s)
+            N+=length
+        return result
+
+    @staticmethod
+    def checksum2(data):
+        return reduce(lambda x,y:x+y, map(ord, data)) % 256    
+
+    @staticmethod
+    def checksum(data):
+        cs = 0
+        for byte in data:
+            cs = cs + Conversions.ascii_to_int(byte)
+        cs = ~cs
+        cs = cs + 1
+        cs = cs & 255
+        return cs
