@@ -34,6 +34,7 @@ import traceback
 import socket
 import binascii
 import serial
+import hashlib
 
 class Lookup(dict):
     """
@@ -78,10 +79,7 @@ class AsynchronousInterface(threading.Thread, Interface):
 
     def onCommand(self,callback):
         raise NotImplementedError
-    
-class HAInterface(AsynchronousInterface):
-    "Base protocol interface"
-    pass
+
         
 class TCP(Interface):
     def __init__(self, host, port):
@@ -169,13 +167,13 @@ class Serial(Interface):
         super(Serial,self).__init__()
         print "Using %s for PLM communication" % serialDevicePath
  #       self.__serialDevice = serial.Serial(serialDevicePath, 19200, timeout = 0.1) 
-        self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout) 
+        self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout, xonxoff=True, rtscts=False, dsrdtr=True) 
     
     def read(self, bufferSize=1024):
         return self.__serialDevice.read(bufferSize)
     
     def write(self, bytesToSend):
-        self.__serialDevice.write(bytesToSend)
+        return self.__serialDevice.write(bytesToSend)
 
 class USB(Interface): 
     pass
@@ -319,11 +317,35 @@ def convertStringFrequencyToSeconds(textFrequency):
         frequencyNumberPart *= 60
         
     return frequencyNumberPart
-   
+
+def hashPacket(packetData):
+    return hashlib.md5(packetData).hexdigest()
+
 class Conversions(object):
     @staticmethod
     def hex_to_ascii(hex_string):
         return binascii.unhexlify(hex_string)
+
+    @staticmethod
+    def hex_to_bytes( hexStr ):
+        """
+        Convert a string hex byte values into a byte string. The Hex Byte values may
+        or may not be space separated.
+        """
+        # The list comprehension implementation is fractionally slower in this case    
+        #
+        #    hexStr = ''.join( hexStr.split(" ") )
+        #    return ''.join( ["%c" % chr( int ( hexStr[i:i+2],16 ) ) \
+        #                                   for i in range(0, len( hexStr ), 2) ] )
+     
+        bytes = []
+    
+        hexStr = ''.join( hexStr.split(" ") )
+    
+        for i in range(0, len(hexStr), 2):
+            bytes.append( chr( int (hexStr[i:i+2], 16 ) ) )
+    
+        return ''.join( bytes )
 
     @staticmethod
     def int_to_ascii(integer):
@@ -331,6 +353,10 @@ class Conversions(object):
         ascii = chr(integer)
         return ascii
     
+    @staticmethod
+    def int_to_hex(integer):
+        return "%0.2X" % integer
+
     @staticmethod
     def ascii_to_int(char):
         return ord(char)
