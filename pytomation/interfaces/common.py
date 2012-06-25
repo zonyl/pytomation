@@ -36,6 +36,7 @@ import binascii
 import serial
 import hashlib
 
+
 class Lookup(dict):
     """
     a dictionary which can lookup value by key, or keys by value
@@ -44,30 +45,62 @@ class Lookup(dict):
     def __init__(self, items=[]):
         """items can be a list of pair_lists or a dictionary"""
         dict.__init__(self, items)
+
     def get_key(self, value):
         """find the key as a list given a value"""
         if type(value) == type(dict()):
             items = [item[0] for item in self.items() if item[1][value.items()[0][0]] == value.items()[0][1]]
         else:
             items = [item[0] for item in self.items() if item[1] == value]
-        return items[0]   
-     
+        return items[0]
+
     def get_keys(self, value):
         """find the key(s) as a list given a value"""
         return [item[0] for item in self.items() if item[1] == value]
+
     def get_value(self, key):
         """find the value given a key"""
         return self[key]
-   
+
+
 class Interface(object):
     def __init__(self):
-        super(Interface,self).__init__()
+        super(Interface, self).__init__()
 
-    def read(self,bufferSize):
+    def read(self, bufferSize):
         raise NotImplemented
 
-    def write(self,data):
+    def write(self, data):
         raise NotImplemented
+
+
+class MockInterface(object):
+    _written = None
+    _responses = {}
+    _response_q = None
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def write(self, data=None):
+        self._written = data
+        self._response_q = self._get_response(data)
+
+    def read(self, count=None):
+        response = ""
+        if self._response_q:
+            if not count:
+                count = len(self._response_q)
+                response = self._response_q[:count]
+                self._response_q = None
+        return response
+
+    def _get_response(self, written):
+        try:
+            return self._responses[self._written]
+        except:
+            return None
+
 
 class AsynchronousInterface(threading.Thread, Interface):
     def __init__(self):
@@ -80,14 +113,14 @@ class AsynchronousInterface(threading.Thread, Interface):
     def onCommand(self,callback):
         raise NotImplementedError
 
-        
+
 class TCP(Interface):
     def __init__(self, host, port):
         super(TCP, self).__init__()        
         self.__s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print"connect %s:%s" % (host, port)
         self.__s.connect((host, port))
-        
+
     def write(self,data):
         "Send raw binary"
         self.__s.send(data) 
@@ -105,42 +138,41 @@ class TCP(Interface):
             pass
 #            print traceback.format_exc()
         return data
-        
+
+
 class TCP_old(Interface):
     def __init__(self, host, port):
-        super(TCP_old, self).__init__()        
+        super(TCP_old, self).__init__()
         self.__s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print"connect %s:%s" % (host, port)
         self.__s.connect((host, port))
         self.start()
 
-        
     def send(self, dataString):
         "Send raw HEX encoded String"
         print "Data Sent=>" + dataString
         data = binascii.unhexlify(dataString)
-        self.__s.send(data) 
+        self.__s.send(data)
         return None
-    
+
     def run(self):
         self._handle_receive()
-        
 
-        
     def _handle_receive(self):
         while 1:
             data = self.__s.recv(1024)
             self.c(data)
         self.__s.close()
-        
+
+
 class UDP(AsynchronousInterface):
     def __init__(self, fromHost, fromPort, toHost, toPort):
-        super(UDP, self).__init__(fromHost,fromPort)   
+        super(UDP, self).__init__(fromHost,fromPort)
         self.__ssend = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__ssend.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST,1)
+        self.__ssend.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 #        self.__srecv = socket(socket.AF_INET, socket.SOCK_DGRAM)
 #        self.__srecv.bind((fromHost,fromPort))
-        self.__ssend.bind((fromHost,fromPort))
+        self.__ssend.bind((fromHost, fromPort))
         self.__fromHost = fromHost
         self.__fromPort = fromPort
         self.__toHost = toHost
@@ -148,7 +180,7 @@ class UDP(AsynchronousInterface):
         self.start()
 
     def send(self, dataString):
-        self.__ssend.sendto(dataString,(self.__toHost,self.__toPort))
+        self.__ssend.sendto(dataString,(self.__toHost, self.__toPort))
         return None
 
     def _handle_receive(self):
@@ -157,51 +189,56 @@ class UDP(AsynchronousInterface):
             data = self.__ssend.recv(2048)
             print "received stuff", data
             if self.c != None:
-                self.c(data)         
+                self.c(data)
 
     def run(self):
         self._handle_receive()
 
+
 class Serial(Interface):
-    def __init__(self, serialDevicePath, serialSpeed = 19200, serialTimeout = 0.1):
-        super(Serial,self).__init__()
+    def __init__(self, serialDevicePath, serialSpeed=19200, serialTimeout=0.1):
+        super(Serial, self).__init__()
         print "Using %s for PLM communication" % serialDevicePath
- #       self.__serialDevice = serial.Serial(serialDevicePath, 19200, timeout = 0.1) 
+#       self.__serialDevice = serial.Serial(serialDevicePath, 19200, timeout = 0.1) 
         self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout, xonxoff=True, rtscts=False, dsrdtr=True) 
-    
+
     def read(self, bufferSize=1024):
         return self.__serialDevice.read(bufferSize)
-    
+
     def write(self, bytesToSend):
         return self.__serialDevice.write(bytesToSend)
 
-class USB(Interface): 
-    pass
+
+class USB(Interface):
     def __init__(self, device):
         return None
-    
+
+
 class HADevice(object):
 
-    def __init__(self,deviceId,interface = None):
+    def __init__(self, deviceId, interface=None):
         super(HADevice,self).__init__()
         self.interface = interface
         self.deviceId = deviceId
-        
+
     def set(self, command):
         self.interface.command(self, command)
-    
+
+
 class InsteonDevice(HADevice):
-    def __init__(self, deviceId, interface = None):
+    def __init__(self, deviceId, interface=None):
         super(InsteonDevice, self).__init__(deviceId, interface)
 
-class X10Device(HADevice):    
-    def __init__(self, deviceId, interface = None):
+
+class X10Device(HADevice):
+    def __init__(self, deviceId, interface=None):
         super(X10Device, self).__init__(deviceId, interface)
+
 
 class HACommand(Lookup):
     ON = 'on'
     OFF = 'off'
-    
+
     def __init__(self):
         super(HACommand,self).__init__({
                        'on'         :{'primary' : {
@@ -237,7 +274,7 @@ class HACommand(Lookup):
                                                     'upb':None
                                                     },
                                      },
-        
+
                        'fastoff'    :{'primary' : {
                                                     'insteon':0x14,
                                                     'x10':0x03,
@@ -264,7 +301,7 @@ class HACommand(Lookup):
                       )
         pass
 
-        
+
 import time
 import re
 
@@ -285,16 +322,16 @@ def hex_dump(src, length=8):
 
 def interruptibleSleep(sleepTime, interuptEvent):
     sleepInterval = 0.05
-    
+
     #adjust for the time it takes to do our instructions and such
     totalSleepTime = sleepTime - 0.04
-    
+
     while interuptEvent.isSet() == False and totalSleepTime > 0:
         time.sleep(sleepInterval)
         totalSleepTime = totalSleepTime - sleepInterval
-        
-        
-def sort_nicely( l ): 
+
+
+def sort_nicely( l ):
     """ Sort the given list in the way that humans expect. 
     """ 
     convert = lambda text: int(text) if text.isdigit() else text 
@@ -302,24 +339,26 @@ def sort_nicely( l ):
     l.sort( key=alphanum_key )
 
     return l
-    
+
 def convertStringFrequencyToSeconds(textFrequency):
     frequencyNumberPart = int(textFrequency[:-1])
     frequencyStringPart = textFrequency[-1:].lower()
-    
+
     if (frequencyStringPart == "w"):
         frequencyNumberPart *= 604800
     elif (frequencyStringPart == "d"):
         frequencyNumberPart *= 86400
     elif (frequencyStringPart == "h"):
-        frequencyNumberPart *= 3600                        
+        frequencyNumberPart *= 3600
     elif (frequencyStringPart == "m"):
         frequencyNumberPart *= 60
-        
+
     return frequencyNumberPart
+
 
 def hashPacket(packetData):
     return hashlib.md5(packetData).hexdigest()
+
 
 class Conversions(object):
     @staticmethod
