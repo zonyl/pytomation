@@ -82,7 +82,7 @@ class UPB(HAInterface):
         for (commandHash, commandDetails) in self._pendingCommandDetails.items():
             if commandDetails['modemCommand'] == self._modemCommands['read_register']:
                 #Looks like this is our command.  Lets deal with it
-                self._commandReturnData[commandHash] = response[2:]
+                self._commandReturnData[commandHash] = response[4:]
 
                 waitEvent = commandDetails['waitEvent']
                 waitEvent.set()
