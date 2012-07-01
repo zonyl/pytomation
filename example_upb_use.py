@@ -16,5 +16,5 @@ if response:
 else:
     print "Interface not responding"
 
-# Code is down, we no longer need the interface
+# Code is done, we no longer need the interface
 upb.shutdown()
