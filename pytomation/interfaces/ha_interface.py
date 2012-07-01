@@ -29,7 +29,7 @@ import binascii
 import sys
 from collections import deque
 
-from interfaces.common import *
+from .common import *
 
 
 class HAInterface(AsynchronousInterface):

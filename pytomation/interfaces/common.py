@@ -366,6 +366,10 @@ class Conversions(object):
         return binascii.unhexlify(hex_string)
 
     @staticmethod
+    def ascii_to_hex(hex_string):
+        return binascii.hexlify(hex_string)
+
+    @staticmethod
     def hex_to_bytes( hexStr ):
         """
         Convert a string hex byte values into a byte string. The Hex Byte values may

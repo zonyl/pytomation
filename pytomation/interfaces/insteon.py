@@ -44,8 +44,8 @@ import sys
 import string
 import hashlib
 from collections import deque
-from interfaces.common import *
-from interfaces import HAInterface
+from .common import *
+from .ha_interface import HAInterface
 
 
 def _byteIdToStringId(idHigh, idMid, idLow):
