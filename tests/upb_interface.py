@@ -28,7 +28,7 @@ class UPBInterfaceTests(TestCase):
 
     def test_get_firmware_version(self):
         # What will be written / what should we get back
-        self.ms._responses.update({'\x120202FC\x0D': 'PR021234\x0D'})
+        self.ms.add_response({'\x120202FC\x0D': 'PR021234\x0D'})
 
         response = self.upb.get_register(2, 2)
         self.assertEqual(response, '1234')
@@ -46,7 +46,7 @@ class UPBInterfaceTests(TestCase):
         0008   30 33 31 45 32 32 36 34    031E2264
         0010   31 30 0D                   10.
         """
-        self.ms._responses.update({'\x14081031031E226410\x0D': 'PA\x0D'})
+        self.ms.add_response({'\x14081031031E226410\x0D': 'PA\x0D'})
         # Network / Device ID
         response = self.upb.on((49, 3))
         self.assertTrue(response)

@@ -19,11 +19,15 @@ Example:
     see /example_use.py
 
 Notes:
+    To Program devices initially from factory please use PCS UpStart software:
+    http://pulseworx.com/Downloads_.htm
+
 
     UPB Serial Interface
     http://pulseworx.com/downloads/Interface/PimComm1.6.pdf
     UPB General Protocol
     http://pulseworx.com/downloads/upb/UPBDescriptionv1.4.pdf
+
 
 Created on May , 2012
 """
@@ -218,23 +222,23 @@ class UPB(HAInterface):
     def _processNewUBP(self, response):
         pass
 
-    def _device_goto(self, address, level, ramp=None):
+    def _device_goto(self, address, level, timeout=None, rate=None):
         message = UPBMessage()
         message.network = address[0]
         message.destination = address[1]
         message.message_eid = UPBMessage.MessageDeviceControl.goto
         message.message_data = Conversions.int_to_ascii(level)
-        if ramp != None:
+        if rate != None:
             message.message_data = message.message_data + \
-                                    Conversions.int_to_ascii(ramp)
+                                    Conversions.int_to_ascii(rate)
         command = message.to_hex()
         command = command + Conversions.hex_to_ascii('0D')
         commandExecutionDetails = self._sendModemCommand(
                              self._modemCommands['send_upb'], command)
-        return self._waitForCommandToFinish(commandExecutionDetails)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
-    def on(self, address):
-        return self._device_goto(address, 0x64)
+    def on(self, address, timeout=None, rate=None):
+        return self._device_goto(address, 0x64, timeout=timeout)
 
-    def off(self, address):
-        return self._device_goto(address, 0x00)
+    def off(self, address, timeout=None, rate=None):
+        return self._device_goto(address, 0x00, timeout=timeout)

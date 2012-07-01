@@ -227,6 +227,7 @@ class InsteonPLM(HAInterface):
                     print hex_dump(firstByte + secondByte + remainingBytes, len(firstByte + secondByte + remainingBytes)),
 
                     currentPacketHash = hashPacket(firstByte + secondByte + remainingBytes)
+
                     if lastPacketHash and lastPacketHash == currentPacketHash:
                         #duplicate packet.  Ignore
                         pass
@@ -280,7 +281,6 @@ class InsteonPLM(HAInterface):
         foundCommandHash = None
         #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
         for (commandHash, commandDetails) in self._pendingCommandDetails.items():
-            print "Process PLM INfo:" + hex_dump(commandDetails['modemCommand'])
 #            if binascii.unhexlify(commandDetails['modemCommand']) == chr(modemCommand):
             if commandDetails['modemCommand'] == chr(modemCommand):
                 #Looks like this is our command.  Lets deal with it
@@ -352,7 +352,8 @@ class InsteonPLM(HAInterface):
         for (commandHash, commandDetails) in self._pendingCommandDetails.items():
 
             #since this was a standard insteon message the modem command used to send it was a 0x62 so we check for that
-            if binascii.unhexlify(commandDetails['modemCommand']) == '\x62':
+#            if binascii.unhexlify(commandDetails['modemCommand']) == '\x62':
+            if commandDetails['modemCommand'] == '\x62':
                 originatingCommandId1 = None
                 if commandDetails.has_key('commandId1'):
                     originatingCommandId1 = commandDetails['commandId1']
@@ -374,7 +375,7 @@ class InsteonPLM(HAInterface):
                     destDeviceId = commandDetails['destinationDevice']
 
                 if destDeviceId:
-                    if destDeviceId == _byteIdToStringId(fromIdHigh, fromIdMid, fromIdLow):
+                    if destDeviceId.upper() == _byteIdToStringId(fromIdHigh, fromIdMid, fromIdLow).upper():
 
                         returnData = {} #{'isBroadcast': isBroadcast, 'isDirect': isDirect, 'isAck': isAck}
 
@@ -421,7 +422,7 @@ class InsteonPLM(HAInterface):
 
         pass
 
-    def _process_InboundX10Message(self, responseBytes):        
+    def _process_InboundX10Message(self, responseBytes):
         "Receive Handler for X10 Data"
         #X10 sends commands fully in two separate messages. Not sure how to handle this yet
         #TODO not implemented
@@ -513,29 +514,29 @@ class InsteonPLM(HAInterface):
     def onCommand(self,callback):
         pass
 
-    def turnOn(self, deviceId, timeout = None):
+    def on(self, deviceId, timeout = None):
         if len(deviceId) != 2: #insteon device address
             commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', 'ff')
         else: #X10 device address
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'02')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
-    def turnOff(self, deviceId, timeout = None):
+    def off(self, deviceId, timeout = None):
         if len(deviceId) != 2: #insteon device address
             commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '13', '00')
         else: #X10 device address
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'03')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
-    def turnOnFast(self, deviceId, timeout = None):
+    def on_fast(self, deviceId, timeout = None):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '12', 'ff')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
-    def turnOffFast(self, deviceId, timeout=None):
+    def off_fast(self, deviceId, timeout=None):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '14', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
-    def dimTo(self, deviceId, level, timeout=None):
+    def level(self, deviceId, level, timeout=None):
 
         #organize what dim level we are heading to (figgure out the byte we need to send)
         lightLevelByte = simpleMap(level, 0, 1, 0, 255)
@@ -543,11 +544,11 @@ class InsteonPLM(HAInterface):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', '%02x' % lightLevelByte)
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
-    def brightenOneStep(self, deviceId, timeout=None):
+    def level_up(self, deviceId, timeout=None):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '15', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
-    def dimOneStep(self, deviceId, timeout=None):
+    def level_down(self, deviceId, timeout=None):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
