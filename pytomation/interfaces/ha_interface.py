@@ -79,13 +79,16 @@ class HAInterface(AsynchronousInterface):
 
     def _sendModemCommand(self, modemCommand,
                           commandDataString=None,
-                          extraCommandDetails=None):
+                          extraCommandDetails=None, modemCommandPrefix=None):
 
         returnValue = False
 
         try:
 #            bytesToSend = self.MODEM_PREFIX + binascii.unhexlify(modemCommand)
-            bytesToSend = modemCommand
+            if modemCommandPrefix:
+                bytesToSend = modemCommandPrefix + modemCommand
+            else:
+                bytesToSend = modemCommand
             if commandDataString != None:
                 bytesToSend += commandDataString
             commandHash = hashPacket(bytesToSend)

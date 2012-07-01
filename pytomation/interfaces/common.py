@@ -91,8 +91,12 @@ class MockInterface(object):
         if self._response_q:
             if not count:
                 count = len(self._response_q)
-                response = self._response_q[:count]
+            response = self._response_q[:count]
+
+            if count >= len(self._response_q):
                 self._response_q = None
+            else:
+                self._response_q = self._response_q[count:]
         return response
 
     def _get_response(self, written):
@@ -101,6 +105,9 @@ class MockInterface(object):
         except:
             return None
 
+    def add_response(self, response_set):
+        self._responses.update(response_set)
+        return True
 
 class AsynchronousInterface(threading.Thread, Interface):
     def __init__(self):
@@ -138,6 +145,10 @@ class TCP(Interface):
             pass
 #            print traceback.format_exc()
         return data
+
+    def shutdown(self):
+        self.__s.shutdown(socket.SHUT_RDWR)
+        self.__s.close()
 
 
 class TCP_old(Interface):

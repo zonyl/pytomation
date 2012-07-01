@@ -29,8 +29,6 @@ Example: (see bottom of the file)
 
 Notes:
     - Supports both 2412N and 2412S right now
-    - 
-    - Todo: Read Style Guide @: http://www.python.org/dev/peps/pep-0008/
 
 Created on Mar 26, 2011
 '''
@@ -81,80 +79,80 @@ class InsteonPLM(HAInterface):
 
         self._modemCommands = {'60': {
                                     'responseSize': 7,
-                                    'callBack':self.__process_PLMInfo
+                                    'callBack':self._process_PLMInfo
                                   },
                                 '62': {
                                     'responseSize': 7,
-                                    'callBack':self.__process_StandardInsteonMessagePLMEcho
+                                    'callBack':self._process_StandardInsteonMessagePLMEcho
                                   },
 
                                 '50': {
                                     'responseSize': 9,
-                                    'callBack':self.__process_InboundStandardInsteonMessage
+                                    'callBack':self._process_InboundStandardInsteonMessage
                                   },
                                 '51': {
                                     'responseSize': 23,
-                                    'callBack':self.__process_InboundExtendedInsteonMessage
+                                    'callBack':self._process_InboundExtendedInsteonMessage
                                   },
                                 '63': {
                                     'responseSize': 4,
-                                    'callBack':self.__process_StandardX10MessagePLMEcho
+                                    'callBack':self._process_StandardX10MessagePLMEcho
                                   },
                                 '52': {
                                     'responseSize':4,
-                                    'callBack':self.__process_InboundX10Message
+                                    'callBack':self._process_InboundX10Message
                                  },
                             }
 
         self._insteonCommands = {
                                     #Direct Messages/Responses
                                     'SD03': {        #Product Data Request (generally an Ack)
-                                        'callBack' : self.__handle_StandardDirect_IgnoreAck
+                                        'callBack' : self._handle_StandardDirect_IgnoreAck
                                     },
                                     'SD0D': {        #Get InsteonPLM Engine
-                                        'callBack' : self.__handle_StandardDirect_EngineResponse,
+                                        'callBack' : self._handle_StandardDirect_EngineResponse,
                                         'validResponseCommands' : ['SD0D']
                                     },
                                     'SD0F': {        #Ping Device
-                                        'callBack' : self.__handle_StandardDirect_AckCompletesCommand,
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
                                         'validResponseCommands' : ['SD0F']
                                     },
                                     'SD10': {        #ID Request    (generally an Ack)
-                                        'callBack' : self.__handle_StandardDirect_IgnoreAck,
+                                        'callBack' : self._handle_StandardDirect_IgnoreAck,
                                         'validResponseCommands' : ['SD10', 'SB01']
                                     },
                                     'SD11': {        #Devce On
-                                        'callBack' : self.__handle_StandardDirect_AckCompletesCommand,
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
                                         'validResponseCommands' : ['SD11']
                                     },
                                     'SD12': {        #Devce On Fast
-                                        'callBack' : self.__handle_StandardDirect_AckCompletesCommand,
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
                                         'validResponseCommands' : ['SD12']
                                     },
                                     'SD13': {        #Devce Off
-                                        'callBack' : self.__handle_StandardDirect_AckCompletesCommand,
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
                                         'validResponseCommands' : ['SD13']
                                     },
                                     'SD14': {        #Devce Off Fast
-                                        'callBack' : self.__handle_StandardDirect_AckCompletesCommand,
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
                                         'validResponseCommands' : ['SD14']
                                     },
                                     'SD15': {        #Brighten one step
-                                        'callBack' : self.__handle_StandardDirect_AckCompletesCommand,
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
                                         'validResponseCommands' : ['SD15']
                                     },
                                     'SD16': {        #Dim one step
-                                        'callBack' : self.__handle_StandardDirect_AckCompletesCommand,
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
                                         'validResponseCommands' : ['SD16']
                                     },
                                     'SD19': {        #Light Status Response
-                                        'callBack' : self.__handle_StandardDirect_LightStatusResponse,
+                                        'callBack' : self._handle_StandardDirect_LightStatusResponse,
                                         'validResponseCommands' : ['SD19']
                                     },
                                     #Broadcast Messages/Responses
                                     'SB01': {
                                                     #Set button pushed
-                                        'callBack' : self.__handle_StandardBroadcast_SetButtonPressed
+                                        'callBack' : self._handle_StandardBroadcast_SetButtonPressed
                                     },
                                 }
 
@@ -197,9 +195,9 @@ class InsteonPLM(HAInterface):
 
         self._allLinkDatabase = dict()
 
-    def __sendModemCommand(self, modemCommand, commandDataString = None, extraCommandDetails = None):
-        command = '\x02' + binascii.unhexlify(modemCommand)
-        super(InsteonPLM, self).__sendModemCommand(self, command, commandDataString, extraCommandDetails)
+    def _sendModemCommand(self, modemCommand, commandDataString = None, extraCommandDetails = None):
+        command = binascii.unhexlify(modemCommand)
+        return super(InsteonPLM, self)._sendModemCommand(command, commandDataString, extraCommandDetails, modemCommandPrefix='\x02')
 
     def _readModem(self, lastPacketHash):
         #check to see if there is anyting we need to read
@@ -252,37 +250,39 @@ class InsteonPLM(HAInterface):
             #time.sleep(0.1)
             time.sleep(0.5)
 
-    def __sendStandardP2PInsteonCommand(self, destinationDevice, commandId1, commandId2):
+    def _sendStandardP2PInsteonCommand(self, destinationDevice, commandId1, commandId2):
         print "Command: %s %s %s" % (destinationDevice, commandId1, commandId2)
-        return self.__sendModemCommand('62', _stringIdToByteIds(destinationDevice) + _buildFlags() + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2), extraCommandDetails = { 'destinationDevice': destinationDevice, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
+        return self._sendModemCommand('62', _stringIdToByteIds(destinationDevice) + _buildFlags() + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2), extraCommandDetails = { 'destinationDevice': destinationDevice, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
 
-    def __getX10UnitCommand(self,deviceId):
+    def _getX10UnitCommand(self,deviceId):
         "Send just an X10 unit code message"
         deviceId = deviceId.lower()
-        return "%02x00" % ((self.__x10HouseCodes[deviceId[0:1]] << 4) | self.__x10UnitCodes[deviceId[1:2]])
+        return "%02x00" % ((self._x10HouseCodes[deviceId[0:1]] << 4) | self._x10UnitCodes[deviceId[1:2]])
 
-    def __getX10CommandCommand(self,deviceId,commandCode):
+    def _getX10CommandCommand(self,deviceId,commandCode):
         "Send just an X10 command code message"
         deviceId = deviceId.lower()
-        return "%02x80" % ((self.__x10HouseCodes[deviceId[0:1]] << 4) | int(commandCode,16))
+        return "%02x80" % ((self._x10HouseCodes[deviceId[0:1]] << 4) | int(commandCode,16))
 
-    def __sendStandardP2PX10Command(self,destinationDevice,commandId1, commandId2 = None):
+    def _sendStandardP2PX10Command(self,destinationDevice,commandId1, commandId2 = None):
         # X10 sends 1 complete message in two commands
         print "Command: %s %s %s" % (destinationDevice, commandId1, commandId2)
-        print "C: %s" % self.__getX10UnitCommand(destinationDevice)
-        print "c1: %s" % self.__getX10CommandCommand(destinationDevice, commandId1)
-        self.__sendModemCommand('63', binascii.unhexlify(self.__getX10UnitCommand(destinationDevice)))
+        print "C: %s" % self._getX10UnitCommand(destinationDevice)
+        print "c1: %s" % self._getX10CommandCommand(destinationDevice, commandId1)
+        self._sendModemCommand('63', binascii.unhexlify(self._getX10UnitCommand(destinationDevice)))
 
-        return self.__sendModemCommand('63', binascii.unhexlify(self.__getX10CommandCommand(destinationDevice, commandId1)))
+        return self._sendModemCommand('63', binascii.unhexlify(self._getX10CommandCommand(destinationDevice, commandId1)))
 
     #low level processing methods
-    def __process_PLMInfo(self, responseBytes):
+    def _process_PLMInfo(self, responseBytes):
         (modemCommand, idHigh, idMid, idLow, deviceCat, deviceSubCat, firmwareVer, acknak) = struct.unpack('xBBBBBBBB', responseBytes)
 
         foundCommandHash = None
         #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
         for (commandHash, commandDetails) in self._pendingCommandDetails.items():
-            if binascii.unhexlify(commandDetails['modemCommand']) == chr(modemCommand):
+            print "Process PLM INfo:" + hex_dump(commandDetails['modemCommand'])
+#            if binascii.unhexlify(commandDetails['modemCommand']) == chr(modemCommand):
+            if commandDetails['modemCommand'] == chr(modemCommand):
                 #Looks like this is our command.  Lets deal with it
                 self._commandReturnData[commandHash] = { 'id': _byteIdToStringId(idHigh,idMid,idLow), 'deviceCategory': '%02X' % deviceCat, 'deviceSubCategory': '%02X' % deviceSubCat, 'firmwareVersion': '%02X' % firmwareVer }    
 
@@ -298,24 +298,24 @@ class InsteonPLM(HAInterface):
             print "Unable to find pending command details for the following packet:"
             print hex_dump(responseBytes, len(responseBytes))
 
-    def __process_StandardInsteonMessagePLMEcho(self, responseBytes):
+    def _process_StandardInsteonMessagePLMEcho(self, responseBytes):
         #print utilities.hex_dump(responseBytes, len(responseBytes))
         #we don't do anything here.  Just eat the echoed bytes
         pass
 
-    def __process_StandardX10MessagePLMEcho(self, responseBytes):
+    def _process_StandardX10MessagePLMEcho(self, responseBytes):
         # Just ack / error echo from sending an X10 command
         pass
 
-    def __validResponseMessagesForCommandId(self, commandId):
-        if self.__insteonCommands.has_key(commandId):
-            commandInfo = self.__insteonCommands[commandId]
+    def _validResponseMessagesForCommandId(self, commandId):
+        if self._insteonCommands.has_key(commandId):
+            commandInfo = self._insteonCommands[commandId]
             if commandInfo.has_key('validResponseCommands'):
                 return commandInfo['validResponseCommands']
 
         return False
 
-    def __process_InboundStandardInsteonMessage(self, responseBytes):
+    def _process_InboundStandardInsteonMessage(self, responseBytes):
         (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('xBBBBBBBBBB', responseBytes)        
 
         foundCommandHash = None
@@ -349,7 +349,7 @@ class InsteonPLM(HAInterface):
         #print insteonCommandCode
 
         #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
-        for (commandHash, commandDetails) in self.__pendingCommandDetails.items():
+        for (commandHash, commandDetails) in self._pendingCommandDetails.items():
 
             #since this was a standard insteon message the modem command used to send it was a 0x62 so we check for that
             if binascii.unhexlify(commandDetails['modemCommand']) == '\x62':
@@ -357,7 +357,7 @@ class InsteonPLM(HAInterface):
                 if commandDetails.has_key('commandId1'):
                     originatingCommandId1 = commandDetails['commandId1']
 
-                validResponseMessages = self.__validResponseMessagesForCommandId(originatingCommandId1)
+                validResponseMessages = self._validResponseMessagesForCommandId(originatingCommandId1)
                 if validResponseMessages and len(validResponseMessages):
                     #Check to see if this received command is one that this pending command is waiting for
                     if validResponseMessages.count(insteonCommandCode) == 0:
@@ -379,9 +379,9 @@ class InsteonPLM(HAInterface):
                         returnData = {} #{'isBroadcast': isBroadcast, 'isDirect': isDirect, 'isAck': isAck}
 
                         #try and look up a handler for this command code
-                        if self.__insteonCommands.has_key(insteonCommandCode):
-                            if self.__insteonCommands[insteonCommandCode].has_key('callBack'):
-                                (requestCycleDone, extraReturnData) = self.__insteonCommands[insteonCommandCode]['callBack'](responseBytes)
+                        if self._insteonCommands.has_key(insteonCommandCode):
+                            if self._insteonCommands[insteonCommandCode].has_key('callBack'):
+                                (requestCycleDone, extraReturnData) = self._insteonCommands[insteonCommandCode]['callBack'](responseBytes)
 
                                 if extraReturnData:
                                     returnData = dict(returnData.items() + extraReturnData.items())
@@ -394,7 +394,7 @@ class InsteonPLM(HAInterface):
                             print "No insteonCommand lookup defined for insteon command code %s" % insteonCommandCode
 
                         if len(returnData):
-                            self.__commandReturnData[commandHash] = returnData
+                            self._commandReturnData[commandHash] = returnData
 
                         foundCommandHash = commandHash
                         break
@@ -405,11 +405,11 @@ class InsteonPLM(HAInterface):
 
         if waitEvent and foundCommandHash:
             waitEvent.set()
-            del self.__pendingCommandDetails[foundCommandHash]
+            del self._pendingCommandDetails[foundCommandHash]
 
             print "Command %s completed" % foundCommandHash
 
-    def __process_InboundExtendedInsteonMessage(self, responseBytes):
+    def _process_InboundExtendedInsteonMessage(self, responseBytes):
         #51 
         #17 C4 4A     from
         #18 BA 62     to
@@ -421,7 +421,7 @@ class InsteonPLM(HAInterface):
 
         pass
 
-    def __process_InboundX10Message(self, responseBytes):        
+    def _process_InboundX10Message(self, responseBytes):        
         "Receive Handler for X10 Data"
         #X10 sends commands fully in two separate messages. Not sure how to handle this yet
         #TODO not implemented
@@ -435,26 +435,26 @@ class InsteonPLM(HAInterface):
 #        flag =          int(responseBytes[6:8],16)
 
     #insteon message handlers
-    def __handle_StandardDirect_IgnoreAck(self, messageBytes):
+    def _handle_StandardDirect_IgnoreAck(self, messageBytes):
         #just ignore the ack for what ever command triggered us
         #there is most likley more data coming for what ever command we are handling
         return (False, None)
 
-    def __handle_StandardDirect_AckCompletesCommand(self, messageBytes):
+    def _handle_StandardDirect_AckCompletesCommand(self, messageBytes):
         #the ack for our command completes things.  So let the system know so
         return (True, None)
 
-    def __handle_StandardBroadcast_SetButtonPressed(self, messageBytes):
+    def _handle_StandardBroadcast_SetButtonPressed(self, messageBytes):
         #02 50 17 C4 4A 01 19 38 8B 01 00
         (idHigh, idMid, idLow, deviceCat, deviceSubCat, deviceRevision) = struct.unpack('xxBBBBBBxxx', messageBytes)
         return (True, {'deviceType': '%02X%02X' % (deviceCat, deviceSubCat), 'deviceRevision':'%02X' % deviceRevision})
 
-    def __handle_StandardDirect_EngineResponse(self, messageBytes):
+    def _handle_StandardDirect_EngineResponse(self, messageBytes):
         #02 50 17 C4 4A 18 BA 62 2B 0D 01
         engineVersionIdentifier = messageBytes[10]
         return (True, {'engineVersion': engineVersionIdentifier == '\x01' and 'i2' or 'i1'})
 
-    def __handle_StandardDirect_LightStatusResponse(self, messageBytes):
+    def _handle_StandardDirect_LightStatusResponse(self, messageBytes):
         #02 50 17 C4 4A 18 BA 62 2B 00 00
         lightLevelRaw = messageBytes[10]
 
@@ -465,16 +465,16 @@ class InsteonPLM(HAInterface):
 
     #public methods
     def getPLMInfo(self, timeout = None):
-        commandExecutionDetails = self.__sendModemCommand('60')
+        commandExecutionDetails = self._sendModemCommand('60')
 
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def pingDevice(self, deviceId, timeout = None):
         startTime = time.time()
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '0F', '00')
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '0F', '00')
 
         #Wait for ping result
-        commandReturnCode = self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        commandReturnCode = self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
         endTime = time.time()
 
         if commandReturnCode:
@@ -483,73 +483,73 @@ class InsteonPLM(HAInterface):
             return False
 
     def idRequest(self, deviceId, timeout = None):
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '10', '00')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '10', '00')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def getInsteonEngineVersion(self, deviceId, timeout = None):
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '0D', '00')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '0D', '00')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def getProductData(self, deviceId, timeout = None):
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '03', '00')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '03', '00')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def lightStatusRequest(self, deviceId, timeout = None):
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '19', '00')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '19', '00')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def command(self, device, command, timeout=None):
         command = command.lower()
         if isinstance(device, InsteonDevice):
             print "InsteonA"
-            commandExecutionDetails = self.__sendStandardP2PInsteonCommand(device.deviceId, "%02x" % (HACommand()[command]['primary']['insteon']), "%02x" % (HACommand()[command]['secondary']['insteon']))
+            commandExecutionDetails = self._sendStandardP2PInsteonCommand(device.deviceId, "%02x" % (HACommand()[command]['primary']['insteon']), "%02x" % (HACommand()[command]['secondary']['insteon']))
         elif isinstance(device, X10Device):
             print "X10A"
-            commandExecutionDetails = self.__sendStandardP2PX10Command(device.deviceId,"%02x" % (HACommand()[command]['primary']['x10']))
+            commandExecutionDetails = self._sendStandardP2PX10Command(device.deviceId,"%02x" % (HACommand()[command]['primary']['x10']))
         else:
             print "stuffing"
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def onCommand(self,callback):
         pass
 
     def turnOn(self, deviceId, timeout = None):
         if len(deviceId) != 2: #insteon device address
-            commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '11', 'ff')
+            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', 'ff')
         else: #X10 device address
-            commandExecutionDetails = self.__sendStandardP2PX10Command(deviceId,'02')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+            commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'02')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def turnOff(self, deviceId, timeout = None):
         if len(deviceId) != 2: #insteon device address
-            commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '13', '00')
+            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '13', '00')
         else: #X10 device address
-            commandExecutionDetails = self.__sendStandardP2PX10Command(deviceId,'03')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+            commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'03')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def turnOnFast(self, deviceId, timeout = None):
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '12', 'ff')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '12', 'ff')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def turnOffFast(self, deviceId, timeout=None):
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '14', '00')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '14', '00')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def dimTo(self, deviceId, level, timeout=None):
 
         #organize what dim level we are heading to (figgure out the byte we need to send)
         lightLevelByte = simpleMap(level, 0, 1, 0, 255)
 
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '11', '%02x' % lightLevelByte)
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', '%02x' % lightLevelByte)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def brightenOneStep(self, deviceId, timeout=None):
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '15', '00')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '15', '00')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def dimOneStep(self, deviceId, timeout=None):
-        commandExecutionDetails = self.__sendStandardP2PInsteonCommand(deviceId, '16', '00')
-        return self.__waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
 
 ######################
@@ -557,11 +557,11 @@ class InsteonPLM(HAInterface):
 ######################
 
 
-def __x10_received(houseCode, unitCode, commandCode):
+def _x10_received(houseCode, unitCode, commandCode):
     print 'X10 Received: %s%s->%s' % (houseCode, unitCode, commandCode)
 
 
-def __insteon_received(*params):
+def _insteon_received(*params):
     print 'InsteonPLM Received:', params
 
 if __name__ == "__main__":
