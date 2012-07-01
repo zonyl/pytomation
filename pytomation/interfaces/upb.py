@@ -1,8 +1,31 @@
 """
-UPB Serial Interface
-http://pulseworx.com/downloads/Interface/PimComm1.6.pdf
-UPB General Protocol
-http://pulseworx.com/downloads/upb/UPBDescriptionv1.4.pdf
+File:
+        upb.py
+
+Description:
+
+
+Author(s):
+         Jason Sharpee <jason@sharpee.com>  http://www.sharpee.com
+
+License:
+    This free software is licensed under the terms of the GNU public license, Version 1
+
+Usage:
+
+    see /example_use.py
+
+Example:
+    see /example_use.py
+
+Notes:
+
+    UPB Serial Interface
+    http://pulseworx.com/downloads/Interface/PimComm1.6.pdf
+    UPB General Protocol
+    http://pulseworx.com/downloads/upb/UPBDescriptionv1.4.pdf
+
+Created on May , 2012
 """
 import threading
 import time
