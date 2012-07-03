@@ -22,6 +22,8 @@ Notes:
     Protocol
     http://www.jdstechnologies.com/protocol.html
 
+    2400 Baudrate
+
 
 Created on May , 2012
 """
@@ -56,20 +58,7 @@ class Stargate(HAInterface):
                                'PR': 'read_register',
                                }
 
-    def get_register(self, start=0, end=255, timeout=None):
-#        command = Conversions.hex_to_ascii('120080800D')
-#        command = Conversions.hex_to_ascii('1200FF010D')
-        command = Conversions.int_to_hex(start) + Conversions.int_to_hex(end)
-        command = command + Conversions.int_to_hex(
-                               Conversions.checksum(
-                                    Conversions.hex_to_ascii(command)
-                                    )
-                               )
-        command = command + Conversions.hex_to_ascii('0D')
-        commandExecutionDetails = self._sendModemCommand(
-                             self._modemCommands['read_register'], command)
-        return self._waitForCommandToFinish(commandExecutionDetails,
-                                             timeout=timeout)
+        self.echoMode()
 
     def _readModem(self, lastPacketHash):
         #check to see if there is anyting we need to read
@@ -138,3 +127,9 @@ class Stargate(HAInterface):
 
     def _processNewUBP(self, response):
         pass
+
+    def echoMode(self, timeout=None):
+        command = '##%1d\r'
+        commandExecutionDetails = self._sendModemCommand(
+                             command)
+#        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)

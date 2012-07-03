@@ -6,14 +6,14 @@ from pytomation.interfaces import Stargate, Serial, HACommand, MockInterface
 
 
 class StargateInterfaceTests(TestCase):
-    useMock = False
+    useMock = True
 
     def setUp(self):
         self.ms = MockInterface()
         if self.useMock:  # Use Mock Serial Port
             self.sg = Stargate(self.ms)
         else:
-            self.serial = Serial('/dev/ttyUSB0', 9600)
+            self.serial = Serial('/dev/ttyUSB0', 2400)
             self.sg = Stargate(self.serial)
 
         self.sg.start()
