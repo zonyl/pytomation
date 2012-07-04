@@ -1,4 +1,5 @@
 import select
+import time
 
 from unittest import TestCase, main
 
@@ -34,7 +35,17 @@ class StargateInterfaceTests(TestCase):
         !!07/01083239a0ff
         """
         # What will be written / what should we get back
-        self.ms.add_response({'\x120202FC\x0D': 'PR021234\x0D'})
+        self.ms.add_response({'##%1d\r': '!!07/01083237a0fe'})
+
+        # Register delegate
+        self.sg.onCommand(callback=self._digital_input_callback, address='D1')
+        # resend EchoMode to trigger response
+        self.sg.echoMode()
+        time.sleep(3)
+        self.assertEqual(self.__digital_input_params['kwargs']['address'].upper(), 'D1')
+
+    def _digital_input_callback(self, *args, **kwargs):
+        self.__digital_input_params = {'args': args, 'kwargs': kwargs}
 
         #response = self.sg.get_register(2, 2)
         #self.assertEqual(response, '1234')

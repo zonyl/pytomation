@@ -56,7 +56,8 @@ class HAInterface(AsynchronousInterface):
         self._lastSendTime = 0
 
         self._interface = interface
-
+        self._commandDelegates = []
+        
     def shutdown(self):
         if self._interfaceRunningEvent.isSet():
             self._shutdownEvent.set()
@@ -76,6 +77,20 @@ class HAInterface(AsynchronousInterface):
             self._readModem(lastPacketHash)
 
         self._interfaceRunningEvent.clear()
+
+    def onCommand(self, callback=None, address=None):
+        self._commandDelegates.append({
+                                   'address': address,
+                                   'callback': callback,
+                                   })
+    def _onCommand(self, command=None, address=None):
+        for commandDelegate in self._commandDelegates:
+            if commandDelegate['address'] == None or \
+                commandDelegate['address'] == address:
+                    commandDelegate['callback'](
+                                                command=command,
+                                                address=address,
+                                                )
 
     def _sendModemCommand(self, modemCommand,
                           commandDataString=None,

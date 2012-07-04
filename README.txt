@@ -6,9 +6,10 @@ Python Home Automation
 Supports the following interfaces:
 - Insteon / X10 (2412N, 2412S)
 - UPB (Universal Powerline Bus) (Serial PIM)
+- JDS Stargate (RS232 / RS485)
 
 Future:
-- JDS Stargate (RS232 / RS485)
+- Z-Wave (Aeon Labs) DSA02203-ZWUS
 
 EXAMPLE OF USE: 
 --------------- example_insteon_use.py ---------------------------
@@ -57,3 +58,24 @@ else:
 # Code is done, we no longer need the interface
 upb.shutdown()
 ------------------------------------------------------------
+
+---------------- example_stargate_use.py -----------------------------
+from pytomation.interfaces import Stargate, Serial
+
+
+def on_digital_input(command=None, address=None):
+    print "Digital Input #" + str(address) + " -> " + command
+
+
+serial = Serial('/dev/ttyUSB0', 2400)
+sg = Stargate(serial)
+sg.start()
+
+# Listen for changes on Digital Input #1 on Stargate
+sg.onCommand(callback=on_digital_input, address='D1')
+
+# Code is done, we no longer need the interface
+sg.shutdown()
+------------------------------------------------------------
+
+
