@@ -24,7 +24,7 @@ response = upb.on((49, 3))
 response2 = upb.off((49, 3))
 
 def on_digital_input(command=None, address=None):
-    print "Digital Input #" + str(address) + " -> " + command
+    print "Digital Input #" + str(address) + " -> " + str(command)
 
 
 
