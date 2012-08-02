@@ -59,11 +59,12 @@ class Stargate(HAInterface):
         #check to see if there is anyting we need to read
         responses = self._interface.read()
         if len(responses) != 0:
-            print "Response>\n" + hex_dump(responses)
-            if responses[:2] == "!!":  # Echo Mode activity -- !!mm/ddttttttjklm[cr]
-                if self._decode_echo_mode_activity(responses)['j'] == 'a' or \
-                    self._decode_echo_mode_activity(responses)['j'] == 'c':
-                    self._processDigitalInput(responses, lastPacketHash)
+            for response in responses.split():
+                print "Response>\n" + hex_dump(response)
+                if response[:2] == "!!":  # Echo Mode activity -- !!mm/ddttttttjklm[cr]
+                    if self._decode_echo_mode_activity(response)['j'] == 'a' or \
+                        self._decode_echo_mode_activity(response)['j'] == 'c':
+                        self._processDigitalInput(response, lastPacketHash)
         else:
             #print "Sleeping"
             #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust

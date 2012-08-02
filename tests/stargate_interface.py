@@ -35,7 +35,7 @@ class StargateInterfaceTests(TestCase):
         !!07/01083239a0ff
         """
         # What will be written / what should we get back
-        self.ms.add_response({'##%1d\r': '!!07/01083237a0fe'})
+        self.ms.add_response({'##%1d\r': '!!07/01083237a0fe\r\n'})
 
         # Register delegate
         self.sg.onCommand(callback=self._digital_input_callback, address='D1')
@@ -43,6 +43,29 @@ class StargateInterfaceTests(TestCase):
         self.sg.echoMode()
         time.sleep(3)
         self.assertEqual(self.__digital_input_params['kwargs']['address'].upper(), 'D1')
+
+    def test_digital_input_multiple(self):
+        """
+0000   21 21 30 38 2F 30 31 30    !!08/010
+0008   37 38 38 30 37 61 30 66    78807a0f
+0010   65 0D 0A 21 21 30 38 2F    e..!!08/
+0018   30 31 30 37 38 38 30 37    01078807
+0020   34 30 30 31 0D 0A 21 21    4001..!!
+0028   30 38 2F 30 31 30 37 38    08/01078
+0030   38 30 37 34 31 30 30 0D    8074100.
+0038   0A                         .
+
+"""
+        # What will be written / what should we get back
+        self.ms.add_response({'##%1d\r': '!!07/01083237a0fe\r\n!!07/01083237a0fe\r\n'})
+
+        # Register delegate
+        self.sg.onCommand(callback=self._digital_input_callback, address='D1')
+        # resend EchoMode to trigger response
+        self.sg.echoMode()
+        time.sleep(3)
+        self.assertEqual(self.__digital_input_params['kwargs']['address'].upper(), 'D1')
+
 
     def _digital_input_callback(self, *args, **kwargs):
         self.__digital_input_params = {'args': args, 'kwargs': kwargs}
