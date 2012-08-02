@@ -1,3 +1,5 @@
+import select
+
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
 
 upb_serial = Serial('/dev/ttyMI0', 4800)
