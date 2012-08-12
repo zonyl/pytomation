@@ -42,10 +42,11 @@ class Stargate(HAInterface):
 
     def __init__(self, interface):
         super(Stargate, self).__init__(interface)
-        self._last_input_map = 0
-        
+        self._last_input_map_low = 0
+        self._last_input_map_high = 0
+
         self._modemRegisters = ""
-        
+
         self._modemCommands = {
 
                                }
@@ -73,19 +74,29 @@ class Stargate(HAInterface):
 
     def _processDigitalInput(self, response, lastPacketHash):
         offset = 0
+        last_input_map = self._last_input_map_low
+
+        if response[-1] == 'f':
+            a=1
         range = self._decode_echo_mode_activity(response)['j']
         io_map = Conversions.ascii_to_int( Conversions.hex_to_ascii(
                 self._decode_echo_mode_activity(response)['l'] + \
                 self._decode_echo_mode_activity(response)['m']
                 ))
-        if range == 'c':
+
+        if range == 'c': # High side of 16bit registers
             offset = 8
+            last_input_map = self._last_input_map_high 
 
         for i in xrange(7):
-            if self._last_input_map & (2**i) != io_map & (2**i):
-                self._onCommand(command=io_map & (2**i), address='D' + str(offset + i))
+            if last_input_map & (2 ** i) != io_map & (2 ** i):
+                self._onCommand(command=not bool(io_map & (2 ** i) == 0),
+                                address='D' + str(offset + i + 1))
 
-        self._last_input_map = io_map
+        if range == 'c': # High side of 16bit registers
+            self._last_input_map_high = io_map
+        else:
+            self._last_input_map_low = io_map
 
     def _decode_echo_mode_activity(self, activity):
         decoded = {}

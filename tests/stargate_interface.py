@@ -34,8 +34,13 @@ class StargateInterfaceTests(TestCase):
         digital input #1 OFF
         !!07/01083239a0ff
         """
+        """
+0000   21 21 30 38 2F 30 31 30    !!08/010
+0008   38 31 39 33 30 61 30 66    81930a0f
+0010   65                         e
+"""
         # What will be written / what should we get back
-        self.ms.add_response({'##%1d\r': '!!07/01083237a0fe\r\n'})
+        self.ms.add_response({'##%1d\r': '!!07/01083237a001\r\n'})
 
         # Register delegate
         self.sg.onCommand(callback=self._digital_input_callback, address='D1')
@@ -57,7 +62,7 @@ class StargateInterfaceTests(TestCase):
 
 """
         # What will be written / what should we get back
-        self.ms.add_response({'##%1d\r': '!!07/01083237a0fe\r\n!!07/01083237a0fe\r\n'})
+        self.ms.add_response({'##%1d\r': '!!07/01083237a001\r\n!!07/01083237a000\r\n'})
 
         # Register delegate
         self.sg.onCommand(callback=self._digital_input_callback, address='D1')
@@ -68,6 +73,7 @@ class StargateInterfaceTests(TestCase):
 
 
     def _digital_input_callback(self, *args, **kwargs):
+        print "Args:" + str(args) + " Kwargs:" + str(kwargs)
         self.__digital_input_params = {'args': args, 'kwargs': kwargs}
 
         #response = self.sg.get_register(2, 2)

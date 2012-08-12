@@ -84,6 +84,7 @@ class HAInterface(AsynchronousInterface):
                                    'callback': callback,
                                    })
     def _onCommand(self, command=None, address=None):
+        print "Received Command:" + str(address) + ":" + str(command)
         for commandDelegate in self._commandDelegates:
             if commandDelegate['address'] == None or \
                 commandDelegate['address'] == address:
