@@ -68,7 +68,7 @@ class StargateInterfaceTests(TestCase):
         self.sg.onCommand(callback=self._digital_input_callback, address='D1')
         # resend EchoMode to trigger response
         self.sg.echoMode()
-        time.sleep(3)
+        time.sleep(1.5)
         self.assertEqual(self.__digital_input_params['kwargs']['address'].upper(), 'D1')
 
 

@@ -57,7 +57,7 @@ class HAInterface(AsynchronousInterface):
 
         self._interface = interface
         self._commandDelegates = []
-        
+
     def shutdown(self):
         if self._interfaceRunningEvent.isSet():
             self._shutdownEvent.set()
