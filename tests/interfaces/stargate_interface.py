@@ -3,7 +3,8 @@ import time
 
 from unittest import TestCase, main
 
-from pytomation.interfaces import Stargate, Serial, HACommand, MockInterface
+from tests.common import MockInterface
+from pytomation.interfaces import Stargate, Serial, HACommand
 
 
 class StargateInterfaceTests(TestCase):

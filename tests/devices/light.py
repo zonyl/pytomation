@@ -2,18 +2,18 @@
 from unittest import TestCase, main
 
 from tests.common import MockInterface
-from pytomation.devices import Door
+from pytomation.devices import Light
 
 
-class DoorTests(TestCase):
+class LightTests(TestCase):
 
     def setUp(self):
         self.interface = MockInterface()
-        self.device = Door(interface=self.interface, address='D1')
+        self.device = Light(interface=self.interface, address='D1')
 
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
-                             'Door Device could not be instantiated')
+                             'Light Device could not be instantiated')
 
     def test_on(self):
         self.assertEqual(self.device.state, self.device.UNKNOWN)

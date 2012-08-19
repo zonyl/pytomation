@@ -2,7 +2,8 @@ import select
 
 from unittest import TestCase, main
 
-from pytomation.interfaces import UPB, Serial, HACommand, MockInterface
+from tests.common import MockInterface
+from pytomation.interfaces import UPB, Serial, HACommand
 
 
 class UPBInterfaceTests(TestCase):
