@@ -1,24 +1,24 @@
-
 from unittest import TestCase, main
 from mock import Mock
 
-from pytomation.devices import Light
+from pytomation.devices import HADevice
 
-
-class LightTests(TestCase):
-
+class HADevice_Tests(TestCase):
+    
     def setUp(self):
         self.interface = Mock()
-        self.device = Light(interface=self.interface, address='D1')
-
+        self.device = HADevice(interface=self.interface, address='D1')
+        
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
-                             'Light Device could not be instantiated')
+                             'HADevice could not be instantiated')
 
     def test_on(self):
         self.assertEqual(self.device.state, self.device.UNKNOWN)
         self.device.on()
         self.assertEqual(self.device.state, self.device.ON)
-
+        self.interface.on.called_with('D1')
+        
+        
 if __name__ == '__main__':
     main() 
