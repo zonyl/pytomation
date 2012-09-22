@@ -9,6 +9,7 @@ import time
 from datetime import datetime, timedelta
 from threading import Timer, Event
 
+from .repeating_timer import RepeatingTimer
 
 # Some utility classes / functions first
 class AllMatch(set):
@@ -31,9 +32,9 @@ class CronTimer(object):
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.running = False
-        self.timer = Timer(self.FREQUENCY, self._check_for_event, ())
-        self.is_stopped = Event()
+
+        self.timer = RepeatingTimer(self.FREQUENCY)
+        self.timer.action(self._check_for_event)
 
     def interval(self, secs=allMatch, min=allMatch, hour=allMatch,
                        day=allMatch, month=allMatch, dow=allMatch):
@@ -48,19 +49,11 @@ class CronTimer(object):
         self.action = action
         self.action_args = action_args
 
-    def run(self):
-        self._run()
-
-    def _run(self):
-#        self.timer.run()
-        self.is_stopped.clear()
+    def start(self):
         self.timer.start()
 
-    def start(self):
-        self._run()
-
     def stop(self):
-        self.is_stopped.set()
+        self.timer.stop()
 
     def matchtime(self, t):
         """Return True if this event should trigger at the specified datetime"""
@@ -71,13 +64,9 @@ class CronTimer(object):
                 (t.month      in self.months) and
                 (t.weekday()  in self.dow))
 
-    def _check_for_event(self):
-        while True:
-            self.is_stopped.wait(self.FREQUENCY)
-            if self.is_stopped.isSet():
-                break
-            t = datetime(*datetime.now().timetuple()[:6])
+    def _check_for_event(self, *args, **kwargs):
+        t = datetime(*datetime.now().timetuple()[:6])
 #            print 'Time: ' + str(t) + ":" + str(self.secs)
-            if self.matchtime(t):
+        if self.matchtime(t):
 #                print 'Run action'
-                self.action(*self.args, **self.kwargs)
+            self.action(*self.args, **self.kwargs)

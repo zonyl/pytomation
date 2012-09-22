@@ -17,7 +17,7 @@ class CronTimerTests(TestCase):
         t += 2
         self.ct.interval(secs=t)
         self.ct.action(self.callback, ())
-        self.ct.run()
+        self.ct.start()
         time.sleep(3)
         self.ct.stop()
         self.assertEqual(self.called, True, "Callback was not called")
@@ -27,7 +27,7 @@ class CronTimerTests(TestCase):
         t = datetime.now().timetuple()[5]
         self.ct.interval(secs=(t + 2 % 60, t + 4 % 60))
         self.ct.action(self.callback, ())
-        self.ct.run()
+        self.ct.start()
         time.sleep(3)
         self.assertEqual(self.called, True, "Callback was not called - 1st iteration")
         self.called = False
