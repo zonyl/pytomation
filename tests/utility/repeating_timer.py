@@ -12,7 +12,6 @@ class RepeatingTimerTests(TestCase):
 
     def test_no_sec_callback(self):
         rt = RepeatingTimer()
-        self.called = False
         rt.interval = 60
         rt.action(self.callback, ())
         rt.start()
@@ -22,7 +21,6 @@ class RepeatingTimerTests(TestCase):
 
     def test_1_sec_callback(self):
         rt = RepeatingTimer()
-        self.called = False
         rt.interval = 1
         rt.action(self.callback, ())
         rt.start()
