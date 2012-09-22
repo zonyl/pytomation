@@ -11,18 +11,29 @@ class CronTimerTests(TestCase):
         self.called = False
         self.ct = CronTimer()
 
-    def test_callback(self):
-        datetime.now()
-        t = datetime(*datetime.now().timetuple()[:6])
-        self.ct.interval(secs=2)
+    def test_2_sec_callback(self):
+        self.called = False
+        t = datetime.now().timetuple()[5]
+        t += 2
+        self.ct.interval(secs=t)
         self.ct.action(self.callback, ())
         self.ct.run()
         time.sleep(3)
+        self.ct.stop()
         self.assertEqual(self.called, True, "Callback was not called")
 
     def test_2_sec_intervals(self):
-#        self.ct.interval(secs=2,)
-        pass
+        self.called = False
+        t = datetime.now().timetuple()[5]
+        self.ct.interval(secs=(t + 2 % 60, t + 4 % 60))
+        self.ct.action(self.callback, ())
+        self.ct.run()
+        time.sleep(3)
+        self.assertEqual(self.called, True, "Callback was not called - 1st iteration")
+        self.called = False
+        time.sleep(3)
+        self.assertEqual(self.called, True, "Callback was not called - 2nd iteration")
+        self.ct.stop()
 
     def callback(self):
         self.called = True
