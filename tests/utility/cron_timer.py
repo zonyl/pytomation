@@ -35,6 +35,43 @@ class CronTimerTests(TestCase):
         self.assertEqual(self.called, True, "Callback was not called - 2nd iteration")
         self.ct.stop()
 
+    def test_datetime_to_cron(self):
+        cron = CronTimer.to_cron('5:34pm')
+        self.assertEqual(cron[0], 0)
+        self.assertEqual(cron[1], 34)
+        self.assertEqual(cron[2], 17)
+        self.assertEqual(cron[4], None)
+
+        cron = CronTimer.to_cron('6:52 pm')
+        self.assertEqual(cron[0], 0)
+        self.assertEqual(cron[1], 52)
+        self.assertEqual(cron[2], 18)
+        self.assertEqual(cron[4], None)
+
+        cron = CronTimer.to_cron('5:13 AM')
+        self.assertEqual(cron[0], 0)
+        self.assertEqual(cron[1], 13)
+        self.assertEqual(cron[2], 5)
+        self.assertEqual(cron[4], None)
+
+        cron = CronTimer.to_cron('5:13:34 AM')
+        self.assertEqual(cron[0], 34)
+        self.assertEqual(cron[1], 13)
+        self.assertEqual(cron[2], 5)
+        self.assertEqual(cron[4], None)
+
+        cron = CronTimer.to_cron('3:14')
+        self.assertEqual(cron[0], 0)
+        self.assertEqual(cron[1], 14)
+        self.assertEqual(cron[2], 3)
+        self.assertEqual(cron[4], None)
+
+        cron = CronTimer.to_cron('18:42')
+        self.assertEqual(cron[0], 0)
+        self.assertEqual(cron[1], 42)
+        self.assertEqual(cron[2], 18)
+        self.assertEqual(cron[4], None)
+
     def callback(self):
         self.called = True
 

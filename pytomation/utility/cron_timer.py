@@ -70,3 +70,51 @@ class CronTimer(object):
         if self.matchtime(t):
 #                print 'Run action'
             self.action(*self.args, **self.kwargs)
+
+    @staticmethod
+    def to_cron(string):
+        date_object = None
+        try: # Hours / Minutes
+            try:
+                date_object = datetime.strptime(string, '%I:%M%p')
+            except:
+                try:
+                    date_object = datetime.strptime(string, '%I:%M %p')
+                except:
+                        date_object = datetime.strptime(string, '%H:%M')
+            return (
+                    0,
+                    date_object.minute,
+                    date_object.hour,
+                    None,
+                    None,
+                    None,
+                    )
+#            td = timedelta(
+#                           years=0,
+#                           months=0,
+#                           days=0,
+#                           hours=date_object.hour, 
+#                           minutes=date_object.minute,
+#                           seconds=0)
+        except Exception, e:
+            try: # Hours / Minutes / Seconds
+                try:
+                    date_object = datetime.strptime(string, '%I:%M:%S%p')
+                except:
+                    try:
+                        date_object = datetime.strptime(string, '%I:%M:%S %p')
+                    except:
+                        date_object = datetime.strptime(string, '%H:%M:%S')
+                return (
+                    date_object.second,
+                    date_object.minute,
+                    date_object.hour,
+                    None,
+                    None,
+                    None,
+                    )
+            except:
+                pass
+#        date_object = datetime.strptime(string, '%b %d %Y %I:%M%p')
+        return None
