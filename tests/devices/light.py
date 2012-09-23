@@ -1,4 +1,4 @@
-
+from datetime import datetime
 from unittest import TestCase, main
 from mock import Mock
 
@@ -19,6 +19,10 @@ class LightTests(TestCase):
         self.assertEqual(self.device.state, self.device.UNKNOWN)
         self.device.on()
         self.assertEqual(self.device.state, self.device.ON)
+        self.assertTrue(self.interface.on.called)
+
+    def test_on_time(self):
+        pass
 
 if __name__ == '__main__':
     main() 
