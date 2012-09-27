@@ -7,9 +7,11 @@ Supports the following interfaces:
 - Insteon / X10 (2412N, 2412S)
 - UPB (Universal Powerline Bus) (Serial PIM)
 - JDS Stargate (RS232 / RS485)
+- Weeder Digital I/O board (Wtdio/RS232)
 
 Future:
 - Z-Wave (Aeon Labs) DSA02203-ZWUS
+
 
 EXAMPLE OF USE: 
 --------------- example_insteon_use.py ---------------------------
@@ -78,4 +80,37 @@ sg.onCommand(callback=on_digital_input, address='D1')
 sg.shutdown()
 ------------------------------------------------------------
 
+---------------- example_wtdio_use.py -----------------------------
+from pytomation.interfaces import WTDIO, Serial 
 
+def on_digital_input(command=None, address=None):
+    print "Weeder Digital Input Board " + address[0] + " Channel " + address[1] + " -> " + command
+
+serial = Serial('/dev/ttyS0', 9600)
+wtdio = WTDIO(serial)
+wtdio.start()
+
+# Set the I/O channels on the WTDIO board according to the command set
+# S = Switch, L = Output default low
+#
+# Inputs are set according to the wtdio manual by sending the board 
+# data in the following sequence.  BOARD TYPE CHANNEL
+# Example:  Board 'A', Type SWITCH, Channel D  - 'ASD'
+# Currently only SWITCH inputs are handled.
+#
+# Outputs are set as follows: BOARD LEVEL CHANNEL
+# Example:  Board 'A', Level LOW, Channel 'M', - 'ALM'
+#
+wtdio.setChannel('ASA') #Channel A is input
+wtdio.setChannel('ASB') #   "    B  "   "
+wtdio.setChannel('ALM') #   "    M  " output
+wtdio.setChannel('ALN') #   "    N  "   "
+
+# Listen for changes on Digital Inputs on wtdio
+wtdio.onCommand(callback=on_digital_input)
+# Set outputs 
+resp = wtdio.on(board='A', channel='M')
+
+# Code is done, we no longer need the interface
+wtdio.shutdown()
+------------------------------------------------------------
