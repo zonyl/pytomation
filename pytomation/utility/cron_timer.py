@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timedelta
 from threading import Timer, Event
 
-from .repeating_timer import RepeatingTimer
+from .periodic_timer import PeriodicTimer
 
 # Some utility classes / functions first
 class AllMatch(set):
@@ -33,7 +33,7 @@ class CronTimer(object):
         self.args = args
         self.kwargs = kwargs
 
-        self.timer = RepeatingTimer(self.FREQUENCY)
+        self.timer = PeriodicTimer(self.FREQUENCY)
         self.timer.action(self._check_for_event)
 
     def interval(self, secs=allMatch, min=allMatch, hour=allMatch,

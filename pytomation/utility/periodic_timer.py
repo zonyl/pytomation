@@ -4,7 +4,7 @@ from threading import Timer, Event
 
 
 # The actual Event class
-class RepeatingTimer(object):
+class PeriodicTimer(object):
 
     def __init__(self, frequency=60, *args, **kwargs):
         self.is_stopped = Event()
