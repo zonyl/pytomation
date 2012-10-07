@@ -1,7 +1,18 @@
+"""
+HA Device:
 
+Delegates:
+    device.on_off(callback_for_off)
+
+    callback_for_off is passed three args: state, previous_state, and source object
+    
+    * For any state callback use: device.on_any(callback_for_any_state)
+"""
 
 class HADevice(object):
     STATES = ['on','off','unknown']
+    DELEGATE_PREFIX = 'on_'
+    ANY_STATE = 'any'
 
     _state = None
     _delegates = {}
@@ -28,8 +39,8 @@ class HADevice(object):
                 return name.lower()
             else:
                 return lambda: self._set_state(name)
-        elif name[0:3] == 'on_':
-            return lambda x: self._add_delegate(name[3:len(name)], x)
+        elif name[0:len(self.DELEGATE_PREFIX)] == self.DELEGATE_PREFIX:
+            return lambda x: self._add_delegate(name[len(self.DELEGATE_PREFIX):len(name)], x)
         raise AttributeError
 
     def __setattr__(self, name, value):
@@ -55,7 +66,9 @@ class HADevice(object):
         return True
     
     def _delegate(self, name):
-        delegate_list = self._delegates.get(name, None)
+        delegate_list = self._delegates.get(name, [])
+        any_delegate_list = self._delegates.get(self.ANY_STATE, [])
+        delegate_list += any_delegate_list
         if delegate_list:
             for delegate in delegate_list:
                 delegate(state=name, previous_state=self._prev_state, source=self)
