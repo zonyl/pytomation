@@ -66,11 +66,14 @@ class CronTimer(object):
 
     def _check_for_event(self, *args, **kwargs):
         t = datetime(*datetime.now().timetuple()[:6])
-#            print 'Time: ' + str(t) + ":" + str(self.secs)
+#        print 'Time: ' + str(t) + ":" + str(self.secs)
         if self.matchtime(t):
-#                print 'Run action'
-            self.action(*self.args, **self.kwargs)
-
+#            print 'Run action'
+            if len(self.action_args) > 0:
+                self.action(self.action_args)
+            else:
+                self.action()
+                
     @staticmethod
     def to_cron(string):
         date_object = None
@@ -86,9 +89,9 @@ class CronTimer(object):
                     0,
                     date_object.minute,
                     date_object.hour,
-                    None,
-                    None,
-                    None,
+                    allMatch,
+                    allMatch,
+                    allMatch,
                     )
 #            td = timedelta(
 #                           years=0,
@@ -110,9 +113,9 @@ class CronTimer(object):
                     date_object.second,
                     date_object.minute,
                     date_object.hour,
-                    None,
-                    None,
-                    None,
+                    allMatch,
+                    allMatch,
+                    allMatch,
                     )
             except:
                 pass

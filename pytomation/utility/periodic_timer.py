@@ -12,6 +12,7 @@ class PeriodicTimer(object):
 
         self.interval = frequency
         self.timer = Timer(self.frequency, self._check_for_event, ())
+        self.timer.daemon = True
 
     @property
     def interval(self):
@@ -40,5 +41,8 @@ class PeriodicTimer(object):
         while not self.is_stopped.isSet():
             if self.is_stopped.isSet():
                 break
-            self.action(*self.action_args, **self.action_kwargs)
+            if self.action:
+                self.action(*self.action_args, **self.action_kwargs)
+            else:
+                self.stop()
             self.is_stopped.wait(self.frequency)
