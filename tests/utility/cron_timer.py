@@ -18,7 +18,7 @@ class CronTimerTests(TestCase):
         self.ct.interval(secs=t)
         self.ct.action(self.callback, ())
         self.ct.start()
-        time.sleep(3)
+        time.sleep(4)
         self.ct.stop()
         self.assertEqual(self.called, True, "Callback was not called")
 

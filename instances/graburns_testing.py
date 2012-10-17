@@ -3,18 +3,19 @@ import select
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
 
 ###################### INTERFACE CONFIG #########################
-upb = UPB(Serial('/dev/ttyMI0', 4800))
+upb_serial = Serial('/dev/ttyMI0', 4800)
+upb = UPB(upb_serial)
 upb.start()
 
-insteon = InsteonPLM(TCP('192.168.13.146', 9761))
+tcp = TCP('192.168.13.146', 9761)
+insteon = InsteonPLM(tcp)
 insteon.start()
 
-sg = Stargate(Serial('/dev/ttyMI2', 9600))
+sg_serial = Serial('/dev/ttyMI2', 9600)
+sg = Stargate(sg_serial)
 sg.start()
 
 ###################### DEVICE CONFIG #########################
-
-
 # Turn on Light - Address 19.05.7b
 response = insteon.on('19.05.7b')
 

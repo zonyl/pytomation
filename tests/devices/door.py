@@ -15,5 +15,6 @@ class DoorTests(TestCase):
         self.assertIsNotNone(self.device,
                              'Door Device could not be instantiated')
 
+
 if __name__ == '__main__':
     main() 

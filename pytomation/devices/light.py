@@ -1,5 +1,5 @@
-from .ha_device import HADevice
+from .interface import InterfaceDevice
 
 
-class Light(HADevice):
+class Light(InterfaceDevice):
     pass

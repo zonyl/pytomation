@@ -1,3 +1,6 @@
-from .ha_device import *
+from .state import *
+from .interface import *
 from .door import *
 from .light import *
+from .location import *
+

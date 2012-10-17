@@ -1,5 +1,5 @@
 """
-HA Device:
+State Device
 
 Delegates:
     device.on_off(callback_for_off)
@@ -10,7 +10,7 @@ Delegates:
 """
 from pytomation.utility import CronTimer
 
-class HADevice(object):
+class StateDevice(object):
     STATES = ['on','off','unknown']
     DELEGATE_PREFIX = 'on_'
     TIME_PREFIX = 'time_'
@@ -20,9 +20,7 @@ class HADevice(object):
     _delegates = {}
     _times = {}
 
-    def __init__(self, interface=None, address=None):
-        self.interface = interface
-        self.address = address
+    def __init__(self):
         self._state = 'unknown'
         self._prev_state = 'unknown'
 
@@ -50,13 +48,11 @@ class HADevice(object):
 
     def __setattr__(self, name, value):
         if name in self.STATES:
-            self.interface.command.setattr(name, value)
             self._state = name
         else:
-            super(HADevice, self).__setattr__(name, value)
+            super(StateDevice, self).__setattr__(name, value)
 
     def _set_state(self, state):
-        getattr(self.interface, state)(self.address)
         self._state = state
         self._delegate(state)
         self._prev_state = self._state
