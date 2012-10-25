@@ -10,19 +10,32 @@ Delegates:
 """
 from pytomation.utility import CronTimer
 
+
+class State(object):
+    UNKNOWN = 'unknown'
+    ON = 'on'
+    OFF = 'off'
+    LIGHT = 'light'
+    DARK = 'dark'
+    MOTION = 'motion'
+    STILL = 'still'
+    PRESENCE = 'presence'
+    VACANT = 'vacant'
+
 class StateDevice(object):
-    STATES = ['on','off','unknown']
+    STATES = [State.ON, State.OFF, State.UNKNOWN]
     DELEGATE_PREFIX = 'on_'
     TIME_PREFIX = 'time_'
     ANY_STATE = 'any'
 
-    _state = None
+    _state = State.UNKNOWN
+    _prev_state = State.UNKNOWN
     _delegates = {}
     _times = {}
 
     def __init__(self):
-        self._state = 'unknown'
-        self._prev_state = 'unknown'
+        self._state = State.UNKNOWN
+        self._prev_state = State.UNKNOWN
 
     @property
     def state(self):
