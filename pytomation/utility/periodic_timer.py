@@ -26,13 +26,14 @@ class PeriodicTimer(object):
         return self.frequency
 
     def action(self, action, *action_args, **kwargs):
-        self.action = action
-        self.action_args = action_args
-        self.action_kwargs = kwargs
+        self._action = action
+        self._action_args = action_args
+        self._action_kwargs = kwargs
 
     def start(self):
         self.is_stopped.clear()
-        self.timer.start()
+        if not self.timer.isAlive():
+            self.timer.start()
 
     def stop(self):
         self.is_stopped.set()
@@ -41,8 +42,8 @@ class PeriodicTimer(object):
         while not self.is_stopped.isSet():
             if self.is_stopped.isSet():
                 break
-            if self.action:
-                self.action(*self.action_args, **self.action_kwargs)
+            if self._action:
+                self._action(*self._action_args, **self._action_kwargs)
             else:
                 self.stop()
             self.is_stopped.wait(self.frequency)
