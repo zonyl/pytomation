@@ -45,9 +45,9 @@ class CronTimer(object):
         self.months = conv_to_set(month)
         self.dow = conv_to_set(dow)
 
-    def action(self, action, action_args):
-        self.action = action
-        self.action_args = action_args
+    def action(self, action, action_args=()):
+        self._action = action
+        self._action_args = action_args
 
     def start(self):
         self.timer.start()
@@ -69,10 +69,10 @@ class CronTimer(object):
 #        print 'Time: ' + str(t) + ":" + str(self.secs)
         if self.matchtime(t):
 #            print 'Run action'
-            if len(self.action_args) > 0:
-                self.action(self.action_args)
+            if len(self._action_args) > 0:
+                self._action(self._action_args)
             else:
-                self.action()
+                self._action()
                 
     @staticmethod
     def to_cron(string):
