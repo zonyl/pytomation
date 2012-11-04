@@ -57,13 +57,15 @@ class StateDevice(object):
             return lambda x: self._add_delegate(name[len(self.DELEGATE_PREFIX):len(name)], x)
         elif name[0:len(self.TIME_PREFIX)] == self.TIME_PREFIX:
             return lambda x: self._add_time(name[len(self.TIME_PREFIX):len(name)], x)
-        raise AttributeError
+#        else:
+#            return super(StateDevice, self).__getattr__(self)
+#        raise AttributeError
 
-    def __setattr__(self, name, value):
-        if name in self.STATES:
-            self._state = name
-        else:
-            super(StateDevice, self).__setattr__(name, value)
+#    def __setattr__(self, name, value):
+#        if name in self.STATES:
+#            self._state = name
+#        else:
+#            return super(StateDevice, self).__setattr__(name, value)
 
     def _set_state(self, state):
         self._state = state
