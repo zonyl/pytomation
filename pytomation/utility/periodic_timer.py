@@ -46,4 +46,8 @@ class PeriodicTimer(object):
                 self._action(*self._action_args, **self._action_kwargs)
             else:
                 self.stop()
-            self.is_stopped.wait(self.frequency)
+            # Handle not so graceful shutdown
+            try:
+                self.is_stopped.wait(self.frequency)
+            except:
+                pass

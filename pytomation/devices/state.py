@@ -21,6 +21,8 @@ class State(object):
     STILL = 'still'
     PRESENCE = 'presence'
     VACANT = 'vacant'
+    OPEN = 'open'
+    CLOSED = 'closed'
 
 class StateDevice(object):
     STATES = [State.ON, State.OFF, State.UNKNOWN]
@@ -28,14 +30,13 @@ class StateDevice(object):
     TIME_PREFIX = 'time_'
     ANY_STATE = 'any'
 
-    _state = State.UNKNOWN
-    _prev_state = State.UNKNOWN
-    _delegates = {}
-    _times = {}
 
-    def __init__(self):
+    def __init__(self, *devices):
         self._state = State.UNKNOWN
         self._prev_state = State.UNKNOWN
+        self._delegates = {}
+        self._times = {}
+        self._bind_devices(devices)
 
     @property
     def state(self):
@@ -52,7 +53,7 @@ class StateDevice(object):
             if name == name.upper():
                 return name.lower()
             else:
-                return lambda: self._set_state(name)
+                return lambda x=None, y=None: self._set_state(name, x, y)
         elif name[0:len(self.DELEGATE_PREFIX)] == self.DELEGATE_PREFIX:
             return lambda x: self._add_delegate(name[len(self.DELEGATE_PREFIX):len(name)], x)
         elif name[0:len(self.TIME_PREFIX)] == self.TIME_PREFIX:
@@ -67,7 +68,7 @@ class StateDevice(object):
 #        else:
 #            return super(StateDevice, self).__setattr__(name, value)
 
-    def _set_state(self, state):
+    def _set_state(self, state, previous_state=None, source=None):
         self._state = state
         self._delegate(state)
         self._prev_state = self._state
@@ -104,4 +105,18 @@ class StateDevice(object):
         if delegate_list:
             for delegate in delegate_list:
                 delegate(state=state, previous_state=self._prev_state, source=self)
-                
+
+    def _bind_devices(self, devices):
+        for device in devices:
+            try:
+                device._add_delegate(self.ANY_STATE, self._set_state)
+            except Exception, ex:
+                pass
+#            for state in self.STATES:
+#                try:
+##                    device._set_state(state)
+##                    getattr(device, self.DELEGATE_PREFIX + state )(getattr(self, state))
+#                    device._add_delegate(state, self._set_state)
+#                except Exception, ex:
+#                    pass
+        return True

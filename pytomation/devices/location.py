@@ -14,8 +14,6 @@ class Location(StateDevice):
         CIVIL = -6
         NAUTICAL = -12
         ASTRONOMICAL = -18
-        
-    _mode = MODE.STANDARD
     
     def __init__(self, latitude, longitude, tz='US/Eastern', mode=MODE.STANDARD, is_dst=True):
         self.obs = ephem.Observer()
@@ -25,7 +23,6 @@ class Location(StateDevice):
         self.is_dst = is_dst
 
         self.sun = ephem.Sun(self.obs)
-#        self.sun = ephem.Sun()
         self._horizon = mode
         
         self._sunset_timer = CronTimer()

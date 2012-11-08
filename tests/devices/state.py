@@ -38,8 +38,16 @@ class StateDevice_Tests(TestCase):
                                              s=secs,
                                                  )
         self.device.time_on(trigger_time)
-        time.sleep(3)
+        time.sleep(4)
         self.assertEqual(self.device.state, self.device.ON)
+
+    def test_bind_devices(self):
+        s2 = StateDevice(self.device)
+        self.device.on()
+        self.assertIsNotNone(s2)
+
+    def tearDown(self):
+        self.device = None
 
 if __name__ == '__main__':
     main() 

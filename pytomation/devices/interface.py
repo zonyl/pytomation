@@ -6,14 +6,11 @@ from pytomation.utility import CronTimer
 
 
 class InterfaceDevice(StateDevice):
-    DELEGATE_PREFIX = 'on_'
-    TIME_PREFIX = 'time_'
-    ANY_STATE = 'any'
-
-    def __init__(self, interface=None, address=None):
-        self.interface = interface
+    
+    def __init__(self, address=None, *devices):
+        self._devices = []
         self.address = address
-        super(InterfaceDevice, self).__init__()
+        super(InterfaceDevice, self).__init__(*devices)
 
     def __setattr__(self, name, value):
         if name in self.STATES:
@@ -23,3 +20,16 @@ class InterfaceDevice(StateDevice):
     def _set_state(self, state):
         getattr(self.interface, state)(self.address)
         return super(InterfaceDevice, self)._set_state(state)
+    
+    def _on_command(self, address, state):
+        if address == self.address:
+            return super(InterfaceDevice, self)._set_state(state)
+
+    def _bind_devices(self, devices):
+        for device in devices:
+            # bind any interfaces
+            try:
+                device.onCommand(address=self.address, callback=self._on_command)
+            except Exception, ex:
+                pass
+        return super(InterfaceDevice, self)._bind_devices(devices)

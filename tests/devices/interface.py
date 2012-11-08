@@ -5,7 +5,7 @@ from datetime import datetime
 
 from pytomation.devices import InterfaceDevice
 
-class HADevice_Tests(TestCase):
+class InterfaceDevice_Tests(TestCase):
     
     def setUp(self):
         self.interface = Mock()
