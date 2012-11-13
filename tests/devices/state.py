@@ -46,6 +46,15 @@ class StateDevice_Tests(TestCase):
         self.device.on()
         self.assertIsNotNone(s2)
 
+    def test_invalid_state(self):
+        try:
+            self.device.invalid_state()
+        except AttributeError, ex:
+            return
+        except:
+            pass
+        self.fail('Attribute Exception not raised')
+
     def tearDown(self):
         self.device = None
 

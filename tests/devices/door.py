@@ -6,10 +6,10 @@ from pytomation.devices import Door
 
 
 class DoorTests(TestCase):
-
+    
     def setUp(self):
         self.interface = Mock()
-        self.device = Door(interface=self.interface, address='D1')
+        self.device = Door('D1', self.interface)
 
     def test_instantiation(self):
         self.assertIsNotNone(self.device,

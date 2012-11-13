@@ -60,7 +60,7 @@ class StateDevice(object):
             return lambda x: self._add_time(name[len(self.TIME_PREFIX):len(name)], x)
 #        else:
 #            return super(StateDevice, self).__getattr__(self)
-#        raise AttributeError
+        raise AttributeError
 
 #    def __setattr__(self, name, value):
 #        if name in self.STATES:

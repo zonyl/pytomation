@@ -10,6 +10,7 @@ class InterfaceDevice(StateDevice):
     def __init__(self, address=None, *devices):
         self._devices = []
         self.address = address
+        self.interface = None
         super(InterfaceDevice, self).__init__(*devices)
 
     def __setattr__(self, name, value):
@@ -17,10 +18,11 @@ class InterfaceDevice(StateDevice):
             self.interface.command.setattr(name, value)
         super(InterfaceDevice, self).__setattr__(name, value)
 
-    def _set_state(self, state):
-        getattr(self.interface, state)(self.address)
+    def _set_state(self, state, previous_state=None, source=None):
+        if self.interface:
+            getattr(self.interface, state)(self.address)
         return super(InterfaceDevice, self)._set_state(state)
-    
+
     def _on_command(self, address, state):
         if address == self.address:
             return super(InterfaceDevice, self)._set_state(state)
@@ -30,6 +32,7 @@ class InterfaceDevice(StateDevice):
             # bind any interfaces
             try:
                 device.onCommand(address=self.address, callback=self._on_command)
+                self.interface = device
             except Exception, ex:
                 pass
         return super(InterfaceDevice, self)._bind_devices(devices)
