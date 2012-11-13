@@ -9,7 +9,7 @@ class InterfaceDevice_Tests(TestCase):
     
     def setUp(self):
         self.interface = Mock()
-        self.device = InterfaceDevice(interface=self.interface, address='D1')
+        self.device = InterfaceDevice('D1', self.interface)
         
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
