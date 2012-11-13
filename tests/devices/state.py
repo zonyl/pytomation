@@ -3,7 +3,7 @@ from unittest import TestCase, main
 from mock import Mock
 from datetime import datetime
 
-from pytomation.devices import StateDevice
+from pytomation.devices import StateDevice, State
 
 class StateDevice_Tests(TestCase):
     
@@ -37,6 +37,7 @@ class StateDevice_Tests(TestCase):
                                              m=mins,
                                              s=secs,
                                                  )
+        print 'Trigger Time' + trigger_time
         self.device.time_on(trigger_time)
         time.sleep(4)
         self.assertEqual(self.device.state, self.device.ON)
@@ -55,6 +56,14 @@ class StateDevice_Tests(TestCase):
             pass
         self.fail('Attribute Exception not raised')
 
+    def test_delay_off(self):
+        # After state change, return to off in 2 secs
+        self.device.delay_off(2)
+        self.device.on()
+        self.assertEqual(self.device.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(self.device.state, State.OFF)
+    
     def tearDown(self):
         self.device = None
 

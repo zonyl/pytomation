@@ -9,7 +9,7 @@ Delegates:
     * For any state callback use: device.on_any(callback_for_any_state)
 """
 from pytomation.utility import CronTimer
-
+from threading import Timer
 
 class State(object):
     UNKNOWN = 'unknown'
@@ -28,6 +28,7 @@ class StateDevice(object):
     STATES = [State.ON, State.OFF, State.UNKNOWN]
     DELEGATE_PREFIX = 'on_'
     TIME_PREFIX = 'time_'
+    DELAY_PREFIX = 'delay_'
     ANY_STATE = 'any'
 
 
@@ -36,6 +37,7 @@ class StateDevice(object):
         self._prev_state = State.UNKNOWN
         self._delegates = {}
         self._times = {}
+        self._delays = {}
         self._bind_devices(devices)
 
     @property
@@ -58,6 +60,8 @@ class StateDevice(object):
             return lambda x: self._add_delegate(name[len(self.DELEGATE_PREFIX):len(name)], x)
         elif name[0:len(self.TIME_PREFIX)] == self.TIME_PREFIX:
             return lambda x: self._add_time(name[len(self.TIME_PREFIX):len(name)], x)
+        elif name[0:len(self.DELAY_PREFIX)] == self.DELAY_PREFIX:
+            return lambda x: self._add_delay(name[len(self.DELAY_PREFIX):len(name)], x)
 #        else:
 #            return super(StateDevice, self).__getattr__(self)
         raise AttributeError
@@ -71,6 +75,16 @@ class StateDevice(object):
     def _set_state(self, state, previous_state=None, source=None):
         self._state = state
         self._delegate(state)
+
+        # start any delayed states
+        if source != self:
+            for d_state, secs in self._delays.iteritems():
+                # only if we arent already that state
+                if d_state != state:
+                    timer = Timer(secs, self._set_state, (d_state, self._prev_state, self))
+                    timer.setDaemon(True)
+                    timer.start()
+
         self._prev_state = self._state
         return True
 
@@ -83,7 +97,6 @@ class StateDevice(object):
         return True
     
     def _add_time(self, state, time):
-        
         timer = self._times.get(state, None)
         if timer:
             del timer
@@ -98,6 +111,15 @@ class StateDevice(object):
             timer.start()
             self._times.update({state: timer})
     
+    def _add_delay(self, state, secs):
+        timer = self._delays.get(state, None)
+        if timer:
+            del timer
+        
+        if secs:
+            self._delays.update({state: secs})
+        
+        
     def _delegate(self, state):
         delegate_list = self._delegates.get(state, [])
         any_delegate_list = self._delegates.get(self.ANY_STATE, [])

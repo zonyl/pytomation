@@ -30,6 +30,7 @@ class LightTests(TestCase):
         self.device = Light('D1', self.interface, door)
         door.open()
         self.assertTrue(self.interface.on.called)
+        
 
 if __name__ == '__main__':
     main() 
