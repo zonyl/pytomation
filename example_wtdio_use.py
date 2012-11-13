@@ -1,13 +1,19 @@
 import select
 #import time
-from pytomation.interfaces import WTDIO, Serial 
+#from pytomation.interfaces.config import *
+from pytomation.config import *
+from pytomation.interfaces import WTDIO, Serial
 
 
 def on_digital_input(command=None, address=None):
     print "Weeder Digital Input Board " + address[0] + " Channel " + address[1] + " -> " + command
 
+debug['Wtdio'] = 0
+debug['Serial'] = 0
 serial = Serial('/dev/mh_weeder_port', 9600)
 wtdio = WTDIO(serial)
+
+# If debug is not set we can toggle it back on or off on demand
 wtdio.start()
 
 # Set the I/O channels on the WTDIO board according to the command set
@@ -23,6 +29,7 @@ wtdio.start()
 #
 # I'll change this later to make full use of the weeder boards 
 # capabilities
+
 wtdio.setChannel('ASA')
 wtdio.setChannel('ASB')
 wtdio.setChannel('ASC')
@@ -38,13 +45,16 @@ wtdio.setChannel('ALL')
 wtdio.setChannel('ALM')
 wtdio.setChannel('ALN')
 
-# Listen for changes on Digital Inputs on wtdio
-wtdio.onCommand(callback=on_digital_input)
+# Listen for changes on Digital Inputs on wtdio and respond to the
+# address listed in address='XX' 
+wtdio.onCommand(callback=on_digital_input, address='AC')
+wtdio.onCommand(callback=on_digital_input, address='AE')
+
 # Set outputs 
 #resp = wtdio.on(board='A', channel='I')
 
 # Code is done, we no longer need the interface
 #wtdio.shutdown()
-	
+
 # sit and spin - Let the magic flow
 select.select([],[],[])

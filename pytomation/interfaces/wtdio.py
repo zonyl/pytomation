@@ -33,24 +33,29 @@ I'll change this later to make full use of the weeder boards capabilities
 Author(s):
          George Farris <farrisg@gmsys.com>
          Copyright (c), 2012
-         
+
+         Functions common to Pytomation written by:
+         Jason Sharpee <jason@sharpee.com> 
+
 License:
     This free software is licensed under the terms of the GNU public license, Version 3
 
 Usage:
 
-    see /example_use.py
-
-Example:
-    see /example_use.py
+    see /example_wtdio_use.py
 
 Notes:
     For documentation on the Weeder wtdio please see:
     http://www.weedtech.com/wtdio-m.html
 
     This driver only supports 16 boards at present A-P
+
+Versions and changes:
+    Initial version created on Sept 10 , 2012
+    2012/10/20 - 1.1 - Added version number and acknowledgement of Jasons work
+                     - Added debug to control printing results
+    2012/11/10 - 1.2 - Added debug levels and global debug system
     
-Created on Sept 10 , 2012
 """
 import threading
 import time
@@ -60,16 +65,17 @@ from binascii import unhexlify
 
 from .common import *
 from .ha_interface import HAInterface
+from ..config import *
 
 
 class WTDIO(HAInterface):
+    VERSION = '1.2'
     MODEM_PREFIX = ''
-
+        
     def __init__(self, interface):
         super(WTDIO, self).__init__(interface)
-        
+        self.version()
         self.boardSettings = []
-
         self._modemRegisters = ""
 
         self._modemCommands = {
@@ -79,13 +85,15 @@ class WTDIO(HAInterface):
                                }
 
         self.echoMode()	 #set echo off
+
         		
     def _readModem(self, lastPacketHash):
         #check to see if there is anyting we need to read
         responses = self._interface.read()
         if len(responses) != 0:
             for response in responses.split():
-                print "[WTDIO] Response>\n" + hex_dump(response)
+                if debug['Wtdio'] > 0:
+                    print "[WTDIO] Response>\n" + hex_dump(response)
                        
                 p = re.compile('[A-P][A-N][H,L]')
                 if p.match(response):
@@ -164,3 +172,6 @@ class WTDIO(HAInterface):
     def listBoards(self):
         print self.boardSettings
         
+    def version(self):
+        print 'WTDIO Pytomation driver version ' + self.VERSION
+

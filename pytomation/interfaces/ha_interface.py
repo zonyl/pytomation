@@ -30,16 +30,16 @@ import sys
 from collections import deque
 
 from .common import *
-
+from ..config import *
 
 class HAInterface(AsynchronousInterface):
     "Base protocol interface"
 
     MODEM_PREFIX = '\x02'
-
+    
     def __init__(self, interface):
         super(HAInterface, self).__init__()
-
+        
         self._shutdownEvent = threading.Event()
         self._interfaceRunningEvent = threading.Event()
 
@@ -85,7 +85,8 @@ class HAInterface(AsynchronousInterface):
                                    })
 
     def _onCommand(self, command=None, address=None):
-        print "Received Command:" + str(address) + ":" + str(command)
+        if debug['HAInterface'] > 0:
+            print "[HAInterface] Received Command:" + str(address) + ":" + str(command)
         for commandDelegate in self._commandDelegates:
             if commandDelegate['address'] == None or \
                 commandDelegate['address'] == address:
@@ -132,7 +133,8 @@ class HAInterface(AsynchronousInterface):
                 self._outboundQueue.append(commandHash)
                 self._retryCount[commandHash] = 0
 
-                print "Queued %s" % commandHash
+                if debug['Serial'] > 0:
+                    print "[HAInterface-Serial] Queued %s" % commandHash
 
                 returnValue = {'commandHash': commandHash,
                                'waitEvent': waitEvent}
@@ -161,7 +163,8 @@ class HAInterface(AsynchronousInterface):
             commandExecutionDetails = self._outboundCommandDetails[commandHash]
 
             bytesToSend = commandExecutionDetails['bytesToSend']
-            print "Transmit>\n", hex_dump(bytesToSend, len(bytesToSend)),
+            if debug['Serial'] > 0:
+                print "[HAInterface-Serial] Transmit>\n", hex_dump(bytesToSend, len(bytesToSend)),
 
             self._interface.write(bytesToSend)
 
@@ -176,7 +179,8 @@ class HAInterface(AsynchronousInterface):
         #check to see if there is anyting we need to read
         response = self._interface.read()
         if len(response) != 0:
-            print "Response>\n" + hex_dump(response)
+            if debug['Serial'] > 0:
+                print "[HAInterface-Serial] Response>\n" + hex_dump(response)
         else:
             #print "Sleeping"
             #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
