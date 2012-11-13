@@ -1,0 +1,162 @@
+
+
+Starting Pytomation begins by importing all driver modules.  Driver
+modules are the hardware interfaces, some examples are:
+	
+	Insteon		- A power line interface to lights and switches
+	X10         - Similar to Insteon but generally only control without status
+	UPB         - Similar to Insteon
+	Stargate    - ????
+	Weeder      - Weeder I/O boards for handling digital and analog I/O
+
+Example:
+
+from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
+
+	
+Each interface communicates by specific types, for example TCP or RS232,
+it must have a thread associated with it. The following example describes this:
+
+	wtdio_serial = Serial('/dev/ttyMI0', 4800)
+	wtdio = WTDIO(wtdio_serial)
+	wtdio.start()
+
+In this particular case WTDIO is an RS232 style device and the port and baud 
+rate are set by calling the "Serial" method when creating the interface 
+instance.  
+
+Serial is imported from the standard Python pyserial module through 
+pytomations "common.py" support library.  For more information please 
+see:
+	http://pyserial.sourceforge.net/
+	
+When WTDIO is called it sets up an execution thread which performs the 
+following actions during initializatiion and once the "start()" method 
+is called:
+
+	describe here
+
+
+Each hardware interface can override methods in the "HAInterface" if so
+desired.  Here is a list of some of the methods that can be overriden in hardware 
+drivers:
+
+  _sendModemCommand()
+
+	_sendModemCommand() transmits the commands to the hardware device.  It
+	is does not transmit directly though but instead puts the command
+	in an out bound queue (_outboundQueue) and sets a retry count.
+	
+	The _outboundQueue is checked in the _writeModem method for data to
+	send and passes it on to the interface.write method.
+	
+	_sendModemCommand--->outboundQueue-->writeModem-->interface.write
+	
+	
+  _readModem()
+	
+	_readModem() is commonally overridden because it holds the logic for 
+	processing the the results received from a specific hardware device.
+	
+  _writeModem()
+
+	_writeModem() is less common to override since it is just sending a stream 
+	of bytes to the device and _readModem will handle most of the protocol
+	handshaking.
+
+  _onCommand() and onCommand()
+
+	_onCommand() actually calls the user code when an event occurs that it 
+	registered for.  The user code is registered with the "onCommand" method. 
+	It is what makes the stargate and wtdio examples work.  For example:
+
+	In your setup code you call "xx.onCommand(callback=do_my_work)"
+	"do_my_work" is something that will process your data usually coming from
+	some form of input such as a digital input going from high to low.
+	"onCommand()" just registers your callback with the system and returns.
+
+	In your driver code you would then have a call to "_onCommand() when ever an
+	input is processed.
+
+  _waitForCommandToFinish()
+
+	_waitForCommandToFinish() will do as exactly what is says and is typically 
+	used in the communications stream to wait for a command to return before
+	Pytomation will carry on and sending other data.
+	
+So basically for each hardware device the following happens:
+	The communication interface (TCP,RS232, etc) is setup.
+	The interface has a thread associated with it.
+	The thread is started.
+	
+Repeat until all drivers are initialized and running.
+
+Example:
+
+###################### INTERFACE CONFIG #########################
+debug['Serial'] = 1  # turn on debugging for RS232 data
+
+upb_serial = Serial('/dev/ttyMI0', 4800)
+upb = UPB(upb_serial)
+upb.start()
+
+tcp = TCP('192.168.13.146', 9761)
+insteon = InsteonPLM(tcp)
+insteon.start()
+
+wd_serial = Serial('/dev/ttyUSB0', 9600)
+wd = WTDIO(wd_serial)
+wd.start()
+
+###################### DEVICE CONFIG #########################
+
+
+DEBUGGING PYTOMATION
+
+Debug levels can be set on modules in Pytomation. Most modules only
+handle levels 0 and 1, however, some may handle in depth debugging, in
+which case the module writer can add support for more.
+
+The levels currently defined are:
+
+Levels:
+ 0 - All debug statements are disabled, this is the default state.
+ 1 - Print the most common information - least verbose
+ 2 - Print all information.
+
+Module        Levels available
+------------------------------
+Serial        0,1
+Insteon       0,1
+UPB           0,1
+Stargate      0,1
+W800          0,1
+Wtdio         0,1
+HAInterface   0,1
+
+Debug levels are held in a dictionary and can be set on the fly without
+restarting Pytomation.  This will be more useful as GUI interfaces are
+created.  Also, additional debug levels can be added at a later date 
+without problem, one just needs to add support for the new level in 
+the module.
+
+Each module MUST register it's own debug setting in the __init__() function.
+Here is an example:
+
+First import the config module
+
+  from ..config import *
+
+Then in __init__() define your debug string and level, which should 
+always be 0.
+
+    def __init__(self, interface):
+        super(WTDIO, self).__init__(interface)
+        debug['Wdtio'] = 0
+
+In the user run time code import the config module:
+  from pytomation.config import *
+then the statement:
+  debug = ['Wtdio':1, 'Serial':1]
+turns on debug printing for Wtdio and RS232 data.
+
