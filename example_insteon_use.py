@@ -1,5 +1,7 @@
+from pytomation.config import *
 from pytomation.interfaces import InsteonPLM, TCP
 
+debug['Insteon'] = 1
 tcp = TCP('192.168.13.146', 9761)
 insteon = InsteonPLM(tcp)
 insteon.start()

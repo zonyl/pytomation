@@ -1,5 +1,7 @@
+from pytomation.config import *
 from pytomation.interfaces import UPB, Serial
 
+debug['UPB'] = 1
 serial = Serial('/dev/ttyUSB0', 4800)
 upb = UPB(serial)
 upb.start()

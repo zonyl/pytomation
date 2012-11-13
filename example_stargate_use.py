@@ -1,10 +1,11 @@
+from pytomation.config import *
 from pytomation.interfaces import Stargate, Serial
 
 
 def on_digital_input(command=None, address=None):
     print "Digital Input #" + str(address) + " -> " + command
 
-
+debug['Stargate'] = 1
 serial = Serial('/dev/ttyUSB0', 2400)
 sg = Stargate(serial)
 sg.start()

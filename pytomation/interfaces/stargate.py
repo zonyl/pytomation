@@ -34,7 +34,7 @@ from binascii import unhexlify
 
 from .common import *
 from .ha_interface import HAInterface
-
+from ..config import *
 
 class Stargate(HAInterface):
 #    MODEM_PREFIX = '\x12'
@@ -42,6 +42,8 @@ class Stargate(HAInterface):
 
     def __init__(self, interface):
         super(Stargate, self).__init__(interface)
+        debug['Stargate'] = 0
+        
         self._last_input_map_low = 0
         self._last_input_map_high = 0
 
@@ -61,7 +63,8 @@ class Stargate(HAInterface):
         responses = self._interface.read()
         if len(responses) != 0:
             for response in responses.split():
-                print "Response>\n" + hex_dump(response)
+                if debug['Stargate'] > 0:
+                    print "[Stargate] Response>\n" + hex_dump(response)
                 if response[:2] == "!!":  # Echo Mode activity -- !!mm/ddttttttjklm[cr]
                     if self._decode_echo_mode_activity(response)['j'] == 'a' or \
                         self._decode_echo_mode_activity(response)['j'] == 'c':
@@ -127,7 +130,7 @@ class Stargate(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            print "Unable to find pending command details for the following packet:"
+            print "[Stargate] Unable to find pending command details for the following packet:"
             print hex_dump(response, len(response))
 
     def _processNewUBP(self, response):

@@ -38,7 +38,7 @@ from binascii import unhexlify
 
 from .common import *
 from .ha_interface import HAInterface
-
+from ..config import *
 
 class UPBMessage(object):
     class LinkType(object):
@@ -123,6 +123,8 @@ class UPB(HAInterface):
 
     def __init__(self, interface):
         super(UPB, self).__init__(interface)
+        debug['UPB'] = 0
+        
         self._modemRegisters = ""
 
         self._modemCommands = {
@@ -158,7 +160,8 @@ class UPB(HAInterface):
         #check to see if there is anyting we need to read
         responses = self._interface.read()
         if len(responses) != 0:
-            print "Response>\n" + hex_dump(responses)
+            if debug['UPB'] > 0:
+                print "[UPB] Response>\n" + hex_dump(responses)
             for response in responses.splitlines():
                 responseCode = response[:2]
                 if responseCode == 'PA':  # UPB Packet was received by PIM. No ack yet
@@ -195,7 +198,7 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            print "Unable to find pending command details for the following packet:"
+            print "[UPB] Unable to find pending command details for the following packet:"
             print hex_dump(response, len(response))
 
     def _processRegister(self, response, lastPacketHash):
@@ -216,7 +219,7 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            print "Unable to find pending command details for the following packet:"
+            print "[UPB] Unable to find pending command details for the following packet:"
             print hex_dump(response, len(response))
 
     def _processNewUBP(self, response):
