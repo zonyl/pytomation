@@ -47,6 +47,14 @@ class StateDevice_Tests(TestCase):
         self.device.on()
         self.assertIsNotNone(s2)
 
+    def test_bind_devices_initial_state(self):
+        s1 = StateDevice()
+        self.assertEqual(s1.state, State.UNKNOWN)
+        s1.on()
+        self.assertEqual(s1.state, State.ON)
+        s2 = StateDevice(s1)
+        self.assertEqual(s2.state, State.ON)
+
     def test_invalid_state(self):
         try:
             self.device.invalid_state()

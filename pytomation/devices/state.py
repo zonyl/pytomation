@@ -89,6 +89,10 @@ class StateDevice(object):
         return True
 
     def _add_delegate(self, state, callback):
+        try:
+            a = self._delegates
+        except AttributeError, ex:
+            self._delegates = {}
         state_list = self._delegates.get(state, None)
         if state_list:
             state_list.append(callback)
@@ -132,6 +136,10 @@ class StateDevice(object):
         for device in devices:
             try:
                 device._add_delegate(self.ANY_STATE, self._set_state)
+            except Exception, ex:
+                pass
+            try:
+                self._set_state(device.state)
             except Exception, ex:
                 pass
 #            for state in self.STATES:
