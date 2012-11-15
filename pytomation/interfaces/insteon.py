@@ -76,7 +76,8 @@ class InsteonPLM(HAInterface):
 
     def __init__(self, interface):
         super(InsteonPLM, self).__init__(interface)
-        debug['Insteon'] = 0
+        if not debug.has_key('Insteon'):
+            debug['Insteon'] = 0
         
         self._modemCommands = {'60': {
                                     'responseSize': 7,

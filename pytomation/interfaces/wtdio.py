@@ -74,6 +74,8 @@ class WTDIO(HAInterface):
         
     def __init__(self, interface):
         super(WTDIO, self).__init__(interface)
+        if not debug.has_key('Wtdio'):
+            debug['Wtdio'] = 0
         self.version()
         self.boardSettings = []
         self._modemRegisters = ""

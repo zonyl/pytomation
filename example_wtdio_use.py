@@ -8,7 +8,7 @@ from pytomation.interfaces import WTDIO, Serial
 def on_digital_input(command=None, address=None):
     print "Weeder Digital Input Board " + address[0] + " Channel " + address[1] + " -> " + command
 
-debug['Wtdio'] = 0
+debug['Wtdio'] = 1
 debug['Serial'] = 0
 serial = Serial('/dev/mh_weeder_port', 9600)
 wtdio = WTDIO(serial)

@@ -42,7 +42,8 @@ class Stargate(HAInterface):
 
     def __init__(self, interface):
         super(Stargate, self).__init__(interface)
-        debug['Stargate'] = 0
+        if not debug.has_key('Stargate'):
+            debug['Stargate'] = 0
         
         self._last_input_map_low = 0
         self._last_input_map_high = 0

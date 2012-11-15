@@ -123,7 +123,8 @@ class UPB(HAInterface):
 
     def __init__(self, interface):
         super(UPB, self).__init__(interface)
-        debug['UPB'] = 0
+        if not debug.has_key('UPB'):
+            debug['UPB'] = 0
         
         self._modemRegisters = ""
 
