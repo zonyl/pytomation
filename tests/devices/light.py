@@ -8,6 +8,7 @@ class LightTests(TestCase):
 
     def setUp(self):
         self.interface = Mock()
+        self.interface.state = State.UNKNOWN
         self.device = Light('D1', self.interface)
 
     def test_instantiation(self):
@@ -26,7 +27,7 @@ class LightTests(TestCase):
     def test_door_triggered(self):
         door = Door()
         self.assertIsNotNone(door)
-        self.device = Light('D1', self.interface, door)
+        self.device = Light('D1', (self.interface, door))
         door.open()
         self.assertTrue(self.interface.on.called)
 

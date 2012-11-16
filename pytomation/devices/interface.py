@@ -19,9 +19,10 @@ class InterfaceDevice(StateDevice):
         super(InterfaceDevice, self).__setattr__(name, value)
 
     def _set_state(self, state, previous_state=None, source=None):
+        result = super(InterfaceDevice, self)._set_state(state, previous_state=previous_state, source=source)
         if self.interface:
-            getattr(self.interface, state)(self.address)
-        return super(InterfaceDevice, self)._set_state(state, previous_state=previous_state, source=source)
+            getattr(self.interface, self._state)(self.address)
+        return result
 
     def _on_command(self, address, state):
         if address == self.address:
