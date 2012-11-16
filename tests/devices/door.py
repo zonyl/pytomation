@@ -8,6 +8,7 @@ class DoorTests(TestCase):
     
     def setUp(self):
         self.interface = Mock()
+        self.interface.state = State.UNKNOWN
         self.device = Door('D1', self.interface)
 
     def test_instantiation(self):

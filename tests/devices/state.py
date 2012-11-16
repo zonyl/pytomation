@@ -54,7 +54,9 @@ class StateDevice_Tests(TestCase):
         self.assertEqual(s1.state, State.ON)
         s2 = StateDevice(s1)
         self.assertEqual(s2.state, State.ON)
-
+        s3 = StateDevice(s1, initial_state=State.OFF)
+        self.assertEqual(s3.state, State.OFF)
+    
     def test_invalid_state(self):
         try:
             self.device.invalid_state()

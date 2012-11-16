@@ -32,9 +32,21 @@ class StateDevice(object):
     ANY_STATE = 'any'
 
 
-    def __init__(self, *devices):
-        self._state = State.UNKNOWN
-        self._prev_state = State.UNKNOWN
+    def __init__(self, devices=(), initial_state=None):
+        if not isinstance(devices, tuple):
+            devices = (devices, )
+        if initial_state:
+            self._state = initial_state
+            self._prev_state = initial_state
+        else:
+            self._state = State.UNKNOWN
+            self._prev_state = self._state
+            for device in devices:
+                try:
+                    self._state = device.state
+                    self._prev_state = self._state
+                except:
+                    pass
         self._delegates = {}
         self._times = {}
         self._delays = {}
@@ -73,6 +85,7 @@ class StateDevice(object):
 #            return super(StateDevice, self).__setattr__(name, value)
 
     def _set_state(self, state, previous_state=None, source=None):
+        state = self._state_map(state, previous_state, source)
         self._state = state
         self._delegate(state)
 
@@ -88,6 +101,9 @@ class StateDevice(object):
         self._prev_state = self._state
         return True
 
+    def _state_map(self, state, previous_state=None, source=None):
+        return state
+    
     def _add_delegate(self, state, callback):
         try:
             a = self._delegates
@@ -136,10 +152,6 @@ class StateDevice(object):
         for device in devices:
             try:
                 device._add_delegate(self.ANY_STATE, self._set_state)
-            except Exception, ex:
-                pass
-            try:
-                self._set_state(device.state)
             except Exception, ex:
                 pass
 #            for state in self.STATES:

@@ -7,11 +7,11 @@ from pytomation.utility import CronTimer
 
 class InterfaceDevice(StateDevice):
     
-    def __init__(self, address=None, *devices):
+    def __init__(self, address=None, devices=(), initial_state=None):
         self._devices = []
         self.address = address
         self.interface = None
-        super(InterfaceDevice, self).__init__(*devices)
+        super(InterfaceDevice, self).__init__(devices=devices, initial_state=initial_state)
 
     def __setattr__(self, name, value):
         if name in self.STATES:
@@ -21,7 +21,7 @@ class InterfaceDevice(StateDevice):
     def _set_state(self, state, previous_state=None, source=None):
         if self.interface:
             getattr(self.interface, state)(self.address)
-        return super(InterfaceDevice, self)._set_state(state)
+        return super(InterfaceDevice, self)._set_state(state, previous_state=previous_state, source=source)
 
     def _on_command(self, address, state):
         if address == self.address:
