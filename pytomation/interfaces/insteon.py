@@ -227,7 +227,7 @@ class InsteonPLM(HAInterface):
                     if debug['Insteon'] > 0:
                         print "[Insteon] < ",
                         print hex_dump(firstByte + secondByte + remainingBytes, len(firstByte + secondByte + remainingBytes)),
-                        currentPacketHash = hashPacket(firstByte + secondByte + remainingBytes)
+                    currentPacketHash = hashPacket(firstByte + secondByte + remainingBytes)
 
                     if lastPacketHash and lastPacketHash == currentPacketHash:
                         #duplicate packet.  Ignore
