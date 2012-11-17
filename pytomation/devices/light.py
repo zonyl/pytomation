@@ -8,12 +8,16 @@ class Light(InterfaceDevice):
 
     def _state_map(self, state, previous_state=None, source=None):
         mapped_state = state
-        if state in (State.OPEN, State.DARK, State.MOTION) and not self._restricted:
-            mapped_state = State.ON
+        if state in (State.OPEN, State.DARK, State.MOTION):
+            if not self._restricted or state == State.DARK:
+                mapped_state = State.ON
+            else:
+                mapped_state = None
         elif state in (State.CLOSED, State.LIGHT, State.STILL):
             mapped_state = State.OFF
         else:
             mapped_state = super(Light, self)._state_map(state, previous_state, source)
+
         # Restrict On/Off based on an attached device sending in LIGHT/DARK
         if state == State.LIGHT:
             self._restricted = True

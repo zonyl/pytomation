@@ -58,7 +58,18 @@ class LightTests(TestCase):
         
         
     def test_light_restricted(self):
-        pass
-        
+        photo = Photocell('D1', initial_state=State.LIGHT)
+        motion = Motion('D1', initial_state=State.STILL)
+        light = Light('D2', (motion, photo))
+        self.assertEqual(light.state, State.OFF)
+        motion.motion()
+        self.assertEqual(light.state, State.OFF)
+        photo.dark()
+        self.assertEqual(light.state, State.ON)
+        light.off()
+        self.assertEqual(light.state, State.OFF)
+        motion.motion()
+        self.assertEqual(light.state, State.ON)
+
 if __name__ == '__main__':
     main() 
