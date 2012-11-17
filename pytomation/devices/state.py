@@ -29,6 +29,7 @@ class StateDevice(object):
     DELEGATE_PREFIX = 'on_'
     TIME_PREFIX = 'time_'
     DELAY_PREFIX = 'delay_'
+    IGNORE_PREFIX = 'ignore_'
     ANY_STATE = 'any'
 
 
@@ -60,6 +61,7 @@ class StateDevice(object):
         self._delegates = {}
         self._times = {}
         self._delays = {}
+        self._ignores = []
         pass
 
     @property
@@ -84,17 +86,15 @@ class StateDevice(object):
             return lambda x: self._add_time(name[len(self.TIME_PREFIX):len(name)], x)
         elif name[0:len(self.DELAY_PREFIX)] == self.DELAY_PREFIX:
             return lambda x: self._add_delay(name[len(self.DELAY_PREFIX):len(name)], x)
+        elif name[0:len(self.IGNORE_PREFIX)] == self.IGNORE_PREFIX:
+            return lambda x=True: self._add_ignore(name[len(self.IGNORE_PREFIX):len(name)], x)
 #        else:
 #            return super(StateDevice, self).__getattr__(name)
-#        raise AttributeError
-
-#    def __setattr__(self, name, value):
-#        if name in self.STATES:
-#            self._state = name
-#        else:
-#            return super(StateDevice, self).__setattr__(name, value)
+        raise AttributeError
 
     def _set_state(self, state, previous_state=None, source=None):
+        if state in self._ignores:
+            return None
         state = self._state_map(state, previous_state, source)
         if not state: # If we get no state, then ignore this state
             return False
@@ -151,7 +151,15 @@ class StateDevice(object):
         if secs:
             self._delays.update({state: secs})
         
-        
+    def _add_ignore(self, state, value=True):
+        if value:
+            self._ignores.append(state)
+        else:
+            try:
+                del self._ignores[state]
+            except:
+                pass
+
     def _delegate(self, state):
         delegate_list = self._delegates.get(state, [])
         any_delegate_list = self._delegates.get(self.ANY_STATE, [])
