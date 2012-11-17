@@ -155,10 +155,7 @@ class StateDevice(object):
         if value:
             self._ignores.append(state)
         else:
-            try:
-                del self._ignores[state]
-            except:
-                pass
+            self._ignores = [x for x in self._ignores if x != state]
 
     def _delegate(self, state):
         delegate_list = self._delegates.get(state, [])

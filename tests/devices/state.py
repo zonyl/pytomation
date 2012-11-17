@@ -84,6 +84,10 @@ class StateDevice_Tests(TestCase):
         s2.ignore_on()
         s1.on()
         self.assertEqual(s2.state, State.OFF)
+        s2.ignore_on(False)
+        s1.on()
+        self.assertEqual(s2.state, State.ON)
+    
     
     def tearDown(self):
         self.device = None
