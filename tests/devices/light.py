@@ -37,6 +37,7 @@ class LightTests(TestCase):
         light = Light('D1', home)
         self.assertEqual(light.state, State.OFF)
         home.local_time = datetime(2012,6,1,0,0,0)
+        self.assertEqual(home.state, State.DARK)
         self.assertEqual(light.state, State.ON)
         
         

@@ -16,6 +16,7 @@ class Location(StateDevice):
         ASTRONOMICAL = -18
     
     def __init__(self, latitude, longitude, tz='US/Eastern', mode=MODE.STANDARD, is_dst=True):
+        super(Location, self).__init__()
         self.obs = ephem.Observer()
         self.obs.lat = latitude
         self.obs.long = longitude
@@ -70,9 +71,11 @@ class Location(StateDevice):
         self._sunset = self._utc2tz(
                                      self.obs.next_setting(self.sun, use_center=True).datetime())
         if self._sunrise > self._sunset:
-            self.state = State.LIGHT
+#            self.state = State.LIGHT
+            self._set_state(State.LIGHT, self.state, self)
         else:
-            self.state = State.DARK
+#            self.state = State.DARK
+            self._set_state(State.DARK, self.state, self)
             
         # Setup trigger for next transition
         sunset_t = self._sunset_timer

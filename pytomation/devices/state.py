@@ -43,7 +43,8 @@ class StateDevice(object):
             self._prev_state = self._state
             for device in devices:
                 try:
-                    self._state = device.state
+                    m_state = self._state_map(device.state, self._prev_state, device)
+                    self._state = m_state
                     self._prev_state = self._state
                 except:
                     pass
@@ -75,8 +76,8 @@ class StateDevice(object):
         elif name[0:len(self.DELAY_PREFIX)] == self.DELAY_PREFIX:
             return lambda x: self._add_delay(name[len(self.DELAY_PREFIX):len(name)], x)
 #        else:
-#            return super(StateDevice, self).__getattr__(self)
-        raise AttributeError
+#            return super(StateDevice, self).__getattr__(name)
+#        raise AttributeError
 
 #    def __setattr__(self, name, value):
 #        if name in self.STATES:
