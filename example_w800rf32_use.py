@@ -1,7 +1,7 @@
 import select
 #import time
 from pytomation.config import *
-from pytomation.interfaces import W800RF32, Serial 
+from pytomation.interfaces import W800rf32, Serial 
 
 
 def on_digital_input(command=None, address=None):
@@ -10,7 +10,7 @@ def on_digital_input(command=None, address=None):
 debug['W800'] = 0
 debug['HAInterface'] = 0
 serial = Serial('/dev/mh_w800_port', 4800)
-w800 = W800RF32(serial)
+w800 = W800rf32(serial)
 w800.start()
 
 

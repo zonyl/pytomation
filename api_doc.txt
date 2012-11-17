@@ -1,4 +1,16 @@
+NOTES ON WRITING INTERFACES FOR PYTOMATION
 
+SECTIONS
+
+  Pytomation startup sequence
+  Module initialization
+  Interface method description
+  Example Interface Init
+  Debugging support
+  Registering Debug Levels
+
+
+PYTOMATION STARTUP SEQUENCE
 
 Starting Pytomation begins by importing all driver modules.  Driver
 modules are the hardware interfaces, some examples are:
@@ -11,40 +23,76 @@ modules are the hardware interfaces, some examples are:
 
 Example:
 
-from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
+  from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
 
 	
 Each interface communicates by specific types, for example TCP or RS232,
 it must have a thread associated with it. The following example describes this:
 
 	wtdio_serial = Serial('/dev/ttyMI0', 4800)
-	wtdio = WTDIO(wtdio_serial)
+	wtdio = Wtdio(wtdio_serial)
 	wtdio.start()
 
-In this particular case WTDIO is an RS232 style device and the port and baud 
+In this particular case Wtdio is an RS232 style device and the port and baud 
 rate are set by calling the "Serial" method when creating the interface 
 instance.  
 
 Serial is imported from the standard Python pyserial module through 
-pytomations "common.py" support library.  For more information please 
-see:
+pytomations "common.py" support library.  For more information about the 
+pyserial module please see:
+
 	http://pyserial.sourceforge.net/
+
+
+MODULE INITIALIZATION
 	
-When WTDIO is called it sets up an execution thread which performs the 
-following actions during initializatiion and once the "start()" method 
-is called:
+Our example uses the "Wtdio" interface.  When Wtdio is called it sets 
+up an execution thread which performs the following actions. 
 
-	describe here
+Call the class initialization code and also call the init method of
+the super class (HAInterface).
 
+	def __init__(self, interface):
+    |   super(Wtdio, self).__init__(interface)
+    |   |
+In the case of "Wtdio", calling HAInterface sets up an async thread for 
+serial communications.
+    |   |
+Setup debug values if not already set.  This is mandatory in the 
+interface.  Each interface must register a distinct debug key and set 
+it's value to 0.
+    |   |
+    |   if not debug.has_key('Wtdio'):
+    |   |   debug['Wtdio'] = 0
+    |   |   
+Next we print the version number of the interface.  This lets us see 
+which version is running when Pytomation starts up.
+	|   |
+	|	self.version()
+    |   |
+    |   |
+Next we run other setup code pertaining to the interface.  In the case of
+"Wtdio" we setup a list to hold board power up settings and turn off 
+echo on the serial port.
+    |   self.boardSettings = []
+    |   self.echoMode()
+
+
+This completes initialization and we now wait for received command 
+strings from "_readModem" and accept commands from Pytomation to set
+I/O points.
+
+
+INTERFACE METHODS
 
 Each hardware interface can override methods in the "HAInterface" if so
-desired.  Here is a list of some of the methods that can be overriden in hardware 
-drivers:
+desired.  Here is a list of some of the methods that can be overriden in
+hardware interfaces (drivers):
 
   _sendModemCommand()
 
-	_sendModemCommand() transmits the commands to the hardware device.  It
-	is does not transmit directly though but instead puts the command
+	_sendModemCommand() transmits the commands to the hardware device.  
+	It does not transmit directly though but instead puts the command
 	in an out bound queue (_outboundQueue) and sets a retry count.
 	
 	The _outboundQueue is checked in the _writeModem method for data to
@@ -70,10 +118,12 @@ drivers:
 	registered for.  The user code is registered with the "onCommand" method. 
 	It is what makes the stargate and wtdio examples work.  For example:
 
-	In your setup code you call "xx.onCommand(callback=do_my_work)"
+	In your setup code you call "xx.onCommand(callback=do_my_work, address='XX")"
 	"do_my_work" is something that will process your data usually coming from
 	some form of input such as a digital input going from high to low.
-	"onCommand()" just registers your callback with the system and returns.
+	"address" is the actual hardware I/O point or device.  It could be and X10
+	device such as A1 or C5, or an Insteon device like 12.0E.6F.
+	"onCommand()" registers your callback with the system and returns.
 
 	In your driver code you would then have a call to "_onCommand() when ever an
 	input is processed.
@@ -91,7 +141,9 @@ So basically for each hardware device the following happens:
 	
 Repeat until all drivers are initialized and running.
 
-Example:
+
+
+EXAMPLE INTERFACE INIT:
 
 ###################### INTERFACE CONFIG #########################
 debug['Serial'] = 1  # turn on debugging for RS232 data
@@ -111,7 +163,9 @@ wd.start()
 ###################### DEVICE CONFIG #########################
 
 
-DEBUGGING PYTOMATION
+
+
+DEBUGGING SUPPORT
 
 Debug levels can be set on modules in Pytomation. Most modules only
 handle levels 0 and 1, however, some may handle in depth debugging, in
@@ -140,6 +194,8 @@ created.  Also, additional debug levels can be added at a later date
 without problem, one just needs to add support for the new level in 
 the module.
 
+Registering Debug Levels
+
 Each module MUST register it's own debug setting in the __init__() function.
 Here is an example:
 
@@ -152,7 +208,8 @@ always be 0.
 
     def __init__(self, interface):
         super(WTDIO, self).__init__(interface)
-        debug['Wdtio'] = 0
+        if not debug.has_key('Wtdio'):
+        	debug['Wdtio'] = 0
 
 In the user run time code import the config module:
   from pytomation.config import *

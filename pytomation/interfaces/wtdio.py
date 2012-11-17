@@ -68,12 +68,12 @@ from .ha_interface import HAInterface
 from ..config import *
 
 
-class WTDIO(HAInterface):
+class Wtdio(HAInterface):
     VERSION = '1.2'
     MODEM_PREFIX = ''
         
     def __init__(self, interface):
-        super(WTDIO, self).__init__(interface)
+        super(Wtdio, self).__init__(interface)
         if not debug.has_key('Wtdio'):
             debug['Wtdio'] = 0
         self.version()

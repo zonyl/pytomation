@@ -55,7 +55,7 @@ from .common import *
 from .ha_interface import HAInterface
 from ..config import *
 
-class W800RF32(HAInterface):
+class W800rf32(HAInterface):
     VERSION = '1.1'
     MODEM_PREFIX = ''
     debug = False
@@ -71,7 +71,7 @@ class W800RF32(HAInterface):
     command = ""
 
     def __init__(self, interface):
-        super(W800RF32, self).__init__(interface)
+        super(W800rf32, self).__init__(interface)
         if not debug.has_key('W800'):
             debug['W800'] = 0
         self.version()        

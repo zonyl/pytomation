@@ -2,7 +2,7 @@ import select
 #import time
 #from pytomation.interfaces.config import *
 from pytomation.config import *
-from pytomation.interfaces import WTDIO, Serial
+from pytomation.interfaces import Wtdio, Serial
 
 
 def on_digital_input(command=None, address=None):
@@ -11,7 +11,7 @@ def on_digital_input(command=None, address=None):
 debug['Wtdio'] = 1
 debug['Serial'] = 0
 serial = Serial('/dev/mh_weeder_port', 9600)
-wtdio = WTDIO(serial)
+wtdio = Wtdio(serial)
 
 # If debug is not set we can toggle it back on or off on demand
 wtdio.start()
