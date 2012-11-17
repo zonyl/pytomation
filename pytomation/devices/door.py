@@ -10,12 +10,5 @@ class Door(InterfaceDevice):
         elif state == State.OFF:
             mapped_state = State.CLOSED
         else:
-            mapped_state = state
+            mapped_state = super(Door, self)._state_map(state, previous_state, source)
         return mapped_state
-
-#    def _on_command(self, address, state):
-#        if state == State.ON:
-#            mapped_state = State.OPEN
-#        else:
-#            mapped_state = State.OFF
-#        return super(Door, self)._on_command(address, mapped_state)
