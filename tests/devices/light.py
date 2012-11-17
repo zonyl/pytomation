@@ -2,7 +2,8 @@ from datetime import datetime
 from unittest import TestCase, main
 from mock import Mock
 
-from pytomation.devices import Light, Door, Location, State, Motion
+from pytomation.devices import Light, Door, Location, State, Motion, \
+                                Photocell
 
 class LightTests(TestCase):
 
@@ -48,6 +49,16 @@ class LightTests(TestCase):
         motion.motion()
         self.assertEqual(light.state, State.ON)
 
+    def test_photocell_triggered(self):
+        photo = Photocell('D1', initial_state=State.LIGHT)
+        light = Light('D1', photo)
+        self.assertEquals(light.state, State.OFF)
+        photo.dark()
+        self.assertEquals(light.state, State.ON)
+        
+        
+    def test_light_restricted(self):
+        pass
         
 if __name__ == '__main__':
     main() 

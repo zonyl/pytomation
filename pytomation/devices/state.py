@@ -35,6 +35,11 @@ class StateDevice(object):
     def __init__(self, devices=(), initial_state=None):
         if not isinstance(devices, tuple):
             devices = (devices, )
+        self._initial_state(devices, initial_state)
+        self._initial_vars()
+        self._bind_devices(devices)
+
+    def _initial_state(self, devices, initial_state):
         if initial_state:
             self._state = initial_state
             self._prev_state = initial_state
@@ -48,10 +53,12 @@ class StateDevice(object):
                     self._prev_state = self._state
                 except:
                     pass
+
+    def _initial_vars(self):
         self._delegates = {}
         self._times = {}
         self._delays = {}
-        self._bind_devices(devices)
+        pass
 
     @property
     def state(self):

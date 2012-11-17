@@ -4,4 +4,5 @@ from .door import *
 from .light import *
 from .location import *
 from .motion import *
+from .photocell import *
 
