@@ -6,10 +6,15 @@ class Light(InterfaceDevice):
         super(Light, self)._initial_vars()
         self._restricted = False
 
+    def _set_state(self, state, previous_state=None, source=None):
+        if state == State.DARK:
+            self._restricted = False
+        super(Light, self)._set_state(state, previous_state, source)
+
     def _state_map(self, state, previous_state=None, source=None):
         mapped_state = state
         if state in (State.OPEN, State.DARK, State.MOTION):
-            if not self._restricted or state == State.DARK:
+            if not self._restricted:
                 mapped_state = State.ON
             else:
                 mapped_state = None
