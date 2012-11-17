@@ -2,7 +2,7 @@ from datetime import datetime
 from unittest import TestCase, main
 from mock import Mock
 
-from pytomation.devices import Light, Door, Location, State
+from pytomation.devices import Light, Door, Location, State, Motion
 
 class LightTests(TestCase):
 
@@ -40,6 +40,14 @@ class LightTests(TestCase):
         self.assertEqual(home.state, State.DARK)
         self.assertEqual(light.state, State.ON)
         
+    def test_motion_triggered(self):
+        motion = Motion('D1', initial_state=State.STILL)
+        self.assertEqual(motion.state, State.STILL)
+        light = Light('D1', motion)
+        self.assertEqual(light.state, State.OFF)
+        motion.motion()
+        self.assertEqual(light.state, State.ON)
+
         
 if __name__ == '__main__':
     main() 
