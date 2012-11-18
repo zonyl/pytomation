@@ -77,6 +77,8 @@ class Stargate(HAInterface):
             time.sleep(0.5)
 
     def _processDigitalInput(self, response, lastPacketHash):
+        if debug['Stargate'] > 0:
+            print 'DIO'
         offset = 0
         last_input_map = self._last_input_map_low
 
@@ -94,6 +96,8 @@ class Stargate(HAInterface):
 
         for i in xrange(7):
             if last_input_map & (2 ** i) != io_map & (2 ** i):
+                if debug['Stargate'] > 0:
+                    print 'DIO #' + str(offset + i + 1)
                 self._onCommand(command=not bool(io_map & (2 ** i) == 0),
                                 address='D' + str(offset + i + 1))
 
