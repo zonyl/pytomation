@@ -93,6 +93,7 @@ class HAInterface(AsynchronousInterface):
                     commandDelegate['callback'](
                                                 command=command,
                                                 address=address,
+                                                source=self
                                                 )
 
     def _sendModemCommand(self, modemCommand,

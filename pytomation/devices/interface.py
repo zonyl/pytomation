@@ -24,9 +24,9 @@ class InterfaceDevice(StateDevice):
             getattr(self.interface, self._state)(self.address)
         return result
 
-    def _on_command(self, address, state):
+    def _on_command(self, address=None, command=None, source=None):
         if address == self.address:
-            return super(InterfaceDevice, self)._set_state(state)
+            return super(InterfaceDevice, self)._set_state(command, source=source)
 
     def _bind_devices(self, devices):
         for device in devices:
