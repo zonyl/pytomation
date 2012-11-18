@@ -30,7 +30,10 @@ Example: (see bottom of the file)
 Notes:
     - Supports both 2412N and 2412S right now
 
-Created on Mar 26, 2011
+Versions and changes:
+    Initial version created on Mar 26 , 2011
+    2012/11/14 - 1.1 - Added debug levels and global debug system
+
 '''
 import select
 import traceback
@@ -73,12 +76,13 @@ def simpleMap(value, in_min, in_max, out_min, out_max):
 
 
 class InsteonPLM(HAInterface):
-
+    VERSION = '1.1'
+    
     def __init__(self, interface):
         super(InsteonPLM, self).__init__(interface)
         if not debug.has_key('Insteon'):
             debug['Insteon'] = 0
-        
+        self.version()
         self._modemCommands = {'60': {
                                     'responseSize': 7,
                                     'callBack':self._process_PLMInfo
@@ -561,7 +565,9 @@ class InsteonPLM(HAInterface):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
-
+    def version(self):
+        print 'Insteon Pytomation driver version ' + self.VERSION
+        
 ######################
 # EXAMPLE            #
 ######################

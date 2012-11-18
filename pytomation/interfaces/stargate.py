@@ -24,8 +24,10 @@ Notes:
 
     2400 Baudrate
 
+Versions and changes:
+    Initial version created on May 06 , 2011
+    2012/11/14 - 1.1 - Added debug levels and global debug system
 
-Created on May , 2012
 """
 import threading
 import time
@@ -39,11 +41,13 @@ from ..config import *
 class Stargate(HAInterface):
 #    MODEM_PREFIX = '\x12'
     MODEM_PREFIX = ''
+    VERSION = '1.1'
 
     def __init__(self, interface):
         super(Stargate, self).__init__(interface)
         if not debug.has_key('Stargate'):
             debug['Stargate'] = 0
+        self.version()
         
         self._last_input_map_low = 0
         self._last_input_map_high = 0
@@ -77,8 +81,6 @@ class Stargate(HAInterface):
             time.sleep(0.5)
 
     def _processDigitalInput(self, response, lastPacketHash):
-        if debug['Stargate'] > 0:
-            print 'DIO'
         offset = 0
         last_input_map = self._last_input_map_low
 
@@ -96,8 +98,6 @@ class Stargate(HAInterface):
 
         for i in xrange(7):
             if last_input_map & (2 ** i) != io_map & (2 ** i):
-                if debug['Stargate'] > 0:
-                    print 'DIO #' + str(offset + i + 1)
                 self._onCommand(command=not bool(io_map & (2 ** i) == 0),
                                 address='D' + str(offset + i + 1))
 
@@ -146,3 +146,6 @@ class Stargate(HAInterface):
         commandExecutionDetails = self._sendModemCommand(
                              command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+
+    def version(self):
+        print 'Stargate Pytomation driver version ' + self.VERSION

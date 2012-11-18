@@ -120,11 +120,13 @@ class UPBMessage(object):
 class UPB(HAInterface):
 #    MODEM_PREFIX = '\x12'
     MODEM_PREFIX = ''
+    VERSION = '1.1'
 
     def __init__(self, interface):
         super(UPB, self).__init__(interface)
         if not debug.has_key('UPB'):
             debug['UPB'] = 0
+        self.version()
         
         self._modemRegisters = ""
 
@@ -246,3 +248,6 @@ class UPB(HAInterface):
 
     def off(self, address, timeout=None, rate=None):
         return self._device_goto(address, 0x00, timeout=timeout)
+
+    def version(self):
+        print 'UPB Pytomation driver version ' + self.VERSION
