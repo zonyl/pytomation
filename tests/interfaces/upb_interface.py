@@ -17,7 +17,7 @@ class UPBInterfaceTests(TestCase):
             self.serial = Serial('/dev/ttyUSB0', 4800)
             self.upb = UPB(self.serial)
 
-        self.upb.start()
+        #self.upb.start()
 
     def tearDown(self):
         self.upb.shutdown()

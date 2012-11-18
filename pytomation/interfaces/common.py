@@ -79,6 +79,7 @@ class AsynchronousInterface(threading.Thread, Interface):
         #threading.Thread.__init__(self)
         super(AsynchronousInterface,self).__init__()
         self.setDaemon(True)
+        self.start()
 
     def command(self,deviceId,command):
         raise NotImplementedError

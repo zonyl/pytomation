@@ -23,7 +23,7 @@ class InsteonInterfaceTests(TestCase):
             self.tcp = TCP('192.168.13.146', 9761)
             self.insteon = InsteonPLM(self.tcp)
 
-        self.insteon.start()
+        #self.insteon.start()
 
     def tearDown(self):
         self.insteon.shutdown()

@@ -18,7 +18,7 @@ class StargateInterfaceTests(TestCase):
             self.serial = Serial('/dev/ttyUSB0', 2400)
             self.sg = Stargate(self.serial)
 
-        self.sg.start()
+        #self.sg.start()
 
     def tearDown(self):
         self.sg.shutdown()
