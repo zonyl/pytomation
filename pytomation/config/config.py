@@ -18,8 +18,11 @@ License:
 System Versions and changes:
     Initial version created on Nov 11, 2012
     2012/11/11 - 1.0 - Global debug dictionary created
+    2012/11/18 - 1.1 - Log file pieces added
     
 """
+import os
+import sys
 
 # ********************* SYSYTEM CONFIGURATION ONLY ********************
 
@@ -36,3 +39,15 @@ debug = {'HAInterface':0, 'Serial':0}
 
 # ********************* USER CONFIGURATION ****************************
 
+# Setup logging of Pytomation to a log file.  Pytomation will rotate
+# the log file out to pylog_date_time.log every time it starts, if  
+# "logfilePreserve" and "logging" is set to "True".  If you want to 
+# turn log file logging off, just set "logging" to "False"
+# Logfiles can be rotated on a weekly or monthly basis by setting
+# "logfileRotate to 'week' or 'month'
+
+logfile = os.path.join(sys.path[0], 'pylog.log')
+logfilePreserve = True
+logfileTimestamp = True
+logfileRotate = 'week'
+logging = False
