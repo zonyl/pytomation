@@ -7,8 +7,9 @@ from pytomation.interfaces import W800rf32, Serial
 def on_digital_input(command=None, address=None):
     print "W800RF32 X10 Input Housecode " + address[0] + " Unit " + address[1] + " -> " + command
 
-debug['W800'] = 0
-debug['HAInterface'] = 0
+debug['W800'] = 1
+debug['HAInterface'] = 1
+logging = False
 serial = Serial('/dev/mh_w800_port', 4800)
 w800 = W800rf32(serial)
 #w800.start()

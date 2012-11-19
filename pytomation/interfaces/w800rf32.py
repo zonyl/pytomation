@@ -151,7 +151,7 @@ class W800rf32(HAInterface):
             del self._pendingCommandDetails[foundCommandHash]
         else:
             pylog(self, "[W800RF32] Unable to find pending command details for the following packet:\n")
-            pylog(self, hex_dump(response, len(response) + "n")
+            pylog(self, hex_dump(response) + " " + len(response) + "n")
 
     def _processNewW800RF32(self, response):
         pass
