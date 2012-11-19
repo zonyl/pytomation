@@ -11,7 +11,7 @@ debug['W800'] = 0
 debug['HAInterface'] = 0
 serial = Serial('/dev/mh_w800_port', 4800)
 w800 = W800rf32(serial)
-w800.start()
+#w800.start()
 
 
 # Listen for changes on Digital Inputs on wtdio

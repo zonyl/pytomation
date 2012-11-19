@@ -12,9 +12,7 @@ debug['Wtdio'] = 1
 debug['Serial'] = 0
 serial = Serial('/dev/mh_weeder_port', 9600)
 wtdio = Wtdio(serial)
-
-# If debug is not set we can toggle it back on or off on demand
-wtdio.start()
+#wtdio.start()
 
 # Set the I/O channels on the WTDIO board according to the command set
 # S = Switch, L = Output default low

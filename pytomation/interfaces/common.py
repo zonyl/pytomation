@@ -35,7 +35,7 @@ import socket
 import binascii
 import serial
 import hashlib
-
+import sys
 
 class Lookup(dict):
     """
@@ -338,6 +338,10 @@ def hashPacket(packetData):
     return hashlib.md5(packetData).hexdigest()
 
 
+def pylog(src, s):
+    print s
+
+
 class Conversions(object):
     @staticmethod
     def hex_to_ascii(hex_string):
@@ -407,3 +411,4 @@ class Conversions(object):
         cs = cs + 1
         cs = cs & 255
         return cs
+        
