@@ -55,7 +55,9 @@ Versions and changes:
     2012/10/20 - 1.1 - Added version number and acknowledgement of Jasons work
                      - Added debug to control printing results
     2012/11/10 - 1.2 - Added debug levels and global debug system
-    
+    2012/11/18 - 1.3 - Added logging 
+
+   
 """
 import threading
 import time
@@ -69,7 +71,7 @@ from ..config import *
 
 
 class Wtdio(HAInterface):
-    VERSION = '1.2'
+    VERSION = '1.3'
     MODEM_PREFIX = ''
         
     def __init__(self, interface):
@@ -95,18 +97,17 @@ class Wtdio(HAInterface):
         if len(responses) != 0:
             for response in responses.split():
                 if debug['Wtdio'] > 0:
-                    print "[WTDIO] Response>\n" + hex_dump(response)
-                       
+                    pylog(self, "[WTDIO] Response> " + hex_dump(response))
                 p = re.compile('[A-P][A-N][H,L]')
                 if p.match(response):
                     self._processDigitalInput(response, lastPacketHash)
                 elif response[1] =='!':
-                    print "[WTDIO] Board [" + response[0] + "] has been reset or power cycled, reinitializing..."
+                    pylog(self,"[WTDIO] Board [" + response[0] + "] has been reset or power cycled, reinitializing...\n")
                     for bct in self.boardSettings:
                         if bct[0] == response[0]:
                             self.setChannel(bct)
                 elif response[1] == '?':
-                    print "[WTDIO] Board [" + response[0] + "] received invalid command or variable..."
+                    pylog(self,"[WTDIO] Board [" + response[0] + "] received invalid command or variable...\n")
                     
         else:
             #print "Sleeping"
@@ -136,8 +137,8 @@ class Wtdio(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            print "[WTDIO] Unable to find pending command details for the following packet:"
-            print hex_dump(response, len(response))
+            pylog(self,"[WTDIO] Unable to find pending command details for the following packet:\n")
+            pylog(self,(hex_dump(response, len(response)) + '\n'))
 
     def _processNewWTDIO(self, response):
         pass
@@ -152,7 +153,7 @@ class Wtdio(HAInterface):
     def setChannel(self, boardChannelType):
         p = re.compile('[A-P][S,L][A-N]')
         if not p.match(boardChannelType):
-            print "[WTDIO] Error malformed command...   " + boardChannelType
+            pylog(self,"[WTDIO] Error malformed command...   " + boardChannelType + '\n')
             return
         # Save the board settings in case we need to re-init
         if not boardChannelType in self.boardSettings:
@@ -172,8 +173,8 @@ class Wtdio(HAInterface):
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
 		
     def listBoards(self):
-        print self.boardSettings
+        pylog(self,self.boardSettings + '\n')
         
     def version(self):
-        print 'WTDIO Pytomation driver version ' + self.VERSION
+        pylog(self,"WTDIO Pytomation driver version " + self.VERSION + '\n')
 
