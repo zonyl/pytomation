@@ -36,6 +36,7 @@ import binascii
 import serial
 import hashlib
 import sys
+from ..config import *
 
 class Lookup(dict):
     """
@@ -283,6 +284,7 @@ class HACommand(Lookup):
 import time
 import re
 
+
 ## {{{ http://code.activestate.com/recipes/142812/ (r1)
 FILTER=''.join([(len(repr(chr(x)))==3) and chr(x) or '.' for x in range(256)])
 
@@ -337,9 +339,23 @@ def convertStringFrequencyToSeconds(textFrequency):
 def hashPacket(packetData):
     return hashlib.md5(packetData).hexdigest()
 
-
+# pylog replaces the "print" keyword to enable debugging and logging
 def pylog(src, s):
-    print s
+    if logging:
+        if logfileTimestamp != "":
+            t = time.strftime(logfileTimestamp)
+        try:
+            if logfilePreserve:
+                fp = open(logfile, "a")
+            else:
+                fp = open(logfile, "w")
+        except:
+            print "ERROR Can't open log file..."
+            sys.exit(0)
+        fp.write(t + s)
+        fp.close()
+    else:
+        print t + s
 
 
 class Conversions(object):

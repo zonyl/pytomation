@@ -39,15 +39,22 @@ debug = {'HAInterface':0, 'Serial':0}
 
 # ********************* USER CONFIGURATION ****************************
 
+# LOGGING
 # Setup logging of Pytomation to a log file.  Pytomation will rotate
 # the log file out to pylog_date_time.log every time it starts, if  
 # "logfilePreserve" and "logging" is set to "True".  If you want to 
 # turn log file logging off, just set "logging" to "False"
 # Logfiles can be rotated on a weekly or monthly basis by setting
 # "logfileRotate to 'week' or 'month'
+# If logfileTimestamp is set to a format that can be used by the Python
+# time.strftime() function like the example below that will be printed at
+# the beginning of each debug line.  Otherwise it should be an empty
+# string "".
+# logfileTimestamp = "[%Y/%M/%D-%H:%M:%S]"
 
 logfile = os.path.join(sys.path[0], 'pylog.log')
 logfilePreserve = True
-logfileTimestamp = True
+logfileTimestamp = "[%Y/%m/%d %H:%M:%S] "
+#logfileTimestamp = ""
 logfileRotate = 'week'
-logging = False
+logging = True
