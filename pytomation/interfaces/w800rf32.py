@@ -43,6 +43,7 @@ Notes:
 Versions and changes:
     Initial version created on Oct 10 , 2012
     2012/11/14 - 1.1 - Added debug levels and global debug system
+    2012/11/18 - 1.2 - Added logging
     
 """
 import threading
@@ -56,9 +57,8 @@ from .ha_interface import HAInterface
 from ..config import *
 
 class W800rf32(HAInterface):
-    VERSION = '1.1'
+    VERSION = '1.2'
     MODEM_PREFIX = ''
-    debug = False
     
     hcodeDict = {
 0b0110:'A', 0b1110:'B', 0b0010:'C', 0b1010:'D',
@@ -96,7 +96,7 @@ class W800rf32(HAInterface):
             x = "{0:08b}".format(ord(responses[3]))  # format binary string
             b2 = int(x[::-1],2)   # reverse the string and assign to byte 2
             if debug['W800'] > 0:
-                print "[W800RF32] {0:02X} {1:02X} {2:02X} {3:02X}".format(b1,b2,b3,b4)            
+                pylog(self,"[W800RF32] {0:02X} {1:02X} {2:02X} {3:02X}\n".format(b1,b2,b3,b4))
 
             # Get the house code
             self.houseCode = self.hcodeDict[b3 & 0x0f]
@@ -119,7 +119,7 @@ class W800rf32(HAInterface):
             
             self.x10 = "%s%d" % (self.houseCode, self.unitNumber)
             if debug['W800'] > 0:
-                print "[W800RF32] Command -> " + self.x10 + " " + self.command
+                pylog(self, "[W800RF32] Command -> " + self.x10 + " " + self.command + "\n")
                 
             self._processDigitalInput(self.x10, self.command)
 
@@ -150,12 +150,12 @@ class W800rf32(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            print "[W800RF32] Unable to find pending command details for the following packet:"
-            print hex_dump(response, len(response))
+            pylog(self, "[W800RF32] Unable to find pending command details for the following packet:\n")
+            pylog(self, hex_dump(response, len(response) + "n")
 
     def _processNewW800RF32(self, response):
         pass
 
     def version(self):
-        print 'W800RF32 Pytomation driver version ' + self.VERSION
+        pylog(self, "W800RF32 Pytomation driver version " + self.VERSION + "\n")
         
