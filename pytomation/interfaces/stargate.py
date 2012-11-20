@@ -27,7 +27,8 @@ Notes:
 Versions and changes:
     Initial version created on May 06 , 2011
     2012/11/14 - 1.1 - Added debug levels and global debug system
-
+    2012/11/19 - 1.2 - Added logging, use pylog instead of print
+    
 """
 import threading
 import time
@@ -41,7 +42,7 @@ from ..config import *
 class Stargate(HAInterface):
 #    MODEM_PREFIX = '\x12'
     MODEM_PREFIX = ''
-    VERSION = '1.1'
+    VERSION = '1.2'
 
     def __init__(self, interface):
         super(Stargate, self).__init__(interface)
@@ -69,7 +70,7 @@ class Stargate(HAInterface):
         if len(responses) != 0:
             for response in responses.split():
                 if debug['Stargate'] > 0:
-                    print "[Stargate] Response>\n" + hex_dump(response)
+                    pylog("[Stargate] Response>\n" + hex_dump(response) + "\n")
                 if response[:2] == "!!":  # Echo Mode activity -- !!mm/ddttttttjklm[cr]
                     if self._decode_echo_mode_activity(response)['j'] == 'a' or \
                         self._decode_echo_mode_activity(response)['j'] == 'c':
@@ -135,8 +136,8 @@ class Stargate(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            print "[Stargate] Unable to find pending command details for the following packet:"
-            print hex_dump(response, len(response))
+            pylog("[Stargate] Unable to find pending command details for the following packet:\n")
+            pylog(hex_dump(response, len(response)) + "\n")
 
     def _processNewUBP(self, response):
         pass
@@ -148,4 +149,4 @@ class Stargate(HAInterface):
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def version(self):
-        print 'Stargate Pytomation driver version ' + self.VERSION
+        pylog("Stargate Pytomation driver version " + self.VERSION + "\n")

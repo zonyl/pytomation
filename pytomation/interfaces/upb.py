@@ -28,8 +28,12 @@ Notes:
     UPB General Protocol
     http://pulseworx.com/downloads/upb/UPBDescriptionv1.4.pdf
 
+Versions and changes:
+    Initial version created on May, 2012
+    2012/11/14 - 1.1 - Added debug levels and global debug system
+    2012/11/19 - 1.2 - Added logging, use pylog instead of print
 
-Created on May , 2012
+
 """
 import threading
 import time
@@ -120,7 +124,7 @@ class UPBMessage(object):
 class UPB(HAInterface):
 #    MODEM_PREFIX = '\x12'
     MODEM_PREFIX = ''
-    VERSION = '1.1'
+    VERSION = '1.2'
 
     def __init__(self, interface):
         super(UPB, self).__init__(interface)
@@ -164,7 +168,7 @@ class UPB(HAInterface):
         responses = self._interface.read()
         if len(responses) != 0:
             if debug['UPB'] > 0:
-                print "[UPB] Response>\n" + hex_dump(responses)
+                pylog("[UPB] Response>\n" + hex_dump(responses) + "\n")
             for response in responses.splitlines():
                 responseCode = response[:2]
                 if responseCode == 'PA':  # UPB Packet was received by PIM. No ack yet
@@ -201,8 +205,8 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            print "[UPB] Unable to find pending command details for the following packet:"
-            print hex_dump(response, len(response))
+            pylog("[UPB] Unable to find pending command details for the following packet:\n")
+            pylog(hex_dump(response, len(response)) + "\n")
 
     def _processRegister(self, response, lastPacketHash):
         foundCommandHash = None
@@ -222,8 +226,8 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            print "[UPB] Unable to find pending command details for the following packet:"
-            print hex_dump(response, len(response))
+            pylog("[UPB] Unable to find pending command details for the following packet:\n")
+            pylog(hex_dump(response, len(response)) + "\n")
 
     def _processNewUBP(self, response):
         pass
@@ -250,4 +254,4 @@ class UPB(HAInterface):
         return self._device_goto(address, 0x00, timeout=timeout)
 
     def version(self):
-        print 'UPB Pytomation driver version ' + self.VERSION
+        pylog("UPB Pytomation driver version " + self.VERSION + "\n")
