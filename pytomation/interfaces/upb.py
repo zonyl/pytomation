@@ -128,6 +128,9 @@ class UPB(HAInterface):
 
     def __init__(self, interface):
         super(UPB, self).__init__(interface)
+
+    def _init(self, *args, **kwargs):
+        super(UPB, self)._init(*args, **kwargs)
         if not debug.has_key('UPB'):
             debug['UPB'] = 0
         self.version()

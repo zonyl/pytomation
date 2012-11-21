@@ -37,9 +37,11 @@ class HAInterface(AsynchronousInterface):
 
     MODEM_PREFIX = '\x02'
     
-    def __init__(self, interface):
-        super(HAInterface, self).__init__()
-        
+    def __init__(self, interface, *args, **kwargs):
+        super(HAInterface, self).__init__(interface=interface)
+
+    def _init(self, *args, **kwargs):
+        super(HAInterface, self)._init(*args, **kwargs)
         self._shutdownEvent = threading.Event()
         self._interfaceRunningEvent = threading.Event()
 
@@ -55,7 +57,7 @@ class HAInterface(AsynchronousInterface):
         self._intersend_delay = 0.15  # 150 ms between network sends
         self._lastSendTime = 0
 
-        self._interface = interface
+        self._interface = kwargs['interface']
         self._commandDelegates = []
 
     def shutdown(self):
