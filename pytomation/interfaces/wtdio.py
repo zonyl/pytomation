@@ -76,6 +76,10 @@ class Wtdio(HAInterface):
         
     def __init__(self, interface):
         super(Wtdio, self).__init__(interface)
+        
+    def _init(self, *args, **kwargs):
+        super(Wtdio, self)._init(*args, **kwargs)
+
         if not debug.has_key('Wtdio'):
             debug['Wtdio'] = 0
         self.version()

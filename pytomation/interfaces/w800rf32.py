@@ -72,6 +72,9 @@ class W800rf32(HAInterface):
 
     def __init__(self, interface):
         super(W800rf32, self).__init__(interface)
+    
+    def _init(self, *args, **kwargs):
+        super(W800rf32, self)._init(*args, **kwargs)
         if not debug.has_key('W800'):
             debug['W800'] = 0
         self.version()        
