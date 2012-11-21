@@ -360,7 +360,7 @@ def pylog(src, s):
                 print "Trying /tmp/pylog.txt"
             except Exception, ex1:
                 sys.exit(0)
-        fp.write(t + s)
+        fp.write(t + s + "\n")
         fp.close()
     else:
         print t + s

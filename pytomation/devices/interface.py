@@ -3,7 +3,7 @@ Interface Device:
 """
 from .state import StateDevice, State
 from pytomation.utility import CronTimer
-
+from ..interfaces.common import *
 
 class InterfaceDevice(StateDevice):
     

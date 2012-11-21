@@ -10,6 +10,7 @@ Delegates:
 """
 from pytomation.utility import CronTimer
 from threading import Timer
+from ..interfaces.common import *
 
 class State(object):
     UNKNOWN = 'unknown'
@@ -93,12 +94,24 @@ class StateDevice(object):
         raise AttributeError
 
     def _set_state(self, state, previous_state=None, source=None):
+        pylog(__name__,'{device} Incoming Set state: {state} {previous_state} {source}'.format(
+                             device=self,
+                             state=state,
+                             previous_state=previous_state,
+                             source=source
+                                                                             ))
         if state in self._ignores:
             return None
         state = self._state_map(state, previous_state, source)
         if not state: # If we get no state, then ignore this state
             return False
         self._state = state
+        pylog(__name__,'{device} Mapped Set state: {state} {previous_state} {source}'.format(
+                             device=self,
+                             state=state,
+                             previous_state=previous_state,
+                             source=source
+                             ))
         self._delegate(state)
 
         # start any delayed states
@@ -163,6 +176,10 @@ class StateDevice(object):
         delegate_list += any_delegate_list
         if delegate_list:
             for delegate in delegate_list:
+                pylog(__name__,'{device} Delegate: {state}'.format(
+                                    device=self,
+                                     state=state,
+                                                                                     ))
                 delegate(state=state, previous_state=self._prev_state, source=self)
 
     def _bind_devices(self, devices):
