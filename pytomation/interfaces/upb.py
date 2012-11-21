@@ -254,4 +254,4 @@ class UPB(HAInterface):
         return self._device_goto(address, 0x00, timeout=timeout)
 
     def version(self):
-        pylog("UPB Pytomation driver version " + self.VERSION + "\n")
+        pylog(__name__, "UPB Pytomation driver version " + self.VERSION + "\n")

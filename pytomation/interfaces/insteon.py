@@ -568,7 +568,7 @@ class InsteonPLM(HAInterface):
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def version(self):
-        pylog("Insteon Pytomation driver version " + self.VERSION + "\n")
+        pylog(__name__, "Insteon Pytomation driver version " + self.VERSION + "\n")
         
 ######################
 # EXAMPLE            #

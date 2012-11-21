@@ -149,4 +149,4 @@ class Stargate(HAInterface):
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def version(self):
-        pylog("Stargate Pytomation driver version " + self.VERSION + "\n")
+        pylog(__name__, "Stargate Pytomation driver version " + self.VERSION + "\n")
