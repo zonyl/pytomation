@@ -107,7 +107,7 @@ class Stargate(HAInterface):
             i_value = io_map & (2 ** i)
             i_prev_value = last_input_map & (2 ** i)
             if i_value != i_prev_value:
-                if not bool(i_value == 0) or (bool(i_value == 0) and self.d_inverted[i]):
+                if (not bool(i_value == 0) and not self.d_inverted[i]) or (bool(i_value == 0) and self.d_inverted[i]):
                     state = State.ON
                 else:
                     state = State.OFF
