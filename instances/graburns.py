@@ -4,21 +4,33 @@ from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
 from pytomation.devices import Motion, Door, Light, Location
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
-#upb.start()
 
 #insteon = InsteonPLM(TCP('192.168.13.146', 9761))
 #insteon.start()
 
 sg = Stargate(Serial('/dev/ttyMI2', 9600))
+# invert the DIO channels for these contact sensors
+sg.dio_invert(1)
 sg.dio_invert(8)
-#sg.start()
 
 ###################### DEVICE CONFIG #########################
 
 d_foyer = Door('D1', sg)
-m_family = Motion('D8', sg)
 
-l_foyer = Light((49, 3), (upb, m_family))
+m_family = Motion('D8', sg)
+m_family.delay_still(2*60) # Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
+
+ph_sun = Location('35.2269', '-80.8433', tz='US/Eastern', mode=Location.MODE.STANDARD, is_dst=True)
+
+# Turn on the foyer light at night when either the door is opened or family PIR is tripped.
+l_foyer = Light((49, 3), (upb, d_foyer, m_family, ph_sun))
+# After being turned on, turn off again after 2 minutes of inactivity.
+l_foyer.delay_off(2*60)
+# Turn off the light no matter what at 11:59pm
+l_foyer.time_off('11:59pm')
+
+##################### USER CODE ###############################
+#Manually controlling the light
 l_foyer.on()
 l_foyer.off()
 
