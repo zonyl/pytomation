@@ -101,6 +101,7 @@ class Stargate(HAInterface):
         if range == 'c': # High side of 16bit registers
             offset = 8
             last_input_map = self._last_input_map_high 
+        
 
         for i in xrange(7):
             if last_input_map & (2 ** i) != io_map & (2 ** i):
@@ -115,6 +116,14 @@ class Stargate(HAInterface):
             self._last_input_map_high = io_map
         else:
             self._last_input_map_low = io_map
+
+        pylog(__name__, " Process digital input {iomap} {offset} {last_inputl} {last_inputh}".format(
+                                             iomap=Conversions.int_to_hex(io_map),
+                                             offset=offset,
+                                             last_inputl=Conversions.int_to_hex(self._last_input_map_low),
+                                             last_inputh=Conversions.int_to_hex(self._last_input_map_high),
+                                                                             ))
+
 
     def _decode_echo_mode_activity(self, activity):
         decoded = {}
