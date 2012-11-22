@@ -36,6 +36,7 @@ from Queue import Queue
 from binascii import unhexlify
 
 from .common import *
+from ..devices import State
 from .ha_interface import HAInterface
 from ..config import *
 
@@ -103,7 +104,11 @@ class Stargate(HAInterface):
 
         for i in xrange(7):
             if last_input_map & (2 ** i) != io_map & (2 ** i):
-                self._onCommand(command=not bool(io_map & (2 ** i) == 0),
+                if not bool(io_map & (2 ** i) == 0):
+                    state = State.ON
+                else:
+                    state = State.OFF
+                self._onCommand(command=state,
                                 address='D' + str(offset + i + 1))
 
         if range == 'c': # High side of 16bit registers
