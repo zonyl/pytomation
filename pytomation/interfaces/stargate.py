@@ -103,9 +103,11 @@ class Stargate(HAInterface):
             last_input_map = self._last_input_map_high 
         
 
-        for i in xrange(7):
-            if last_input_map & (2 ** i) != io_map & (2 ** i):
-                if not bool(io_map & (2 ** i) == 0):
+        for i in xrange(8):
+            i_value = io_map & (2 ** i)
+            i_prev_value = last_input_map & (2 ** i)
+            if i_value != i_prev_value:
+                if not bool(i_value == 0):
                     state = State.ON
                 else:
                     state = State.OFF
