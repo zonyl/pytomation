@@ -66,7 +66,7 @@ class Stargate(HAInterface):
 
         self._modemResponse = {
                                }
-
+        self.d_inverted = [False for x in xrange(16)]
         self.echoMode()
 
     def _readModem(self, lastPacketHash):
@@ -107,7 +107,7 @@ class Stargate(HAInterface):
             i_value = io_map & (2 ** i)
             i_prev_value = last_input_map & (2 ** i)
             if i_value != i_prev_value:
-                if not bool(i_value == 0):
+                if not bool(i_value == 0) or (bool(i_value == 0) and self.d_inverted[i]):
                     state = State.ON
                 else:
                     state = State.OFF
@@ -167,6 +167,9 @@ class Stargate(HAInterface):
         commandExecutionDetails = self._sendModemCommand(
                              command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+
+    def dio_invert(self, channel, value=True):
+        self.d_inverted[channel-1] = value
 
     def version(self):
         pylog(__name__, "Stargate Pytomation driver version " + self.VERSION + "\n")
