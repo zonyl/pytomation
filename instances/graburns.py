@@ -18,7 +18,8 @@ sg.dio_invert(8)
 d_foyer = Door('D1', sg)
 
 m_family = Motion('D8', sg)
-m_family.delay_still(2*60) # Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
+# Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
+m_family.delay_still(2*60) 
 
 ph_sun = Location('35.2269', '-80.8433', tz='US/Eastern', mode=Location.MODE.STANDARD, is_dst=True)
 
@@ -28,6 +29,9 @@ l_foyer = Light((49, 3), (upb, d_foyer, m_family, ph_sun))
 l_foyer.delay_off(2*60)
 # Turn off the light no matter what at 11:59pm
 l_foyer.time_off('11:59pm')
+# Do not turn on the light automatically when it is night time (indoor light)
+# Only looks at dark for restricing the whether the light should come on
+l_foyer.ignore_dark(True)
 
 ##################### USER CODE ###############################
 #Manually controlling the light
