@@ -8,10 +8,14 @@ from ..interfaces.common import *
 class InterfaceDevice(StateDevice):
     
     def __init__(self, address=None, devices=(), initial_state=None):
-        self._devices = []
-        self.address = address
-        self.interface = None
+	self._init(address=address, devices=devices, initial_state=initial_state)
         super(InterfaceDevice, self).__init__(devices=devices, initial_state=initial_state)
+
+    def _init(self, *args, **kwargs):
+        self._devices = []
+        self.address = kwargs['address']
+        self.interface = None
+	self._read_only = False
 
     def __setattr__(self, name, value):
         if name in self.STATES:
@@ -20,7 +24,7 @@ class InterfaceDevice(StateDevice):
 
     def _set_state(self, state, previous_state=None, source=None):
         result = super(InterfaceDevice, self)._set_state(state, previous_state=previous_state, source=source)
-        if self.interface:
+        if self.interface and not self._read_only:
             getattr(self.interface, self._state)(self.address)
         return result
 

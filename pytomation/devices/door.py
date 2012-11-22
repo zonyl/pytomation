@@ -3,7 +3,11 @@ from .state import State
 
 class Door(InterfaceDevice):
     STATES = [State.UNKNOWN, State.OPEN, State.CLOSED]
-       
+
+    def _init(self, *args, **kwargs):
+        super(Door, self)._init(*args, **kwargs)
+        self._read_only = True
+
     def _state_map(self, state, previous_state=None, source=None):
         if state == State.ON:
             mapped_state = State.OPEN
