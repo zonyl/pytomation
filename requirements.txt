@@ -1,4 +1,4 @@
 pytz
 mock
 pyephem
-
+python-serial or pyserial
