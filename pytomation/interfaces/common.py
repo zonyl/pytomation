@@ -345,6 +345,7 @@ def hashPacket(packetData):
 
 # pylog replaces the "print" keyword to enable debugging and logging
 def pylog(src, s):
+    t = ""
     if logging:
         if logfileTimestamp != "":
             t = time.strftime(logfileTimestamp)
