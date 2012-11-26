@@ -1,7 +1,7 @@
 import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
-from pytomation.devices import Motion, Door, Light, Location
+from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
@@ -11,27 +11,70 @@ upb = UPB(Serial('/dev/ttyMI0', 4800))
 sg = Stargate(Serial('/dev/ttyMI2', 9600))
 # invert the DIO channels for these contact sensors
 sg.dio_invert(1)
+sg.dio_invert(2)
+sg.dio_invert(3)
+sg.dio_invert(4)
+sg.dio_invert(5)
+sg.dio_invert(6)
+sg.dio_invert(7)
 sg.dio_invert(8)
+sg.dio_invert(9)
+sg.dio_invert(10)
+sg.dio_invert(11)
+sg.dio_invert(12)
+
 
 ###################### DEVICE CONFIG #########################
 
+#doors
 d_foyer = Door('D1', sg)
+d_laundry = Door('D2', sg)
+d_garage = Door('D3', sg)
+d_garage_overhead = Door((49, 38), upb)
+d_porch = Door('D4', sg)
+d_basement = Door('D5', sg)
+d_master = Door('D6', sg)
+d_crawlspace = Door('D10', sg)
+d_pool = Door('D11', sg)
 
+#general input
+s_laundry_pad = InterfaceDevice('D7', sg)
+s_master_pad = InterfaceDevice('D9', sg)
+s_laser_perimeter = InterfaceDevice('D12', sg)
+
+#motion
 m_family = Motion('D8', sg)
 # Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
 m_family.delay_still(2*60) 
 
-ph_sun = Location('35.2269', '-80.8433', tz='US/Eastern', mode=Location.MODE.STANDARD, is_dst=True)
+#photocell
+ph_standard = Location('35.2269', '-80.8433', tz='US/Eastern', mode=Location.MODE.STANDARD, is_dst=True)
+ph_civil = Location('35.2269', '-80.8433', tz='US/Eastern', mode=Location.MODE.CIVIL, is_dst=True)
 
+#lights
 # Turn on the foyer light at night when either the door is opened or family PIR is tripped.
-l_foyer = Light((49, 3), (upb, d_foyer, m_family, ph_sun))
-# After being turned on, turn off again after 2 minutes of inactivity.
-l_foyer.delay_off(2*60)
-# Turn off the light no matter what at 11:59pm
-l_foyer.time_off('11:59pm')
-# Do not turn on the light automatically when it is night time (indoor light)
-# Only looks at dark for restricing the whether the light should come on
-l_foyer.ignore_dark(True)
+l_foyer = Light(
+                address=(49, 3), 
+                devices=(upb, d_foyer, ph_standard),
+                delay_off=2*60,
+                time_off='11:59pm',
+                ignore_dark=True,
+                )
+
+l_front_flood = Light(
+                      address=(49, 5), 
+                      devices=(upb, d_garage, d_garage_overhead, ph_standard),
+                      delay_off=10*60,
+                      time_off='11:59pm',
+                      )
+
+l_front_porch = Light(
+                      address=(49, 4), 
+                      devices=(upb, d_foyer, ph_standard),
+                      delay_off=10*60,
+                      time_off='11:59pm',
+                      )
+
 
 ##################### USER CODE ###############################
 #Manually controlling the light
