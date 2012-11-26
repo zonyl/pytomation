@@ -1,4 +1,6 @@
+#To install please use: 
+#  $ pip install -r requirements.txt
 pytz
 mock
 pyephem
-python-serial or pyserial
+pyserial
