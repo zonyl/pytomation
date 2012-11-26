@@ -7,15 +7,15 @@ from ..interfaces.common import *
 
 class InterfaceDevice(StateDevice):
     
-    def __init__(self, address=None, devices=(), initial_state=None):
-	self._init(address=address, devices=devices, initial_state=initial_state)
-        super(InterfaceDevice, self).__init__(devices=devices, initial_state=initial_state)
+    def __init__(self, address=None, devices=(), *args, **kwargs):
+        self._init(address=address, devices=devices, *args, **kwargs)
+        super(InterfaceDevice, self).__init__(devices=devices, *args, **kwargs)
 
     def _init(self, *args, **kwargs):
         self._devices = []
         self.address = kwargs['address']
         self.interface = None
-	self._read_only = False
+    	self._read_only = False
 
     def __setattr__(self, name, value):
         if name in self.STATES:

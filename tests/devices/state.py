@@ -88,6 +88,14 @@ class StateDevice_Tests(TestCase):
         s1.on()
         self.assertEqual(s2.state, State.ON)
     
+    def test_init_extended(self):
+        s1 = StateDevice(
+                         devices=(self.device),
+                         time_off='11:59pm',
+                         delay_off=2*60,
+                         ignore_dark=True,
+                         )
+        self.assertIsNotNone(s1)
     
     def tearDown(self):
         self.device = None

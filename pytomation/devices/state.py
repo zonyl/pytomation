@@ -34,14 +34,22 @@ class StateDevice(object):
     ANY_STATE = 'any'
 
 
-    def __init__(self, devices=(), initial_state=None):
+    def __init__(self, devices=(), *args, **kwargs):
+#        devices = kwargs.get('devices', ())
         if not isinstance(devices, tuple):
             devices = (devices, )
         self._initial_vars()
-        self._initial_state(devices, initial_state)
-        self._bind_devices(devices)
-
-    def _initial_state(self, devices, initial_state):
+        kwargs.update({'devices': devices})
+        self._initial_state(*args, **kwargs)
+        for k, v in kwargs.iteritems():
+            try:
+                getattr(self, k)(v)
+            except Exception, ex:
+                pass
+    
+    def _initial_state(self, *args, **kwargs):
+        devices = kwargs.get('devices', ())
+        initial_state = kwargs.get('initial_state', None)
         if initial_state:
             self._state = initial_state
             self._prev_state = initial_state
@@ -73,6 +81,12 @@ class StateDevice(object):
     def state(self, value):
         self._state = value
         return self._state
+    
+    def devices(self, devices):
+        if not isinstance(devices, tuple):
+            devices = (devices, )
+        self._bind_devices(devices)
+        return devices
     
     def __getattr__(self, name):
         #state functions
