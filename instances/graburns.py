@@ -43,13 +43,20 @@ s_master_pad = InterfaceDevice('D9', sg)
 s_laser_perimeter = InterfaceDevice('D12', sg)
 
 #motion
-m_family = Motion('D8', sg)
 # Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
-m_family.delay_still(2*60) 
+m_family = Motion(address='D8', 
+                  devices=(sg),
+                  delay_still=2*60)
 
 #photocell
-ph_standard = Location('35.2269', '-80.8433', tz='US/Eastern', mode=Location.MODE.STANDARD, is_dst=True)
-ph_civil = Location('35.2269', '-80.8433', tz='US/Eastern', mode=Location.MODE.CIVIL, is_dst=True)
+ph_standard = Location('35.2269', '-80.8433', 
+                       tz='US/Eastern', 
+                       mode=Location.MODE.STANDARD, 
+                       is_dst=True)
+ph_civil = Location('35.2269', '-80.8433', 
+                    tz='US/Eastern', 
+                    mode=Location.MODE.CIVIL, 
+                    is_dst=True)
 
 #lights
 # Turn on the foyer light at night when either the door is opened or family PIR is tripped.
@@ -61,18 +68,39 @@ l_foyer = Light(
                 ignore_dark=True,
                 )
 
-l_front_flood = Light(
-                      address=(49, 5), 
-                      devices=(upb, d_garage, d_garage_overhead, ph_standard),
-                      delay_off=10*60,
-                      time_off='11:59pm',
-                      )
-
 l_front_porch = Light(
                       address=(49, 4), 
                       devices=(upb, d_foyer, ph_standard),
                       delay_off=10*60,
                       time_off='11:59pm',
+                      )
+
+
+l_front_flood = Light(
+                      address=(49, 5), 
+                      devices=(upb, d_garage, d_garage_overhead, d_foyer, ph_standard),
+                      delay_off=5*60,
+                      time_off='11:59pm',
+                      )
+
+l_front_outlet = Light(
+                      address=(49, 21), 
+                      devices=(upb),
+                      )
+
+l_front_garage = Light(
+                      address=(49, 2), 
+                      devices=(upb, d_garage, d_garage_overhead, ph_standard),
+                      delay_off=10*60,
+                      time_off='11:59pm',
+                      )
+
+l_garage = Light(
+                      address=(49, 18), 
+                      devices=(upb, d_garage, d_garage_overhead, ph_standard),
+                      delay_off=10*60,
+                      time_off='11:59pm',
+                      ignore_dark=True,
                       )
 
 
