@@ -18,3 +18,10 @@ class LocationTests(TestCase):
         self.loc.local_time = datetime(2012,6,1,12,0,0)
         self.assertEqual(self.loc.state, State.LIGHT)
         
+    def test_civil(self):
+        ph_standard = Location('35.2269', '-80.8433', 
+                       tz='US/Eastern', 
+                       mode=Location.MODE.CIVIL, 
+                       is_dst=True,
+                       local_time=datetime(2012,11,26,17,15,0))
+        self.assertIsNotNone(ph_standard)

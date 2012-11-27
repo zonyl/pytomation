@@ -10,13 +10,13 @@ class Location(StateDevice):
     STATES = [State.LIGHT, State.DARK]
 
     class MODE():
-        STANDARD = 0
-        CIVIL = -6
-        NAUTICAL = -12
-        ASTRONOMICAL = -18
+        STANDARD = '0'
+        CIVIL = '-6'
+        NAUTICAL = '-12'
+        ASTRONOMICAL = '-18'
     
-    def __init__(self, latitude, longitude, tz='US/Eastern', mode=MODE.STANDARD, is_dst=True):
-        super(Location, self).__init__()
+    def __init__(self, latitude, longitude, tz='US/Eastern', mode=MODE.STANDARD, is_dst=True, *args, **kwargs):
+        super(Location, self).__init__(*args, **kwargs)
         self.obs = ephem.Observer()
         self.obs.lat = latitude
         self.obs.long = longitude
