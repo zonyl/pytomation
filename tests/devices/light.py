@@ -1,3 +1,5 @@
+import time
+
 from datetime import datetime
 from unittest import TestCase, main
 from mock import Mock
@@ -70,6 +72,26 @@ class LightTests(TestCase):
         self.assertEqual(light.state, State.OFF)
         motion.motion()
         self.assertEqual(light.state, State.ON)
+
+    def test_delay_off(self):
+        door = Door()
+        self.assertIsNotNone(door)
+        light = Light(address='D1', 
+                      devices=(self.interface, door),
+                      delay_off=3)
+        door.open()
+        self.assertEqual(light.state, State.ON)
+        door.closed()
+        self.assertEqual(light.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(light.state, State.OFF)
+
+        # Check to see if we can immediately and directly still turn off
+        door.open()
+        self.assertEqual(light.state, State.ON)
+        light.off()
+        self.assertEqual(light.state, State.OFF)
+        
 
 if __name__ == '__main__':
     main() 

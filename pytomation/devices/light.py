@@ -28,4 +28,10 @@ class Light(InterfaceDevice):
             self._restricted = True
         elif state == State.DARK:
             self._restricted = False
+            
+        #check for delay:
+        if state != mapped_state and self._delays.get(mapped_state, None):
+            #ignore the mapped request for the state and let the timer take care of it
+            #if someone sends us the direct state then we will assume it is manual and needed immediately
+            mapped_state = None
         return mapped_state
