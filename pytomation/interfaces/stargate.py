@@ -55,8 +55,8 @@ class Stargate(HAInterface):
             debug['Stargate'] = 0
         self.version()
         
-        self._last_input_map_low = 0
-        self._last_input_map_high = 0
+        self._last_input_map_low = None
+        self._last_input_map_high = None
 
         self._modemRegisters = ""
 
@@ -88,6 +88,12 @@ class Stargate(HAInterface):
 
     def _processDigitalInput(self, response, lastPacketHash):
         offset = 0
+        first_time = False
+        if self._last_input_map_low == None: #First Time
+            self._last_input_map_high = 0
+            self._last_input_map_low = 0
+            first_time = True
+
         last_input_map = self._last_input_map_low
 
         if response[-1] == 'f':
@@ -106,7 +112,7 @@ class Stargate(HAInterface):
         for i in xrange(8):
             i_value = io_map & (2 ** i)
             i_prev_value = last_input_map & (2 ** i)
-            if i_value != i_prev_value:
+            if i_value != i_prev_value or first_time:
                 if (not bool(i_value == 0) and not self.d_inverted[i]) or (bool(i_value == 0) and self.d_inverted[i]):
                     state = State.ON
                 else:
