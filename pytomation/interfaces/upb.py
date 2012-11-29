@@ -259,6 +259,7 @@ class UPB(HAInterface):
             pylog(__name__,hex_dump(response, len(response)) + "\n")
 
     def _processNewUBP(self, response):
+        command = 0x00
         print "UBP New Response: " + response
         incoming = UPBMessage()
         incoming.decode(response)
@@ -271,6 +272,13 @@ class UPB(HAInterface):
                 command = State.ON
             else:
                 command = State.OFF
+        if incoming.message_did == 0x20:
+            address = (incoming.network, incoming.destination, 'L')
+            command = State.ON
+        if incoming.message_did == 0x21:
+            address = (incoming.network, incoming.destination, 'L')
+            command = State.OFF
+            
         self._onCommand(command, address)
 
     def _device_goto(self, address, level, timeout=None, rate=None):

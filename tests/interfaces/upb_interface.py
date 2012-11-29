@@ -74,6 +74,7 @@ class UPBInterfaceTests(TestCase):
         0010   33 36                      36
         """
         m_interface = Mock()
+        m_interface.read.return_value = ''
         upb = UPB(m_interface)
         m_interface.callback.return_value = True
         upb.onCommand(address=(49,6), callback=m_interface.callback)
@@ -82,6 +83,23 @@ class UPBInterfaceTests(TestCase):
         time.sleep(2)
         m_interface.callback.assert_called_with(address=(49,6), command=State.OFF, source=upb)  
         m_interface.read.return_value = ''
+
+    def test_incoming_link(self):
+        """
+        UBP New Response: PU8A0431260F20FFFFFFEF
+        UPBN:49:15:38:20
+        """
+        m_interface = Mock()
+        m_interface.callback.return_value = True
+        m_interface.read.return_value = ''
+        upb = UPB(m_interface)
+        upb.onCommand(address=(49,38,'L'), callback=m_interface.callback)
+        m_interface.read.return_value = 'PU8A0431260F20FFFFFFEF'
+#        time.sleep(4000)
+        time.sleep(2)
+        m_interface.callback.assert_called_with(address=(49,38,'L'), command=State.ON, source=upb)  
+        m_interface.read.return_value = ''
+        
 
 if __name__ == '__main__':
     main()
