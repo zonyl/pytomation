@@ -43,6 +43,7 @@ from binascii import unhexlify
 from .common import *
 from .ha_interface import HAInterface
 from ..config import *
+from ..devices.state import State
 
 class UPBMessage(object):
     class LinkType(object):
@@ -87,8 +88,9 @@ class UPBMessage(object):
     network = 49
     destination = 0
     source = 30
-    message_id = MessageIDSet.device
-    message_eid = 0
+#    message_id = MessageIDSet.device
+#    message_eid = 0
+    message_did = 0
     message_data = None
     checksum = None
 
@@ -97,14 +99,19 @@ class UPBMessage(object):
         if self.message_data:
             self.packet_length = self.packet_length + len(self.message_data)
 
-        control1 = ((self.link_type & 0b00000011) << 5) | \
-                ((self.repeat_request & 0b00000011) << 3) | \
+#        control1 = ((self.link_type & 0b00000011) << 5) | \
+#                ((self.repeat_request & 0b00000011) << 3) | \
+#                (self.packet_length & 0b00011111)
+        control1 = ((self.link_type & 0b00000001) << 7) | \
+                ((self.repeat_request & 0b00000011) << 5) | \
                 (self.packet_length & 0b00011111)
+
         control2 = ((self.ack_request & 0b00000111) << 4) | \
                 ((self.xmit_count & 0b00000011) << 2) | \
                 (self.xmit_seq & 0b00000011)
-        message_command = ((self.message_id & 0b00000111) << 5) | \
-                            (self.message_eid & 0b00011111)
+#        message_command = ((self.message_id & 0b00000111) << 5) | \
+#                            (self.message_eid & 0b00011111)
+        message_command = self.message_did
         response = Conversions.int_to_hex(control1) + \
                     Conversions.int_to_hex(control2) + \
                     Conversions.int_to_hex(self.network) + \
@@ -120,6 +127,25 @@ class UPBMessage(object):
                                      )
         return response
 
+    def decode(self, message):
+        control1 = Conversions.hex_to_int(message[2:4])
+        control2 = Conversions.hex_to_int(message[4:6])
+        self.link_type = (control1 & 0b10000000) >> 7
+        self.repeat_request = (control1 & 0b01100000) >> 5
+        self.packet_length = (control1 & 0b00011111)
+        self.ack_request = (control2 & 0b01110000) >> 4
+        self.xmit_count = (control2 & 0b00001100) >> 2
+        self.xmit_seq = (control2 & 0b00000011)
+        
+        self.network = Conversions.hex_to_int(message[6:8])
+        self.destination = Conversions.hex_to_int(message[8:10])
+        self.source = Conversions.hex_to_int(message[10:12])
+        
+        message_header = Conversions.hex_to_int(message[12:14])
+ #       self.message_id = (message_header & 0b11100000) >> 5
+ #       self.message_eid = (message_header & 0b00011111)
+        self.message_did = message_header
+        self.message_data = message[14:]
 
 class UPB(HAInterface):
 #    MODEM_PREFIX = '\x12'
@@ -233,13 +259,26 @@ class UPB(HAInterface):
             pylog(hex_dump(response, len(response)) + "\n")
 
     def _processNewUBP(self, response):
-        pass
+        print "UBP New Response: " + response
+        incoming = UPBMessage()
+        incoming.decode(response)
+        print 'UPBN:' + str(incoming.network) + ":" + str(incoming.source) + ":" + str(incoming.destination) + ":" + Conversions.int_to_hex(incoming.message_did)
+        address = (incoming.network, incoming.source)
+        if incoming.message_did == 0x22 \
+            or incoming.message_did == 0x23 \
+            or incoming.message_did == 0x86:
+            if Conversions.hex_to_int(incoming.message_data[1:2]) > 0:
+                command = State.ON
+            else:
+                command = State.OFF
+        self._onCommand(command, address)
 
     def _device_goto(self, address, level, timeout=None, rate=None):
         message = UPBMessage()
         message.network = address[0]
         message.destination = address[1]
-        message.message_eid = UPBMessage.MessageDeviceControl.goto
+#        message.message_eid = UPBMessage.MessageDeviceControl.goto
+        message.message_did = UPBMessage.MessageDeviceControl.goto
         message.message_data = Conversions.int_to_ascii(level)
         if rate != None:
             message.message_data = message.message_data + \

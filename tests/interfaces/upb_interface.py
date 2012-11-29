@@ -1,10 +1,11 @@
 import select
+import time
 
 from unittest import TestCase, main
-
+from mock import Mock
 from tests.common import MockInterface
 from pytomation.interfaces import UPB, Serial, HACommand
-
+from pytomation.devices import State
 
 class UPBInterfaceTests(TestCase):
     useMock = True
@@ -61,5 +62,26 @@ class UPBInterfaceTests(TestCase):
         0018   30 33 31 31 32 31 45 32    031121E2
         0020   32 30 30 36 35 0D          20065.
         """
+        
+    def test_incoming_on(self):
+        """
+        UBP New: PU0804310006860037:0000   50 55 30 38 30 34 33 31    PU080431
+        0008   30 30 30 36 38 36 30 30    00068600
+        0010   33 37                      37
+        
+        UBP New: PU0805310006860036:0000   50 55 30 38 30 35 33 31    PU080531
+        0008   30 30 30 36 38 36 30 30    00068600
+        0010   33 36                      36
+        """
+        m_interface = Mock()
+        upb = UPB(m_interface)
+        m_interface.callback.return_value = True
+        upb.onCommand(address=(49,6), callback=m_interface.callback)
+        m_interface.read.return_value = 'PU0805310006860036'
+#        time.sleep(4000)
+        time.sleep(2)
+        m_interface.callback.assert_called_with(address=(49,6), command=State.OFF, source=upb)  
+        m_interface.read.return_value = ''
+
 if __name__ == '__main__':
     main()
