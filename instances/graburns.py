@@ -30,7 +30,7 @@ sg.dio_invert(12)
 d_foyer = Door('D1', sg)
 d_laundry = Door('D2', sg)
 d_garage = Door('D3', sg)
-d_garage_overhead = Door((49, 38), upb)
+d_garage_overhead = Door((49, 38, 'L'), upb)
 d_porch = Door('D4', sg)
 d_basement = Door('D5', sg)
 d_master = Door('D6', sg)
@@ -100,6 +100,13 @@ l_garage = Light(
                       devices=(upb, d_garage, d_garage_overhead, ph_standard),
                       delay_off=10*60,
                       time_off='11:59pm',
+                      ignore_dark=True,
+                      )
+
+l_family_lamp = Light(
+                      address=(49, 6), 
+                      devices=(upb, m_family, ph_standard),
+                      delay_off=30*60,
                       ignore_dark=True,
                       )
 
