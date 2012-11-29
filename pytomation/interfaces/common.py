@@ -404,6 +404,10 @@ class Conversions(object):
         return ascii
     
     @staticmethod
+    def hex_to_int(char):
+        return Conversions.ascii_to_int(Conversions.hex_to_bytes(char))
+    
+    @staticmethod
     def int_to_hex(integer):
         return "%0.2X" % integer
 
