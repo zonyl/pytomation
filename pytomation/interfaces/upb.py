@@ -197,7 +197,7 @@ class UPB(HAInterface):
         responses = self._interface.read()
         if len(responses) != 0:
             if debug['UPB'] > 0:
-                pylog("[UPB] Response>\n" + hex_dump(responses) + "\n")
+                pylog(__name__,"[UPB] Response>\n" + hex_dump(responses) + "\n")
             for response in responses.splitlines():
                 responseCode = response[:2]
                 if responseCode == 'PA':  # UPB Packet was received by PIM. No ack yet
@@ -234,8 +234,8 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            pylog("[UPB] Unable to find pending command details for the following packet:\n")
-            pylog(hex_dump(response, len(response)) + "\n")
+            pylog(__name__,"[UPB] Unable to find pending command details for the following packet:\n")
+            pylog(__name__,hex_dump(response, len(response)) + "\n")
 
     def _processRegister(self, response, lastPacketHash):
         foundCommandHash = None
@@ -255,8 +255,8 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            pylog("[UPB] Unable to find pending command details for the following packet:\n")
-            pylog(hex_dump(response, len(response)) + "\n")
+            pylog(__name__,"[UPB] Unable to find pending command details for the following packet:\n")
+            pylog(__name__,hex_dump(response, len(response)) + "\n")
 
     def _processNewUBP(self, response):
         print "UBP New Response: " + response
