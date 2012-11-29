@@ -34,3 +34,6 @@ class MockInterface(object):
     def add_response(self, response_set):
         self._responses.update(response_set)
         return True
+    
+    def immediate_response(self, response):
+        self._response_q = response
