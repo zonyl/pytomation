@@ -5,7 +5,7 @@ from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
-#insteon = InsteonPLM(TCP('192.168.13.146', 9761))
+insteon = InsteonPLM(TCP('192.168.13.146', 9761))
 #insteon.start()
 
 sg = Stargate(Serial('/dev/ttyMI2', 9600))
@@ -110,12 +110,17 @@ l_family_lamp = Light(
                       ignore_dark=True,
                       )
 
+l_family = Light(
+                 address='19.05.7b',
+                 devices=(insteon),
+                 )
 
 ##################### USER CODE ###############################
 #Manually controlling the light
-l_foyer.on()
-l_foyer.off()
-
+#l_foyer.on()
+#l_foyer.off()
+l_family.on()
+l_family.off()
 
 # sit and spin - Let the magic flow
 select.select([],[],[])
