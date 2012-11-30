@@ -32,7 +32,7 @@ Versions and changes:
     Initial version created on May, 2012
     2012/11/14 - 1.1 - Added debug levels and global debug system
     2012/11/19 - 1.2 - Added logging, use pylog instead of print
-
+    2012/11/30 - 1.3 - Unify Command and State magic strings across the system
 
 """
 import threading
@@ -150,7 +150,7 @@ class UPBMessage(object):
 class UPB(HAInterface):
 #    MODEM_PREFIX = '\x12'
     MODEM_PREFIX = ''
-    VERSION = '1.2'
+    VERSION = '1.3'
 
     def __init__(self, interface):
         super(UPB, self).__init__(interface)
