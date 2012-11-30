@@ -5,8 +5,8 @@ from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
-insteon = InsteonPLM(TCP('192.168.13.146', 9761))
-#insteon.start()
+#insteon = InsteonPLM(TCP('192.168.13.146', 9761))
+insteon = InsteonPLM(Serial('/dev/ttyMI1', 19200))
 
 sg = Stargate(Serial('/dev/ttyMI2', 9600))
 # invert the DIO channels for these contact sensors
