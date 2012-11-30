@@ -355,14 +355,16 @@ def pylog(src, s):
             else:
                 fp = open(logfile, "w")
         except Exception, ex:
-            print "ERROR Can't open log file..." + str(ex)
-            try:
-                fp = open("/tmp/pylog.txt", "a")
-                print "Trying /tmp/pylog.txt"
-            except Exception, ex1:
-                sys.exit(0)
-        fp.write(t + s + "\n")
-        fp.close()
+            print "Log:" + t+ s + "\n"
+#            print "ERROR Can't open log file..." + str(ex) + "=>"
+#            try:
+#                fp = open("/tmp/pylog.txt", "a")
+#                print "Trying /tmp/pylog.txt"
+#            except Exception, ex1:
+#                sys.exit(0)
+        else:
+            fp.write(t + s + "\n")
+            fp.close()
     else:
         print t + s
 
