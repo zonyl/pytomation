@@ -329,7 +329,17 @@ class InsteonPLM(HAInterface):
         return False
 
     def _process_InboundStandardInsteonMessage(self, responseBytes):
-        (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('xBBBBBBBBBB', responseBytes)        
+#        (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('xBBBBBBBBBB', responseBytes)        
+        insteonCommand = ord(responseBytes[0])
+        fromIdHigh = ord(responseBytes[1])
+        fromIdMid = ord(responseBytes[2])
+        fromIdLow = ord(responseBytes[3])
+        toIdHigh = ord(responseBytes[4])
+        toIdMid = ord(responseBytes[5])
+        toIdLow = ord(responseBytes[6])
+        messageFlags = ord(responseBytes[7])
+        command1 = ord(responseBytes[8])
+        command2 = ord(responseBytes[9])
 
         foundCommandHash = None
         waitEvent = None
@@ -528,9 +538,6 @@ class InsteonPLM(HAInterface):
             if debug['Insteon'] > 0:
                 pylog(self,"[Insteon] stuffing\n")
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
-
-    def onCommand(self,callback):
-        pass
 
     def on(self, deviceId, timeout = None):
         if len(deviceId) != 2: #insteon device address
