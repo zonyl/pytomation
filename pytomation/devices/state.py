@@ -14,8 +14,8 @@ from ..interfaces.common import *
 
 class State(object):
     UNKNOWN = 'unknown'
-    ON = 'on'
-    OFF = 'off'
+    ON = Command.ON
+    OFF = Command.OFF
     LIGHT = 'light'
     DARK = 'dark'
     MOTION = 'motion'
@@ -24,7 +24,16 @@ class State(object):
     VACANT = 'vacant'
     OPEN = 'open'
     CLOSED = 'closed'
-
+    L10 = Command.L10
+    L20 = Command.L20
+    L30 = Command.L30
+    L40 = Command.L40
+    L50 = Command.L50
+    L60 = Command.L60
+    L70 = Command.L70
+    L80 = Command.L80
+    L90 = Command.L90
+    
 class StateDevice(object):
     STATES = [State.ON, State.OFF, State.UNKNOWN]
     DELEGATE_PREFIX = 'on_'

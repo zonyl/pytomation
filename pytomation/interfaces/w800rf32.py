@@ -112,13 +112,13 @@ class W800rf32(HAInterface):
             
             # Find command
             if b1 == 0x19:
-                self.command = 'DIM'
+                self.command = 'dim' # Probably should internalize this command to something higher level at the interface level
             elif b1 == 0x11:
-                self.command = 'BRIGHT'
+                self.command = 'bright'
             elif b1 & 0x05 == 4:
-                self.command = 'OFF'
+                self.command = Command.OFF
             elif b1 & 0x05 == 0:
-                self.command = 'ON'
+                self.command = Command.ON
             
             self.x10 = "%s%d" % (self.houseCode, self.unitNumber)
             if debug['W800'] > 0:

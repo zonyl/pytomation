@@ -269,15 +269,15 @@ class UPB(HAInterface):
             or incoming.message_did == 0x23 \
             or incoming.message_did == 0x86:
             if Conversions.hex_to_int(incoming.message_data[1:2]) > 0:
-                command = State.ON
+                command = Command.ON
             else:
-                command = State.OFF
+                command = Command.OFF
         if incoming.message_did == 0x20:
             address = (incoming.network, incoming.destination, 'L')
-            command = State.ON
+            command = Command.ON
         if incoming.message_did == 0x21:
             address = (incoming.network, incoming.destination, 'L')
-            command = State.OFF
+            command = Command.OFF
             
         self._onCommand(command, address)
 

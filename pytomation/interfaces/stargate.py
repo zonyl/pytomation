@@ -114,9 +114,9 @@ class Stargate(HAInterface):
             i_prev_value = last_input_map & (2 ** i)
             if i_value != i_prev_value or first_time:
                 if (not bool(i_value == 0) and not self.d_inverted[i]) or (bool(i_value == 0) and self.d_inverted[i]):
-                    state = State.ON
+                    state = Command.ON
                 else:
-                    state = State.OFF
+                    state = Command.OFF
                 self._onCommand(command=state,
                                 address='D' + str(offset + i + 1))
 
@@ -165,8 +165,6 @@ class Stargate(HAInterface):
             pylog("[Stargate] Unable to find pending command details for the following packet:\n")
             pylog(hex_dump(response, len(response)) + "\n")
 
-    def _processNewUBP(self, response):
-        pass
 
     def echoMode(self, timeout=None):
         command = '##%1d\r'

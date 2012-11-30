@@ -63,6 +63,18 @@ class Lookup(dict):
         """find the value given a key"""
         return self[key]
 
+class Command(object):
+    ON = 'on'
+    OFF = 'off'
+    L10 = 'l10'
+    L20 = 'l20'
+    L30 = 'l30'
+    L40 = 'l40'
+    L50 = 'l50'
+    L60 = 'l60'
+    L70 = 'l70'
+    L80 = 'l80'
+    L90 = 'l90'
 
 class Interface(object):
     def __init__(self):
