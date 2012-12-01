@@ -20,7 +20,12 @@ class DoorTests(TestCase):
         self.device._on_command('D1', State.ON)
         self.assertEqual(self.device.state, State.OPEN)
         
-
+    def test_door_closed(self):
+        door = Door('D1', devices=(self.interface))
+        self.device._on_command('D1', State.ON, self.interface)
+        self.assertEqual(self.device.state, State.OPEN)
+        self.device._on_command('D1', State.OFF, self.interface)
+        self.assertEqual(self.device.state, State.CLOSED)
 
 if __name__ == '__main__':
     main() 
