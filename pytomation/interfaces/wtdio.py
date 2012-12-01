@@ -56,7 +56,7 @@ Versions and changes:
                      - Added debug to control printing results
     2012/11/10 - 1.2 - Added debug levels and global debug system
     2012/11/18 - 1.3 - Added logging 
-
+    2012/11/30 - 1.4 - Unify Command and State magic strings
    
 """
 import threading
@@ -71,7 +71,7 @@ from ..config import *
 
 
 class Wtdio(HAInterface):
-    VERSION = '1.3'
+    VERSION = '1.4'
     MODEM_PREFIX = ''
         
     def __init__(self, interface):
@@ -120,7 +120,11 @@ class Wtdio(HAInterface):
             time.sleep(0.5)
 
     def _processDigitalInput(self, response, lastPacketHash):
-        self._onCommand(address=response[:2],command=response[2])
+        if response[2] == 'L':
+            contact = Command.ON
+        else:
+            contact = Command.OFF
+        self._onCommand(address=response[:2],command=contact)
 
 
     def _processRegister(self, response, lastPacketHash):
