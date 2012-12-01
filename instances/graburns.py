@@ -38,15 +38,28 @@ d_crawlspace = Door('D10', sg)
 d_pool = Door('D11', sg)
 
 #general input
-s_laundry_pad = InterfaceDevice('D7', sg)
-s_master_pad = InterfaceDevice('D9', sg)
-s_laser_perimeter = InterfaceDevice('D12', sg)
+i_laundry_security = InterfaceDevice('D7', sg)
+i_master_security = InterfaceDevice('D9', sg)
+i_laser_perimeter = InterfaceDevice('D12', sg)
 
 #motion
 # Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
 m_family = Motion(address='D8', 
                   devices=(sg),
-                  delay_still=2*60)
+                  delay_still=2*60
+                  )
+
+#keypads
+k_master = InterfaceDevice(
+                           address=(49,8),
+                           devices=(upb,),
+                           )
+
+#Scenes
+s_all_indoor_off = InterfaceDevice(
+                 address=(49,4,'L'),
+                 devices=(upb,),
+                 )
 
 #photocell
 ph_standard = Location('35.2269', '-80.8433', 
@@ -62,7 +75,7 @@ ph_civil = Location('35.2269', '-80.8433',
 # Turn on the foyer light at night when either the door is opened or family PIR is tripped.
 l_foyer = Light(
                 address=(49, 3), 
-                devices=(upb, d_foyer, ph_standard),
+                devices=(upb, d_foyer, ph_standard, s_all_indoor_off),
                 delay_off=2*60,
                 time_off='11:59pm',
                 ignore_dark=True,
@@ -70,7 +83,7 @@ l_foyer = Light(
 
 l_front_porch = Light(
                       address=(49, 4), 
-                      devices=(upb, d_foyer, ph_standard),
+                      devices=(upb, d_foyer, ph_standard, ),
                       delay_off=10*60,
                       time_off='11:59pm',
                       )
@@ -85,7 +98,8 @@ l_front_flood = Light(
 
 l_front_outlet = Light(
                       address=(49, 21), 
-                      devices=(upb),
+                      devices=(upb, ph_standard),
+                      time_off='10:30pm',
                       )
 
 l_front_garage = Light(
@@ -97,7 +111,7 @@ l_front_garage = Light(
 
 l_garage = Light(
                       address=(49, 18), 
-                      devices=(upb, d_garage, d_garage_overhead, ph_standard),
+                      devices=(upb, d_garage, d_garage_overhead, ph_standard, s_all_indoor_off),
                       delay_off=10*60,
                       time_off='11:59pm',
                       ignore_dark=True,
@@ -105,22 +119,22 @@ l_garage = Light(
 
 l_family_lamp = Light(
                       address=(49, 6), 
-                      devices=(upb, m_family, ph_standard),
+                      devices=(upb, m_family, ph_standard, s_all_indoor_off),
                       delay_off=30*60,
+                      time_off='11:59pm',
                       ignore_dark=True,
                       )
 
 l_family = Light(
-                 address='19.05.7b',
-                 devices=(insteon),
+                 address='19.05.7b',    
+                 devices=(insteon, s_all_indoor_off),
                  )
+
 
 ##################### USER CODE ###############################
 #Manually controlling the light
-#l_foyer.on()
-#l_foyer.off()
-l_family.on()
-l_family.off()
+l_foyer.on()
+l_foyer.off()
 
 # sit and spin - Let the magic flow
 select.select([],[],[])
