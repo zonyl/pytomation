@@ -8,6 +8,7 @@ Delegates:
     
     * For any state callback use: device.on_any(callback_for_any_state)
 """
+from datetime import datetime
 from pytomation.utility import CronTimer
 from pytomation.utility import PeriodicTimer
 from pytomation.utility.timer import Timer as CTimer
@@ -82,6 +83,7 @@ class StateDevice(object):
         self._times = {}
         self._delays = {}
         self._ignores = []
+        self._last_set = datetime.now()
         pass
 
     @property
@@ -98,6 +100,11 @@ class StateDevice(object):
             devices = (devices, )
         self._bind_devices(devices)
         return devices
+    
+    @property
+    def idle(self):
+        difference = datetime.now() - self._last_set
+        return difference.total_seconds()
     
     def __getattr__(self, name):
         #state functions
@@ -124,33 +131,28 @@ class StateDevice(object):
                              state=state,
                              previous_state=previous_state,
                              source=source
-                                                                             ))
+                             ))
         if state in self._ignores:
             return None
-        state = self._state_map(state, previous_state, source)
-        if not state: # If we get no state, then ignore this state
+        if not previous_state:
+            previous_state = self._prev_state
+            
+        mapped_state = self._state_map(state, previous_state, source)
+        if not mapped_state: # If we get no state, then ignore this state
             return False
-        self._state = state
+        self._state = mapped_state
         pylog(__name__,'{device} Mapped Set state: {state} {previous_state} {source}'.format(
                              device=self,
-                             state=state,
+                             state=mapped_state,
                              previous_state=previous_state,
                              source=source
                              ))
-        self._delegate(state)
+        self._delegate(mapped_state)
 
-        # start any delayed states
-        if source != self:
-            for d_state, timer in self._delays.iteritems():
-                # only if we arent already that state
-                if d_state != state:
-                    timer.stop()
-                    timer.action(self._set_state, (d_state, self._prev_state, self))
-#                    timer = Timer(secs, self._set_state, (d_state, self._prev_state, self))
-#                    timer.setDaemon(True)
-                    timer.start()
+        self._trigger_delay(mapped_state, state, previous_state, source )
 
         self._prev_state = self._state
+        self._last_set = datetime.now()
         return True
 
     def _state_map(self, state, previous_state=None, source=None):
@@ -193,6 +195,19 @@ class StateDevice(object):
             timer = CTimer()
             timer.interval = secs
             self._delays.update({state: timer})
+
+    def _trigger_delay(self, mapped_state, orig_state, prev_state, source):
+        # start any delayed states
+        if source != self:
+            for d_state, timer in self._delays.iteritems():
+                # only if we arent already that state
+                if d_state != mapped_state:
+                    timer.stop()
+                    timer.action(self._set_state, (d_state, None, self))
+#                    timer = Timer(secs, self._set_state, (d_state, self._prev_state, self))
+#                    timer.setDaemon(True)
+                    timer.start()
+        return True
 
     def _add_ignore(self, state, value=True):
         if value:

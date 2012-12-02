@@ -14,6 +14,12 @@ class StateDevice_Tests(TestCase):
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
                              'HADevice could not be instantiated')
+        
+    def test_idle(self):
+        self.device.on()
+        current = datetime.now()
+        time.sleep(2)
+        self.assertTrue(self.device.idle >= 2)
 
     def test_on(self):
         self.assertEqual(self.device.state, self.device.UNKNOWN)
@@ -86,6 +92,21 @@ class StateDevice_Tests(TestCase):
         self.assertEqual(self.device.state, State.ON)
         time.sleep(3)
         self.assertEqual(self.device.state, State.OFF)
+    
+    def test_delay_cancel(self):
+        # Setting device to the state of the delay should cancel the timer
+        child = StateDevice(self.device)
+        self.device.off()
+        self.device.delay_off(4)
+        self.assertEqual(self.device.state, State.OFF)
+        self.device.on()
+        self.assertEqual(self.device.state, State.ON)
+        self.device.off()
+        self.assertEqual(self.device.state, State.OFF)
+        self.device.on()
+        self.assertEqual(self.device.state, State.ON)
+        time.sleep(4)
+        self.assertEqual(self.device.state, State.ON)
     
     def test_ignore_state(self):
         s1 = StateDevice()
