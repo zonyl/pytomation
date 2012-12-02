@@ -77,12 +77,13 @@ class InterfaceDevice(StateDevice):
         offset = random.randint(0, 30 * 60) + (30 * 60) 
         self._sync_timer = CTimer(offset)
         self._sync_timer.action(self._run_sync, ())
-        
+        self._sync_timer.start()        
 
     def _stop_sync(self):
         self._sync_timer.stop()
         
     def _run_sync(self):
-        getattr(self.interface, self._state)()
+        if self.interface:
+            getattr(self.interface, self._state)()
         self._start_sync()
         
