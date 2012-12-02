@@ -85,13 +85,13 @@ class LightTests(TestCase):
         self.assertEqual(light.state, State.ON)
 
     def test_delay_normal(self):
-        # Door Open and Close events retrigger delay
+        # Door Open events retrigger delay
         # Instead of turning off in 2 secs should be 4
         door = Door()
         self.assertIsNotNone(door)
         light = Light(address='D1', 
                       devices=(self.interface, door),
-                      delay_off=2)
+                      delay_off=3)
         door.open()
         self.assertEqual(light.state, State.ON)
         door.closed()

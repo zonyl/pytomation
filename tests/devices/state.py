@@ -96,16 +96,12 @@ class StateDevice_Tests(TestCase):
         # Setting device to the state of the delay should cancel the timer
         child = StateDevice(self.device)
         self.device.off()
-        self.device.delay_off(4)
+        self.device.delay_off(3)
         self.assertEqual(self.device.state, State.OFF)
         self.device.on()
-        self.assertEqual(self.device.state, State.ON)
         self.device.off()
-        self.assertEqual(self.device.state, State.OFF)
-        self.device.on()
-        self.assertEqual(self.device.state, State.ON)
         time.sleep(4)
-        self.assertEqual(self.device.state, State.ON)
+        self.assertTrue(self.device.idle >=3)
     
     def test_ignore_state(self):
         s1 = StateDevice()

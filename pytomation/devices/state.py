@@ -207,6 +207,8 @@ class StateDevice(object):
 #                    timer = Timer(secs, self._set_state, (d_state, self._prev_state, self))
 #                    timer.setDaemon(True)
                     timer.start()
+                elif d_state == orig_state:
+                    timer.stop()
         return True
 
     def _add_ignore(self, state, value=True):
