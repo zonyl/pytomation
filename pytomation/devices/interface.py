@@ -1,9 +1,13 @@
 """
 Interface Device:
 """
+import random
+
 from .state import StateDevice, State
 from pytomation.utility import CronTimer
+from pytomation.utility.timer import Timer as CTimer
 from ..interfaces.common import *
+
 
 class InterfaceDevice(StateDevice):
     
@@ -15,7 +19,7 @@ class InterfaceDevice(StateDevice):
         self._devices = []
         self.address = kwargs['address']
         self.interface = None
-    	self._read_only = False
+        self._read_only = False
 
     def __setattr__(self, name, value):
         if name in self.STATES:
@@ -50,3 +54,31 @@ class InterfaceDevice(StateDevice):
             except Exception, ex:
                 pass
         return super(InterfaceDevice, self)._bind_devices(devices)
+    
+    @property
+    def sync(self):
+        return self._sync
+    
+    @sync.setter
+    def sync(self, value):
+        self._sync = value
+        if value:
+            self._start_sync()
+        else:
+            self._stop_sync()
+        return self._sync
+    
+    def _start_sync(self):
+        # get a random number of secs from 30 minutes to an hour
+        offset = random.randint(0, 30 * 60) + (30 * 60) 
+        self._sync_timer = CTimer(offset)
+        self._sync_timer.action(self._run_sync, ())
+        
+
+    def _stop_sync(self):
+        self._sync_timer.stop()
+        
+    def _run_sync(self):
+        getattr(self.interface, self._state)()
+        self._start_sync()
+        
