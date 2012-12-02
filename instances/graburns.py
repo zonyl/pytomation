@@ -1,12 +1,14 @@
 import select
 
-from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
+from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
 #insteon = InsteonPLM(TCP('192.168.13.146', 9761))
 insteon = InsteonPLM(Serial('/dev/ttyMI1', 19200))
+
+w800 = W800rf32(Serial('/dev/ttyMI3', 4800)) 
 
 sg = Stargate(Serial('/dev/ttyMI2', 9600))
 # invert the DIO channels for these contact sensors
@@ -48,6 +50,9 @@ m_family = Motion(address='D8',
                   devices=(sg),
                   delay_still=2*60
                   )
+
+m_test = Motion(address='H1',
+                devices=w800)
 
 #keypads
 k_master = InterfaceDevice(
