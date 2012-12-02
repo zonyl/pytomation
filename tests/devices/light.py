@@ -133,6 +133,19 @@ class LightTests(TestCase):
                       )
         self.assertEqual(light.state, State.ON)
         
+    def test_light_photocell_delay(self):
+        # Delay off should not trigger when photocell tells us to go dark.
+        # Do it immediately
+        photo = Photocell()
+        photo.dark()
+        light = Light(address='e3',
+                      devices=photo,
+                      delay_off=3)
+        self.assertEqual(light.state, State.ON)
+        photo.light()
+        self.assertEqual(light.state, State.OFF)
+        
+        
 
 
 if __name__ == '__main__':
