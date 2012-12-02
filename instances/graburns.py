@@ -1,7 +1,7 @@
 import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32
-from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice
+from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, Photocell
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
@@ -51,8 +51,15 @@ m_family = Motion(address='D8',
                   delay_still=2*60
                   )
 
-m_test = Motion(address='H1',
+m_front_porch = Motion(address='F1',
                 devices=w800)
+ph_front_porch = Photocell(address='F2',
+                devices=w800)
+m_front_garage = Motion(address='F3',
+                devices=w800)
+ph_front_garage = Photocell(address='F4',
+                devices=w800)
+
 
 #keypads
 k_master = InterfaceDevice(
@@ -88,7 +95,8 @@ l_foyer = Light(
 
 l_front_porch = Light(
                       address=(49, 4), 
-                      devices=(upb, d_foyer, ph_standard, ),
+                      devices=(upb, d_foyer, m_front_porch, ph_standard, ),
+                      initial_state=ph_standard,
                       delay_off=10*60,
                       time_off='11:59pm',
                       )
@@ -96,7 +104,9 @@ l_front_porch = Light(
 
 l_front_flood = Light(
                       address=(49, 5), 
-                      devices=(upb, d_garage, d_garage_overhead, d_foyer, ph_standard),
+                      devices=(upb, d_garage, d_garage_overhead, 
+                               d_foyer, m_front_garage, ph_standard),
+                      initial_state=ph_standard,
                       delay_off=5*60,
                       time_off='11:59pm',
                       )
@@ -104,19 +114,23 @@ l_front_flood = Light(
 l_front_outlet = Light(
                       address=(49, 21), 
                       devices=(upb, ph_standard),
+                      initial_state=ph_standard,
                       time_off='10:30pm',
                       )
 
 l_front_garage = Light(
                       address=(49, 2), 
-                      devices=(upb, d_garage, d_garage_overhead, ph_standard),
+                      devices=(upb, d_garage, d_garage_overhead, 
+                               m_front_garage, ph_standard),
+                      initial_state=ph_standard,
                       delay_off=10*60,
                       time_off='11:59pm',
                       )
 
 l_garage = Light(
                       address=(49, 18), 
-                      devices=(upb, d_garage, d_garage_overhead, ph_standard, s_all_indoor_off),
+                      devices=(upb, d_garage, d_garage_overhead, 
+                               ph_standard, s_all_indoor_off),
                       delay_off=10*60,
                       time_off='11:59pm',
                       ignore_dark=True,
