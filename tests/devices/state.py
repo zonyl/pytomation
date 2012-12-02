@@ -14,7 +14,12 @@ class StateDevice_Tests(TestCase):
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
                              'HADevice could not be instantiated')
-        
+
+    def test_instances(self):
+        prev = len(self.device.instances)
+        device = StateDevice()
+        self.assertTrue(len(device.instances) > prev)
+                
     def test_idle(self):
         self.device.on()
         time.sleep(2)

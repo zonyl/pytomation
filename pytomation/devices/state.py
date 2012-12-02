@@ -14,6 +14,7 @@ from pytomation.utility import PeriodicTimer
 from pytomation.utility.timer import Timer as CTimer
 from threading import Timer
 from ..interfaces.common import *
+from ..common.pytomation_object import PytomationObject
 
 class State(object):
     UNKNOWN = 'unknown'
@@ -37,7 +38,7 @@ class State(object):
     L80 = Command.L80
     L90 = Command.L90
     
-class StateDevice(object):
+class StateDevice(PytomationObject):
     STATES = [State.ON, State.OFF, State.UNKNOWN]
     DELEGATE_PREFIX = 'on_'
     TIME_PREFIX = 'time_'
@@ -45,8 +46,8 @@ class StateDevice(object):
     IGNORE_PREFIX = 'ignore_'
     ANY_STATE = 'any'
 
-
     def __init__(self, devices=(), *args, **kwargs):
+        super(StateDevice, self).__init__(*args, **kwargs)
 #        devices = kwargs.get('devices', ())
         if not isinstance(devices, tuple):
             devices = (devices, )

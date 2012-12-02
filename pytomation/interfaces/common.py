@@ -38,6 +38,9 @@ import hashlib
 import sys
 from ..config import *
 
+from ..common.pytomation_object import PytomationObject
+
+
 class Lookup(dict):
     """
     a dictionary which can lookup value by key, or keys by value
@@ -76,7 +79,7 @@ class Command(object):
     L80 = 'l80'
     L90 = 'l90'
 
-class Interface(object):
+class Interface(PytomationObject):
     def __init__(self):
         super(Interface, self).__init__()
 
@@ -90,8 +93,9 @@ class Interface(object):
 class AsynchronousInterface(threading.Thread, Interface):
     def __init__(self, *args, **kwargs):
         #threading.Thread.__init__(self)
+        self._po_common(*args, **kwargs)
         super(AsynchronousInterface,self).__init__()
-
+        
         self._init(*args, **kwargs)
         self.start()
 
