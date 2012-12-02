@@ -13,6 +13,9 @@ class InterfaceDevice(StateDevice):
     
     def __init__(self, address=None, devices=(), *args, **kwargs):
         self._init(address=address, devices=devices, *args, **kwargs)
+        sync = kwargs.get('sync', None)
+        if sync:
+            self._sync = sync
         super(InterfaceDevice, self).__init__(devices=devices, *args, **kwargs)
 
     def _init(self, *args, **kwargs):
@@ -20,6 +23,7 @@ class InterfaceDevice(StateDevice):
         self.address = kwargs['address']
         self.interface = None
         self._read_only = False
+        self._sync = False
 
     def __setattr__(self, name, value):
         if name in self.STATES:

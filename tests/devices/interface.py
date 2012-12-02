@@ -39,6 +39,10 @@ class InterfaceDevice_Tests(TestCase):
         # Usually for X10 devices that do not have an acknowledgement
         self.device.sync = True
         
+        device = InterfaceDevice(address='asdf', 
+                                 sync=True)
+        self.assertIsNotNone(device)
+        self.assertTrue(device.sync)
 
 if __name__ == '__main__':
     main() 
