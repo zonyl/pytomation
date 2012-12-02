@@ -17,7 +17,6 @@ class StateDevice_Tests(TestCase):
         
     def test_idle(self):
         self.device.on()
-        current = datetime.now()
         time.sleep(2)
         self.assertTrue(self.device.idle >= 2)
 
