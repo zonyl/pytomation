@@ -33,7 +33,18 @@ class LightTests(TestCase):
         self.device = Light('D1', (self.interface, door))
         door.open()
         self.assertTrue(self.interface.on.called)
-
+        
+    def test_door_closed(self):
+        door = Door()
+        self.assertIsNotNone(door)
+        door.open()
+        self.device = Light('D1', (self.interface, door))
+        door.closed()
+        self.assertFalse(self.interface.on.called)
+#        self.interface.on.assert_called_once_with('')
+        door.open()
+        self.assertTrue(self.interface.on.called)
+        
     def test_location_triggered(self):
         home = Location('35.2269', '-80.8433')
         home.local_time = datetime(2012,6,1,12,0,0)

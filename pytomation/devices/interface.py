@@ -24,8 +24,17 @@ class InterfaceDevice(StateDevice):
 
     def _set_state(self, state, previous_state=None, source=None):
         result = super(InterfaceDevice, self)._set_state(state, previous_state=previous_state, source=source)
-        if self.interface and not self._read_only:
-            getattr(self.interface, self._state)(self.address)
+	# Only send if we have interface, we approved of the state change and are not readonly
+        if self.interface and result and not self._read_only: 
+            try:
+		pylog(__name__, "{device} Sending to {r} interface {state}".format(device=str(self),state=self._state,source=str(source), r=result))
+                getattr(self.interface, self._state)(self.address)
+            except AttributeError, ex:
+                pylog(__name__, "Interface ({interface}) doesn't support the State->Command: {state}".format(
+                                                                                                            interface=str(self.interface),
+                                                                                                            state=self.state,
+                                                                                                            )
+                      )
         return result
 
     def _on_command(self, address=None, command=None, source=None):
