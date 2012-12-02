@@ -32,8 +32,7 @@ class MotionTests(TestCase):
         # Make sure we can turn ignore off
         self.device.ignore_off(False)
         self.device._on_command('D1', State.OFF, self.interface)
-        self.assertEqual(self.device.state, State.STILL)
-        
+        self.assertEqual(self.device.state, State.STILL)        
 
 if __name__ == '__main__':
     main() 

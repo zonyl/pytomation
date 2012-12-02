@@ -70,10 +70,23 @@ class StateDevice_Tests(TestCase):
         # After state change, return to off in 2 secs
         self.device.delay_off(2)
         self.device.on()
+        time.sleep(1)
+        self.assertEqual(self.device.state, State.ON)
+        time.sleep(2)
+        self.assertEqual(self.device.state, State.OFF)
+        
+        # re-trigger timer
+        self.assertEqual(self.device.state, State.OFF)
+        self.device.on()
+        self.assertEqual(self.device.state, State.ON)
+        time.sleep(1)
+        self.assertEqual(self.device.state, State.ON)
+        self.device.on()
+        time.sleep(1)
         self.assertEqual(self.device.state, State.ON)
         time.sleep(3)
         self.assertEqual(self.device.state, State.OFF)
-
+    
     def test_ignore_state(self):
         s1 = StateDevice()
         s2 = StateDevice(s1)

@@ -9,6 +9,8 @@ Delegates:
     * For any state callback use: device.on_any(callback_for_any_state)
 """
 from pytomation.utility import CronTimer
+from pytomation.utility import PeriodicTimer
+from pytomation.utility.timer import Timer as CTimer
 from threading import Timer
 from ..interfaces.common import *
 
@@ -139,11 +141,13 @@ class StateDevice(object):
 
         # start any delayed states
         if source != self:
-            for d_state, secs in self._delays.iteritems():
+            for d_state, timer in self._delays.iteritems():
                 # only if we arent already that state
                 if d_state != state:
-                    timer = Timer(secs, self._set_state, (d_state, self._prev_state, self))
-                    timer.setDaemon(True)
+                    timer.stop()
+                    timer.action(self._set_state, (d_state, self._prev_state, self))
+#                    timer = Timer(secs, self._set_state, (d_state, self._prev_state, self))
+#                    timer.setDaemon(True)
                     timer.start()
 
         self._prev_state = self._state
@@ -180,13 +184,16 @@ class StateDevice(object):
             self._times.update({state: timer})
     
     def _add_delay(self, state, secs):
-        timer = self._delays.get(state, None)
-        if timer:
-            del timer
+        delay = self._delays.get(state, None)
+        if delay:
+            del delay
         
         if secs:
-            self._delays.update({state: secs})
-        
+#            self._delays.update({state: secs})
+            timer = CTimer()
+            timer.interval = secs
+            self._delays.update({state: timer})
+
     def _add_ignore(self, state, value=True):
         if value:
             self._ignores.append(state)
