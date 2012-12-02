@@ -122,6 +122,18 @@ class LightTests(TestCase):
         time.sleep(1)
         self.assertEqual(light.state, State.OFF)
 
+    def test_light_photocell_intial(self):
+        motion = Motion()
+        motion.still()
+        photo = Photocell(address='asdf')
+        photo.dark()
+        light = Light(address='e3',
+                      devices=(photo, motion),
+                      initial_state=photo,
+                      )
+        self.assertEqual(light.state, State.ON)
+        
+
 
 if __name__ == '__main__':
     main() 

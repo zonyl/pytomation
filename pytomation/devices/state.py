@@ -61,16 +61,22 @@ class StateDevice(object):
     
     def _initial_state(self, *args, **kwargs):
         devices = kwargs.get('devices', ())
+        prev_state = self._prev_state
+
         initial_state = kwargs.get('initial_state', None)
         if initial_state:
-            self._state = initial_state
-            self._prev_state = initial_state
+            try:
+                initial_state = initial_state.state
+                self._state = self._state_map(initial_state, prev_state, initial_state)
+            except AttributeError, ex:
+                self._state = self._state_map(initial_state, prev_state, None)
+            self._prev_state = self._state
         else:
             self._state = State.UNKNOWN
             self._prev_state = self._state
             for device in devices:
                 try:
-                    m_state = self._state_map(device.state, self._prev_state, device)
+                    m_state = self._state_map(device.state, prev_state, device)
                     self._state = m_state
                     self._prev_state = self._state
                 except:
