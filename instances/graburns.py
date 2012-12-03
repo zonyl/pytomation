@@ -59,7 +59,42 @@ m_front_garage = Motion(address='F3',
                 devices=w800)
 ph_front_garage = Photocell(address='F4',
                 devices=w800)
+m_front_driveway = Motion(address='F5',
+                devices=w800)
+ph_front_driveway = Photocell(address='F6',
+                devices=w800)
 
+
+
+m_garage = Motion(address='G1',
+                  devices=w800)
+ph_garage = Motion(address='G2',
+                  devices=w800)
+
+m_utility = Motion(address='G3',
+                  devices=w800)
+ph_utility = Motion(address='G4',
+                  devices=w800)
+
+m_breakfast = Motion(address='G5',
+                  devices=w800)
+ph_breakfast = Motion(address='G6',
+                  devices=w800)
+
+m_foyer = Motion(address='G7',
+                  devices=w800)
+ph_foyer = Motion(address='G8',
+                  devices=w800)
+
+m_den = Motion(address='G9',
+                  devices=w800)
+ph_den = Motion(address='GA',
+                  devices=w800)
+
+m_kitchen = Motion(address='GB',
+                  devices=w800)
+ph_kitchen = Motion(address='GC',
+                  devices=w800)
 
 #keypads
 k_master = InterfaceDevice(
