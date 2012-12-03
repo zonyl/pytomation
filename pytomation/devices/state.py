@@ -8,9 +8,13 @@ Delegates:
     
     * For any state callback use: device.on_any(callback_for_any_state)
 """
+from datetime import datetime
 from pytomation.utility import CronTimer
+from pytomation.utility import PeriodicTimer
+from pytomation.utility.timer import Timer as CTimer
 from threading import Timer
 from ..interfaces.common import *
+from ..common.pytomation_object import PytomationObject
 
 class State(object):
     UNKNOWN = 'unknown'
@@ -34,7 +38,7 @@ class State(object):
     L80 = Command.L80
     L90 = Command.L90
     
-class StateDevice(object):
+class StateDevice(PytomationObject):
     STATES = [State.ON, State.OFF, State.UNKNOWN]
     DELEGATE_PREFIX = 'on_'
     TIME_PREFIX = 'time_'
@@ -42,8 +46,8 @@ class StateDevice(object):
     IGNORE_PREFIX = 'ignore_'
     ANY_STATE = 'any'
 
-
     def __init__(self, devices=(), *args, **kwargs):
+        super(StateDevice, self).__init__(*args, **kwargs)
 #        devices = kwargs.get('devices', ())
         if not isinstance(devices, tuple):
             devices = (devices, )
@@ -58,17 +62,25 @@ class StateDevice(object):
     
     def _initial_state(self, *args, **kwargs):
         devices = kwargs.get('devices', ())
+        prev_state = self._prev_state
+
         initial_state = kwargs.get('initial_state', None)
         if initial_state:
-            self._state = initial_state
-            self._prev_state = initial_state
+            try:
+#                self._state = self._state_map(initial_state, prev_state, initial_state)
+                self._set_state(initial_state.state, prev_state, initial_state)
+            except AttributeError, ex:
+#                self._state = self._state_map(initial_state, prev_state, None)
+                self._set_state(initial_state, prev_state, None)
+            self._prev_state = self._state
         else:
             self._state = State.UNKNOWN
             self._prev_state = self._state
             for device in devices:
                 try:
-                    m_state = self._state_map(device.state, self._prev_state, device)
-                    self._state = m_state
+#                    m_state = self._state_map(device.state, prev_state, device)
+#                    self._state = m_state
+                    self._set_state(device.state, prev_state, device)
                     self._prev_state = self._state
                 except:
                     pass
@@ -80,6 +92,7 @@ class StateDevice(object):
         self._times = {}
         self._delays = {}
         self._ignores = []
+        self._last_set = datetime.now()
         pass
 
     @property
@@ -96,6 +109,11 @@ class StateDevice(object):
             devices = (devices, )
         self._bind_devices(devices)
         return devices
+    
+    @property
+    def idle(self):
+        difference = datetime.now() - self._last_set
+        return difference.total_seconds()
     
     def __getattr__(self, name):
         #state functions
@@ -122,31 +140,28 @@ class StateDevice(object):
                              state=state,
                              previous_state=previous_state,
                              source=source
-                                                                             ))
+                             ))
         if state in self._ignores:
             return None
-        state = self._state_map(state, previous_state, source)
-        if not state: # If we get no state, then ignore this state
+        if not previous_state:
+            previous_state = self._prev_state
+            
+        mapped_state = self._state_map(state, previous_state, source)
+        if not mapped_state: # If we get no state, then ignore this state
             return False
-        self._state = state
+        self._state = mapped_state
         pylog(__name__,'{device} Mapped Set state: {state} {previous_state} {source}'.format(
                              device=self,
-                             state=state,
+                             state=mapped_state,
                              previous_state=previous_state,
                              source=source
                              ))
-        self._delegate(state)
+        self._delegate(mapped_state)
 
-        # start any delayed states
-        if source != self:
-            for d_state, secs in self._delays.iteritems():
-                # only if we arent already that state
-                if d_state != state:
-                    timer = Timer(secs, self._set_state, (d_state, self._prev_state, self))
-                    timer.setDaemon(True)
-                    timer.start()
+        self._trigger_delay(mapped_state, state, previous_state, source )
 
         self._prev_state = self._state
+        self._last_set = datetime.now()
         return True
 
     def _state_map(self, state, previous_state=None, source=None):
@@ -180,13 +195,31 @@ class StateDevice(object):
             self._times.update({state: timer})
     
     def _add_delay(self, state, secs):
-        timer = self._delays.get(state, None)
-        if timer:
-            del timer
+        delay = self._delays.get(state, None)
+        if delay:
+            del delay
         
         if secs:
-            self._delays.update({state: secs})
-        
+#            self._delays.update({state: secs})
+            timer = CTimer()
+            timer.interval = secs
+            self._delays.update({state: timer})
+
+    def _trigger_delay(self, mapped_state, orig_state, prev_state, source):
+        # start any delayed states
+        if source != self:
+            for d_state, timer in self._delays.iteritems():
+                # only if we arent already that state
+                if d_state != mapped_state:
+                    timer.stop()
+                    timer.action(self._set_state, (d_state, None, self))
+#                    timer = Timer(secs, self._set_state, (d_state, self._prev_state, self))
+#                    timer.setDaemon(True)
+                    timer.start()
+                elif d_state == orig_state:
+                    timer.stop()
+        return True
+
     def _add_ignore(self, state, value=True):
         if value:
             self._ignores.append(state)

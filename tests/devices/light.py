@@ -84,7 +84,9 @@ class LightTests(TestCase):
         motion.motion()
         self.assertEqual(light.state, State.ON)
 
-    def test_delay_off(self):
+    def test_delay_normal(self):
+        # Door Open events retrigger delay
+        # Instead of turning off in 2 secs should be 4
         door = Door()
         self.assertIsNotNone(door)
         light = Light(address='D1', 
@@ -94,15 +96,57 @@ class LightTests(TestCase):
         self.assertEqual(light.state, State.ON)
         door.closed()
         self.assertEqual(light.state, State.ON)
-        time.sleep(3)
+        time.sleep(2)
+        self.assertEqual(light.state, State.ON)
+        time.sleep(2)
         self.assertEqual(light.state, State.OFF)
 
         # Check to see if we can immediately and directly still turn off
+        light.off()
         door.open()
         self.assertEqual(light.state, State.ON)
         light.off()
         self.assertEqual(light.state, State.OFF)
+
+    def test_delay_light_specific(self):
+        # Motion.Still and Photocell.Light events do not retrigger
+        motion = Motion()
+        light = Light(address='D1', 
+                      devices=(self.interface, motion),
+                      delay_off=3)
+        motion.motion()
+        self.assertEqual(light.state, State.ON)
+        time.sleep(2)
+        motion.still()
+        self.assertEqual(light.state, State.ON)
+        time.sleep(1)
+        self.assertEqual(light.state, State.OFF)
+
+    def test_light_photocell_intial(self):
+        motion = Motion()
+        motion.still()
+        photo = Photocell(address='asdf')
+        photo.dark()
+        light = Light(address='e3',
+                      devices=(photo, motion),
+                      initial_state=photo,
+                      )
+        self.assertEqual(light.state, State.ON)
         
+    def test_light_photocell_delay(self):
+        # Delay off should not trigger when photocell tells us to go dark.
+        # Do it immediately
+        photo = Photocell()
+        photo.dark()
+        light = Light(address='e3',
+                      devices=photo,
+                      delay_off=3)
+        self.assertEqual(light.state, State.ON)
+        photo.light()
+        self.assertEqual(light.state, State.OFF)
+        
+        
+
 
 if __name__ == '__main__':
     main() 

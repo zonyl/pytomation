@@ -1,12 +1,14 @@
 import select
 
-from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
-from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice
+from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32
+from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, Photocell
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
 #insteon = InsteonPLM(TCP('192.168.13.146', 9761))
 insteon = InsteonPLM(Serial('/dev/ttyMI1', 19200))
+
+w800 = W800rf32(Serial('/dev/ttyMI3', 4800)) 
 
 sg = Stargate(Serial('/dev/ttyMI2', 9600))
 # invert the DIO channels for these contact sensors
@@ -49,6 +51,51 @@ m_family = Motion(address='D8',
                   delay_still=2*60
                   )
 
+m_front_porch = Motion(address='F1',
+                devices=w800)
+ph_front_porch = Photocell(address='F2',
+                devices=w800)
+m_front_garage = Motion(address='F3',
+                devices=w800)
+ph_front_garage = Photocell(address='F4',
+                devices=w800)
+m_front_driveway = Motion(address='F5',
+                devices=w800)
+ph_front_driveway = Photocell(address='F6',
+                devices=w800)
+
+
+
+m_garage = Motion(address='G1',
+                  devices=w800)
+ph_garage = Motion(address='G2',
+                  devices=w800)
+
+m_utility = Motion(address='G3',
+                  devices=w800)
+ph_utility = Motion(address='G4',
+                  devices=w800)
+
+m_breakfast = Motion(address='G5',
+                  devices=w800)
+ph_breakfast = Motion(address='G6',
+                  devices=w800)
+
+m_foyer = Motion(address='G7',
+                  devices=w800)
+ph_foyer = Motion(address='G8',
+                  devices=w800)
+
+m_den = Motion(address='G9',
+                  devices=w800)
+ph_den = Motion(address='GA',
+                  devices=w800)
+
+m_kitchen = Motion(address='GB',
+                  devices=w800)
+ph_kitchen = Motion(address='GC',
+                  devices=w800)
+
 #keypads
 k_master = InterfaceDevice(
                            address=(49,8),
@@ -83,7 +130,8 @@ l_foyer = Light(
 
 l_front_porch = Light(
                       address=(49, 4), 
-                      devices=(upb, d_foyer, ph_standard, ),
+                      devices=(upb, d_foyer, m_front_porch, ph_standard, ),
+                      initial_state=ph_standard,
                       delay_off=10*60,
                       time_off='11:59pm',
                       )
@@ -91,7 +139,9 @@ l_front_porch = Light(
 
 l_front_flood = Light(
                       address=(49, 5), 
-                      devices=(upb, d_garage, d_garage_overhead, d_foyer, ph_standard),
+                      devices=(upb, d_garage, d_garage_overhead, 
+                               d_foyer, m_front_garage, ph_standard),
+                      initial_state=ph_standard,
                       delay_off=5*60,
                       time_off='11:59pm',
                       )
@@ -99,19 +149,23 @@ l_front_flood = Light(
 l_front_outlet = Light(
                       address=(49, 21), 
                       devices=(upb, ph_standard),
+                      initial_state=ph_standard,
                       time_off='10:30pm',
                       )
 
 l_front_garage = Light(
                       address=(49, 2), 
-                      devices=(upb, d_garage, d_garage_overhead, ph_standard),
+                      devices=(upb, d_garage, d_garage_overhead, 
+                               m_front_garage, ph_standard),
+                      initial_state=ph_standard,
                       delay_off=10*60,
                       time_off='11:59pm',
                       )
 
 l_garage = Light(
                       address=(49, 18), 
-                      devices=(upb, d_garage, d_garage_overhead, ph_standard, s_all_indoor_off),
+                      devices=(upb, d_garage, d_garage_overhead, 
+                               ph_standard, s_all_indoor_off),
                       delay_off=10*60,
                       time_off='11:59pm',
                       ignore_dark=True,
@@ -133,8 +187,29 @@ l_family = Light(
 
 ##################### USER CODE ###############################
 #Manually controlling the light
-l_foyer.on()
-l_foyer.off()
+#l_foyer.on()
+#l_foyer.off()
+#l_front_porch.on()
+#l_front_porch.off()
+
+##################### TELNET MANHOLE ##########################
+from twisted.internet import reactor
+from twisted.manhole import telnet
+def createShellServer( ):
+	print 'Creating shell server instance'
+	factory = telnet.ShellFactory()
+	port = reactor.listenTCP( 2000, factory)
+	factory.namespace.update(
+			{'l_family_lamp': l_family_lamp}
+			)
+	factory.username = 'pyto'
+	factory.password = 'mation'
+	print 'Listening on port 2000'
+	return port
+
+if __name__ == "__main__":
+	reactor.callWhenRunning( createShellServer )
+	reactor.run()
 
 # sit and spin - Let the magic flow
 select.select([],[],[])

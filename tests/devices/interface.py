@@ -3,6 +3,7 @@ from unittest import TestCase, main
 from mock import Mock
 from datetime import datetime
 
+from pytomation.utility.timer import Timer as CTimer
 from pytomation.devices import InterfaceDevice
 
 class InterfaceDevice_Tests(TestCase):
@@ -32,6 +33,16 @@ class InterfaceDevice_Tests(TestCase):
         self.device.time_on(trigger_time)
         time.sleep(3)
         self.assertTrue( self.interface.on.called)
+
+    def test_random_sync(self):
+        # Should randomly sync state with the objects
+        # Usually for X10 devices that do not have an acknowledgement
+        self.device.sync = True
+        
+        device = InterfaceDevice(address='asdf', 
+                                 sync=True)
+        self.assertIsNotNone(device)
+        self.assertTrue(device.sync)
 
 if __name__ == '__main__':
     main() 
