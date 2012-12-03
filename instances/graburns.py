@@ -152,8 +152,29 @@ l_family = Light(
 
 ##################### USER CODE ###############################
 #Manually controlling the light
-l_foyer.on()
-l_foyer.off()
+#l_foyer.on()
+#l_foyer.off()
+#l_front_porch.on()
+#l_front_porch.off()
+
+##################### TELNET MANHOLE ##########################
+from twisted.internet import reactor
+from twisted.manhole import telnet
+def createShellServer( ):
+	print 'Creating shell server instance'
+	factory = telnet.ShellFactory()
+	port = reactor.listenTCP( 2000, factory)
+	factory.namespace.update(
+			{'l_family_lamp': l_family_lamp}
+			)
+	factory.username = 'pyto'
+	factory.password = 'mation'
+	print 'Listening on port 2000'
+	return port
+
+if __name__ == "__main__":
+	reactor.callWhenRunning( createShellServer )
+	reactor.run()
 
 # sit and spin - Let the magic flow
 select.select([],[],[])
