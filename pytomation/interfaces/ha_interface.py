@@ -31,14 +31,18 @@ from collections import deque
 
 from .common import *
 from ..config import *
+from ..common.pytomation_object import PytomationObject
 
-class HAInterface(AsynchronousInterface):
+class HAInterface(AsynchronousInterface, PytomationObject):
     "Base protocol interface"
 
     MODEM_PREFIX = '\x02'
     
     def __init__(self, interface, *args, **kwargs):
-        super(HAInterface, self).__init__(interface=interface)
+        kwargs.update({'interface': interface})
+        super(HAInterface, self).__init__(*args, **kwargs)
+        self._po_common(*args, **kwargs)
+
 
     def _init(self, *args, **kwargs):
         super(HAInterface, self)._init(*args, **kwargs)
@@ -255,3 +259,12 @@ class HAInterface(AsynchronousInterface):
                                                     timeout=timeout)
             else:
                 return False
+
+    @property
+    def name(self):
+        return self.name_ex
+    
+    @name.setter
+    def name(self, value):
+        self.name_ex = value
+        return self.name_ex

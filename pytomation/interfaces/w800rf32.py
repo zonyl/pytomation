@@ -71,8 +71,8 @@ class W800rf32(HAInterface):
     unitNunber = 0
     command = ""
 
-    def __init__(self, interface):
-        super(W800rf32, self).__init__(interface)
+    def __init__(self, interface, *args, **kwargs):
+        super(W800rf32, self).__init__(interface, *args, **kwargs)
     
     def _init(self, *args, **kwargs):
         super(W800rf32, self)._init(*args, **kwargs)
