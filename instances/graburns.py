@@ -121,15 +121,17 @@ ph_civil = Location('35.2269', '-80.8433',
 #lights
 # Turn on the foyer light at night when either the door is opened or family PIR is tripped.
 l_foyer = Light(
-                address=(49, 3), 
-                devices=(upb, d_foyer, ph_standard, s_all_indoor_off),
+                address=(49, 3),
+                devices=(upb, d_foyer,
+                         m_foyer,
+                         ph_standard, s_all_indoor_off),
                 delay_off=2*60,
                 time_off='11:59pm',
                 ignore_dark=True,
                 )
 
 l_front_porch = Light(
-                      address=(49, 4), 
+                      address=(49, 4),
                       devices=(upb, d_foyer, m_front_porch, ph_standard, ),
                       initial_state=ph_standard,
                       delay_off=10*60,
@@ -164,7 +166,7 @@ l_front_garage = Light(
 
 l_garage = Light(
                       address=(49, 18), 
-                      devices=(upb, d_garage, d_garage_overhead, 
+                      devices=(upb, m_garage, d_garage, d_garage_overhead, 
                                ph_standard, s_all_indoor_off),
                       delay_off=10*60,
                       time_off='11:59pm',
