@@ -132,7 +132,7 @@ class StateDevice(PytomationObject):
             return lambda x=True: self._add_ignore(name[len(self.IGNORE_PREFIX):len(name)], x)
 #        else:
 #            return super(StateDevice, self).__getattr__(name)
-        raise AttributeError
+#        raise AttributeError
 
     def _set_state(self, state, previous_state=None, source=None):
         pylog(__name__,'{device} Incoming Set state: {state} {previous_state} {source}'.format(

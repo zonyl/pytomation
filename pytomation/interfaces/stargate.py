@@ -46,8 +46,8 @@ class Stargate(HAInterface):
     MODEM_PREFIX = ''
     VERSION = '1.3'
 
-    def __init__(self, interface):
-        super(Stargate, self).__init__(interface)
+    def __init__(self, interface, *args, **kwargs):
+        super(Stargate, self).__init__(interface, *args, **kwargs)
 
     def _init(self, *args, **kwargs):
         super(Stargate, self)._init(*args, **kwargs)

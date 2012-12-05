@@ -74,8 +74,8 @@ class Wtdio(HAInterface):
     VERSION = '1.4'
     MODEM_PREFIX = ''
         
-    def __init__(self, interface):
-        super(Wtdio, self).__init__(interface)
+    def __init__(self, interface, *args, **kwargs):
+        super(Wtdio, self).__init__(interface, *args, **kwargs)
         
     def _init(self, *args, **kwargs):
         super(Wtdio, self)._init(*args, **kwargs)

@@ -72,7 +72,9 @@ class StateDevice_Tests(TestCase):
             self.device.invalid_state()
         except AttributeError, ex:
             return
-        except:
+        except TypeError, ex:
+            return
+        except Exception, ex:
             pass
         self.fail('Attribute Exception not raised')
 
