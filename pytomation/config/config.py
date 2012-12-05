@@ -57,4 +57,4 @@ logfilePreserve = True
 logfileTimestamp = "[%Y/%m/%d %H:%M:%S] "
 #logfileTimestamp = ""
 logfileRotate = 'week'
-logging = True
+logging = False

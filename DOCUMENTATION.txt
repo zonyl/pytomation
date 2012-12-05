@@ -1,0 +1,663 @@
+﻿Pytomation                                              December 04,2012
+========================================================================
+
+Python Home Automation
+
+Supports the following interfaces:
+- Insteon / X10 (2412N, 2412S)
+- UPB (Universal Powerline Bus) (Serial PIM)
+- JDS Stargate (RS232 / RS485)
+- Weeder Digital I/O board (Wtdio/RS232)
+- W800RF32 X10 RF receiver (W800/RS232)
+
+Future:
+- Z-Wave (Aeon Labs) DSA02203-ZWUS
+
+
+SECTIONS
+
+1) Downloading
+2) Installation
+3) Interfaces
+4) Devices
+5) States
+6) Configuring
+7) Creating an Instance
+    
+
+
+
+1) DOWNLOADING PYTOMATION
+
+Right now Pytomation is only available from the git repository.
+You must make sure you have git installed on your system.
+
+Debian based distributions such as Debian, Mint and Ubuntu can install
+git with the package manager or via command line with the following 
+command:
+
+    sudo apt-get install git
+    
+Once git is installed you can clone the repository with this command:
+
+    git clone git://github.com/zonyl/pytomation.git
+    
+
+    
+2) INSTALLATION
+
+Before you can create an instance and run Pytomation automation 
+software you must satisfy a few dependencies.  Pytomation is written in
+Python and currently has been tested under versions 2.6.x and 2.7.x.
+
+Pytomation also requires the following packages to be installed:
+
+Pyserial - Support for RS232 serial interfaces.
+Pyephem  - High-precision astronomy computations for sunrise/sunset.
+Pytz     - World timezone definitions.
+Mock     - Python testing library.
+
+Debian packages are available for Pyserial and can be installed with
+
+    sudo apt-get install python-serial
+    
+or search for python serial in your software manager.
+
+The other pieces can be installed with "pip". "Pip" is a tool for 
+installing and managing Python packages, such as those found in the 
+Python Package Index.
+
+Again, under Debian distributions you can install the python-pip
+package:
+
+    sudo apt-get install python-pip
+    
+Once pip is installed it is easy to install the rest of the dependencies
+with the following commands.
+
+    sudo pip install pytz pyephem mock
+    
+You are now ready to configure pytomation and create an instance to run
+your devices.  
+
+Pytomation supports declared objects that provide certain functionality,
+with each object supporting a set of states.  It is this support that 
+provides Pytomation intelligence about these objects and allows it to
+manipulate them.
+
+
+
+3) INTERFACES
+
+As mentioned above, Pytomation supports a range of device drivers or 
+“Interfaces”, that allow Pytomation to talk and listen to the real 
+world.  There are more being developed all the time and by the time.
+
+Insteon
+-------
+Insteon is a power line control product that transmits and receives 
+data across the 120VAC house wiring. Insteon supports a wide range of 
+devices from wall switches and lamp modules to relay contacts and 
+thermostats.  Pytomation uses a computer interface called a 
+Power Line Modem (PLM) that connects via USB, RS232 or Network to your 
+computer.  Below are the model numbers supported.
+
+2413S – RS232 PowerLinc Modem
+2413U – USB PowerLinc Modem
+2412N – TCP/IP PowerLinc Modem
+
+The PLM communicates to wall switches and lamp modules etc.  Here is a 
+small list of devices known to work.  This is by no means all of the 
+devices that will work.  We will provide an updated complete list as 
+time allows.
+
+SwitchLinc 600watt Dimmer wall switch  -  2476D
+SwitchLinc Relay wall switch, 17amp    -  2477S
+LampLinc 300watt Dimmer plugin module  -  2457D2
+Appliance plugin module 15amp          -  2456S3 
+
+
+UPB
+---
+Universal Powerline Bus (UPB) is a highly reliable, cost effective, 
+2-way communications technology similar to Insteon but supports a much 
+higher voltage on the power line which can provide more reliable 
+communications.  
+
+Similar to Insteon, Pytomation communicates to switch, lamp and other  
+modules via a computer interface called a PIM, Powerline Interface 
+Module. It is a small plug-in device designed to be the interface 
+between an RS232 or USB port on a computer or dedicated controller and 
+the powerline.  At this point in time UPB probably has much the best 
+support in Pytomation vs Insteon.
+
+UPB has the following advantages over say Insteon:
+  - Its incredibly simple and based loosely on X10 protocol
+  - It sends at 8V which can power through most noise
+  - 2 way devices by default
+  - PCS is completely open about their protocol.  No SDK fee, no NDA.
+  - The protocol in the last 10 years has never changed
+  - Light switches can actually decouple the load from the switch.  
+    The switch can control something that isn't the attached load and 
+    vice / versa
+  - All UPB devices can relay UPB messages.  No one has implemented 
+    this yet, but I intend to as I have a problematic switch on the 
+    other side of the house.
+  - Have never had a UPB device die on a surge suppressed house.  Cant 
+    say the same about insteon
+  - PCS has given me equipment before.
+  - The UPSTART configuration program (free from PCS) can do anything 
+    without ever having to physically touch the equipment to configure.
+
+Disadvantges:
+- Expensive
+- No RF
+
+Below are the model numbers supported.
+
+PIM-R – RS232 PowerLine Interface Module
+PIM-U – USB PowerLine Interface Module
+
+The PIM communicates to wall switches and lamp modules etc.  Here is a 
+small list of devices known to work.  This is by no means all of the 
+devices that will work. We will provide an updated complete list as 
+time allows.
+
+Wall Switch Dimmer           - WS1D 
+Wall Switch LED and CFL's    - WS1DL
+Lamp Module                  - LM1
+Appliance Module             - AM1
+
+
+
+WTDIO digital I/O
+-----------------
+Weeder Technologies I/O board provides serial RS232 to 14 I/O lines all 
+individually controlled as in or out. All inputs incorporate a pull-up 
+resistor to 5-volts, simplifying hookup to switch contacts.Weeder boards are DIP switch addressable so you can stack up to 32modules on the same port for 448 I/O points.
+
+These boards are great for interfacing to door contacts and standard 
+motion detectors.
+
+Pytomation currently supports the following model:
+
+14 Channel RS232 digital I/O board  -  WTDIO
+
+
+
+WGL & Associates W800RF32 
+-------------------------
+The W800 family of RF receivers are designed to receive X10 RF signals 
+generated from X10 products such as key chain remotes, Hawkeye motion 
+detectors, Slimeline wall switches and many, many other X10 RF devices.
+
+The W800 then sends these commands directly to your computer's RS232 or 
+USB port, depending on the model purchased. This allows your computer 
+to receive X10 RF commands from remotes and motion detectors directly, 
+without having to broadcast any power line commands.
+
+Pytomation currently supports the following model:
+
+X10 RF receiver with the RS232 interface  - W800RF32A
+X10 RF receiver with the USB interface    - W800USB
+
+Note International models differ.
+
+
+
+  
+4) DEVICES
+
+The following devices are currently defined but are by no means the 
+limit, new devices will be created as design dictates.
+
+Each device has at a minimum an "address" and a "devices" attribute.  
+
+"address" is the hardware address associated with the device.  A few 
+examples are:
+
+Insteon   - "12.C0.D5"
+UPB       - (48,2)
+W800rf32  - 'A1'
+Wtdio     - 'AE' 
+
+Note: the UPB devices have a dual part address and must be enclosed in 
+parentheses.
+
+"devices" can be many but at a minimum, it must include the device the
+address is associated with.  This device is dependent on how you 
+declared the interface. 
+
+
+Door
+    States supported - UNKNOWN, OPENED, CLOSED
+    
+    A Door device is used when a door has a contact which realizes the
+    current state of the door as being open or closed.
+    
+    Example:
+    
+    front_door = Door(address='AA', devices=wtdio)
+              
+    
+Light
+    States supported - UNKNOWN, ON, OFF
+    
+    A Light device has the following attributes associated with it:
+    
+    delay_off
+    time_on
+    time_off
+    ignore_dark
+
+    
+    Examples:
+    
+    # Lets define three lights connected to different interfaces.
+    
+    #Insteon light
+    hall_light = Light(address='12.E4.88',
+                       devices=insteon
+                      )
+    # UPB light    
+    hall_light = Light(address=(48,4),
+                       devices=upb
+                      )
+    # An LED connected to a WTDIO board
+    led_light = Light(address='A4',
+                      devices=wtdio
+                     )
+    
+    *** Note ***  The "insteon", "upb" and "wtdio" values are actually
+    variables that you define in your code.  They could be called
+    "Ins", "U48" and "WIO" if you want.
+    
+    
+    Using the attributes.
+    
+    To turn the light on at 5:00pm and off at 10:30pm
+    
+    hall_light = Light(address='12.E4.88',
+                       devices=insteon,
+                       time_on='5:00pm',
+                       time_off='10:30pm
+                      )
+    
+    To turn the light on 2 minutes after it comes on
+    
+    hall_light = Light(address='12.E4.88',
+                       devices=insteon,
+                       time_on='5:00pm',
+                       delay_off=120      
+                      )
+    
+    or you can use math, "delay_off=2*60"
+    
+    
+Motion
+    States supported - UNKNOWN, MOTION, STILL
+    
+    A Motion device has the following attributes associated with it:
+    
+    delay_still
+    
+    Examples:
+    
+    # Lets define two motion detectors connected to different interfaces.
+    
+    # X10 MS16A Wireless motion detector via a W800RF32 interface
+    hall_motion = Motion(address='E1',
+                         devices=w800
+                        )
+              
+    # A standard wired motion detector connected to a WTDIO board
+    stairs_motion = Motion(address='A4',
+                           devices=wtdio
+                          )
+    
+    *** Note ***  The "insteon", "upb" and "wtdio" values are actually
+    variables that you define in your code.  They could be called
+    "Ins", "U48" and "WIO" if you want.
+    
+    
+    Using the attributes.
+    
+    # Define a motion device but give it a bit of debounce because it 
+    # is hardwired and will go on and off rapidly.
+    hall_motion = Motion(address='A4',
+                         devices=wtdio,
+                         delay_still=60
+                        )
+    
+
+Photocell
+    States supported - UNKNOWN, DARK, LIGHT
+
+    A Photocell device is used when one wants to monitor the region of
+    light and dark in a room or outside.
+    
+    Example:
+    
+    front_door_cell = Photocell(address='A2', devices=w800)
+
+    
+Location
+
+    The location device is essentially a virtual Photocell that will 
+    turn dark / light automatically based on the system clock and the 
+    specified location.   
+    
+    It supports Standard = Sunset / Sunrise, CIVIL, and ASTRONOMICAL 
+    modes as well.
+
+    Examples:
+
+    # Monitoring twilight
+    # Define a virtual photocell based on longitude and latitude and
+    # whether daylight savings time used at that location.
+    ph_civil = Location('35.2269', '-80.8433', 
+                         tz='US/Eastern', 
+                         mode=Location.MODE.CIVIL, 
+                         is_dst=True)
+
+    ph_standard = Location('35.2269', '-80.8433', 
+                            tz='US/Eastern', 
+                            mode=Location.MODE.STANDARD, 
+                            is_dst=True)
+
+    # In a nut shell CIVIL is brighter than STANDARD which is brighter
+    # than ASTRONIMICAL.
+
+
+InterfaceDevice
+
+    An Interface Device is used for generic devices that don't conform 
+    to objects such as lights, doors and motion.
+    
+    For example, a keychain remote such as a Slimfire KR19A or a 
+    Slimline SS13A wall switch that talks to a W800RF32 Interface and 
+    has 'ON' and 'OFF" buttons would be defined as a generic 
+    InterfaceDevice.  It could then be used to turn devices such as 
+    lights, on and off.
+    
+    Examples:
+    
+    # Button on a Slimline wall switch
+    living_room_sofa = InterfaceDevice('A1', w800)
+
+    # Tie it to a Light device
+    sofa_light = Light(address='12.E4.88',
+                       devices=(insteon, living_room_sofa)
+                      )
+
+
+5) STATES
+
+    Not written yet.
+
+    
+6) CONFIGURING
+    
+    Pytomation has a main configuration file.  It is divided into
+    sections.  The first section is strictly system configuration, it
+    should not generally be changed unless you are doing driver or 
+    system code.
+    
+    The second section is where one can set general user options.
+
+    The configuration file is found in pytomation/config/config.py
+    
+
+    # ********************* SYSYTEM CONFIGURATION ONLY ********************
+
+    # debug{} holds the global debug dictionary. A complete description is 
+    # available in Pytomation documentation.  Briefly it holds a string key
+    # and an integer value.  Example: ['Serial':1, 'UPB':0]  These values
+    # are set and registered with each module in the class __init__().
+    # 
+    # Only system values are initialized here.
+    debug = {'HAInterface':0, 'Serial':0}
+
+
+    # ********************* USER CONFIGURATION ****************************
+
+    # LOGGING
+    # Setup logging of Pytomation to a log file.  Pytomation will rotate
+    # the log file out to pylog_date_time.log every time it starts, if  
+    # "logfilePreserve" and "logging" is set to "True".  If you want to 
+    # turn log file logging off, just set "logging" to "False"
+    # Logfiles can be rotated on a weekly or monthly basis by setting
+    # "logfileRotate to 'week' or 'month'
+    # If logfileTimestamp is set to a format that can be used by the Python
+    # time.strftime() function like the example below that will be printed at
+    # the beginning of each debug line.  Otherwise it should be an empty
+    # string "".
+    # logfileTimestamp = "[%Y/%M/%D-%H:%M:%S]"
+
+    logfile = os.path.join(sys.path[0], 'pylog.log')
+    logfilePreserve = True
+    logfileTimestamp = "[%Y/%m/%d %H:%M:%S] "
+    #logfileTimestamp = ""
+    logfileRotate = 'week'
+    logging = False
+
+
+
+7) CREATING AN INSTANCE
+
+    Okay, lets go through creating an instance that you can use to model 
+    your own control situation.
+    
+    First it is easiest to run your instance from a shell script.  The 
+    script will set up any environment variables that you might require
+    as well as anything you might want to do before you run Pytomation.
+    
+    Here is a script, common convention is to name it the same as your
+    instance.py file.  So myhouse.sh and myhouse.py, for example.
+    
+    You should store these files in the pytomation/instances directory 
+    and run them from there unless you change the bash script.
+    
+    #!/bin/bash
+    export PYTHONPATH=../
+    python ./myhouse.py
+
+    
+    The next step is to create your instance python file, myhouse.py
+    
+    First we need to import a few modules.
+     
+    # import the standard python module "select"
+    import select
+    
+    # Import all the Pytomation interfaces we are going to use.
+    from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Wtdio, W800rf32
+    
+    # Import all the Pytomation Devices we will use.
+    from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, Photocell
+
+
+    ###################### INTERFACE CONFIG #########################
+    
+    This is where we define the interfaces that we want to use with our 
+    instance.  Below we are using UPB, Insteon, W800rf32 and Wtdio.
+    
+    # Our interfaces are all connected via serial ports.  Two ports are 
+    # standard, which under Linux are ttyS0 and ttyS1 and two are USB to 
+    # serial converters, ttyUSB0 and ttyUSB1
+    
+    upb = UPB(Serial('/dev/ttyS0', 4800))
+    insteon = InsteonPLM(Serial('/dev/ttyS1', 19200))
+    w800 = W800rf32(Serial('/dev/ttyUSB0', 4800)) 
+    wtdio = Wtdio(Serial('/dev/ttyUSB1', 9600))
+
+    # The Weeder board has to be told which point is an INPUT or OUTPUT
+    
+    # You must set the I/O channels on the WTDIO board according to the 
+    # command set  S = Switch, L = Output, default low
+    #
+    # Inputs are set according to the wtdio manual by sending the board 
+    # data in the following sequence.  BOARD TYPE CHANNEL
+    # Example:  Board 'A', Type SWITCH, Channel D  - 'ASD'
+    # Currently only SWITCH inputs are handled.
+    #
+    # Outputs are set as follows: BOARD LEVEL CHANNEL
+    # Example:  Board 'A', Level LOW, Channel 'M', - 'ALM'
+    #
+    # Set channels A, B and C as input and channel H as output
+    wtdio.setChannel('ASA')
+    wtdio.setChannel('ASB')
+    wtdio.setChannel('ASC')
+    wtdio.setChannel('ALH')
+
+    ###################### DEVICE CONFIG #########################
+
+    Now that we have our interfaces configured we can start to define
+    the devices we are going to control or receive input from.
+    
+    Syntax for configuring a device is:
+    
+    # Simple form
+    var = Device(address, interface)
+    
+    # more complex
+    var = Device(address=address,
+                 devices=(interface, comma separated list of device vars),
+                 attribute1,
+                 attribute2
+                )
+    # NOTE: every device must have and 'address' and an 'interface'
+
+    # -----------------------------------------------------------------
+    # DOORS   -  Input device
+    #
+    # We have two doors in the house that have hardwired door switches 
+    # and are connected to a Weeder Technologies WTDIO board.
+    
+    # Using the "wtdio" interface we defined above, we can define the
+    # door switches.  The doors are connected to the Weeder WTDIO
+    # Board with a board address configured as 'A', the front_door is 
+    # wired to point 'A' and the garage_door is wired to point 'B'.
+
+    
+    
+    front_door = Door('AA', wtdio)
+    garage_door = Door('AB', wtdio)
+
+    # -----------------------------------------------------------------
+    # INTERFACEDEVICE   -  Input device
+    #
+    # Next we have an X10 KR22A keychain remote that transmits data to 
+    # the W800rf32 interface.  This is a generic interface device so we
+    # define it as an "InterfaceDevice".  The X10 address of the KR22A
+    # has been previously set to 'E', it has two sets of 'On/Off' 
+    # buttons which are E1 and E2.
+
+    kr22a_remote_1 = InterfaceDevice('E1', w800)
+    kr22a_remote_2 = InterfaceDevice('E2', w800)
+
+    # We also have an X10 Slimline SS13A wall switch but use only the top 
+    # button set.
+    
+    sofa_switch =  = InterfaceDevice('A1', w800)
+    
+    # -----------------------------------------------------------------
+    # MOTION   -  Input device
+    #
+    # Now we move on to defining Motion devices.  Here we have two 
+    # motion detectors, one is a wireless RF X10 MS16A and the other is
+    # hardwired to point 'C' of the WTDIO board.
+    #
+    # The wtdio motion detector has a debounce "delay_still" setting on it
+    # so it won't trigger again for 10 seconds.
+    
+    hall_motion = Motion(address='AC', 
+                         devices=wtdio, 
+                         delay_still=10
+                        )
+    # MS16A
+    stairs_motion = Motion('H1', w800)
+
+    # -----------------------------------------------------------------
+    # PHOTOCELL   -  Input device
+    #
+    # The X10 MS16A is handy as it has a builtin photocell that we can 
+    # use.  It is always the number 2 address on the MS16A
+    
+    stair_pcell = Photocell('H2', w800)
+
+
+    # -----------------------------------------------------------------
+    # LOCATION   -  Input device
+    #
+    # Here we define a virtual photocell that tracks CIVIL twilight 
+    # times based on longitude, latitude and time zone.  This device will
+    # turn "ON" at sunset and "OFF" at sunrise.
+
+    ph_civil = Location('35.2269', '-80.8433', 
+                    tz='US/Eastern', 
+                    mode=Location.MODE.CIVIL, 
+                    is_dst=True)
+
+    # -----------------------------------------------------------------
+    # LIGHT   -  Output device
+    #
+    # Now we are ready to define the lights we want to control.  We have
+    # two different technologies in the house, Insteon and UPB.
+    # 
+    # Remember these were defined above in the Interface section.
+    
+    # Turn on the foyer light at night when either the front door is 
+    # opened or stair PIR is tripped.  This is a UPB controlled light.
+    # Turn the light off automatically after 2 minutes.
+    #
+    # "ph_civil" will inform us it is dark but we don't want the light
+    # being turned on at twilight so we tell it to ignore the event with
+    # "ignore_dark"
+    #
+    # No matter what turn the light off at "11:59pm" local time.
+    
+    l_foyer = Light(
+                address=(49, 3),
+                devices=(upb, fron_door,
+                         stair_motion,
+                         ph_civil),
+                delay_off=2*60,
+                time_off='11:59pm',
+                ignore_dark=True)
+                
+
+    # The Garage light is Insteon technology and we only ever turn it on
+    # and off manually with our keychain remote or if the garage door is
+    # opened.
+    
+    l_garage = Light(
+                 address='19.05.7b',    
+                 devices=(insteon, kr22a_remote_1, garage_door)
+                 )
+
+    # Turn the sofa light on and off from the X10 SS13A Slimline wall 
+    # switch and make sure it goes off by 10:30pm.
+
+    l_sofa = Light(
+                 address=(49, 4),    
+                 devices=(upb, sofa_switch),
+                 time_off='10:30pm')
+    
+    # Turn the hall light on from the motion detector and turn it off 
+    # after 5 minutes.
+    
+    l_hall = Light(
+                 address=(49, 4),    
+                 devices=(upb, hall_motion),
+                 delay_off=5*60)
+
+
+
+    ##################### USER CODE ###############################
+    #Manually controlling the light
+    #l_foyer.on()
+    #l_foyer.off()
+
+    # sit and spin - Let the magic flow
+    select.select([],[],[])
