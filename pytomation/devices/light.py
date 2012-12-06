@@ -16,10 +16,10 @@ class Light(InterfaceDevice):
         if state in (State.OPEN, State.DARK, State.MOTION):
             if not self._restricted:
                 mapped_state = State.ON
+            else:
                 self._logger.info('{name} is currently restricted'.format(
                                                                           name=self._name,
                                                                           ))
-            else:
                 mapped_state = None
         elif state in (State.CLOSED, State.LIGHT, State.STILL):
             mapped_state = State.OFF

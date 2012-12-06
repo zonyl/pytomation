@@ -36,7 +36,7 @@ class InterfaceDevice(StateDevice):
             source_name = source._name
             
         result = super(InterfaceDevice, self)._set_state(state, previous_state=previous_state, source=source)
-	# Only send if we have interface, we approved of the state change and are not readonly
+        # Only send if we have interface, we approved of the state change and are not readonly
         if self.interface and result and not self._read_only: 
             try:
                 self._logger.info("{device} Sending {state} to interface, from {source}".format(
