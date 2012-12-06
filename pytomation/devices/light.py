@@ -16,6 +16,9 @@ class Light(InterfaceDevice):
         if state in (State.OPEN, State.DARK, State.MOTION):
             if not self._restricted:
                 mapped_state = State.ON
+                self._logger.info('{name} is currently restricted'.format(
+                                                                          name=self._name,
+                                                                          ))
             else:
                 mapped_state = None
         elif state in (State.CLOSED, State.LIGHT, State.STILL):
@@ -35,5 +38,8 @@ class Light(InterfaceDevice):
             #ignore the mapped request for the state and let the timer take care of it
             #if someone sends us the direct state then we will assume it is manual and needed immediately
             #Allow photocells to skip delay
+            self._logger.info('{name} we have a delay for this state = "{state}" mapped to "{mapped}"'.format(
+                                                                                                              state=state,
+                                                                                                              mapped=mapped_state))
             mapped_state = None
         return mapped_state

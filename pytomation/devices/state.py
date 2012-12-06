@@ -154,6 +154,11 @@ class StateDevice(PytomationObject):
             
         mapped_state = self._state_map(state, previous_state, source)
         if not mapped_state: # If we get no state, then ignore this state
+            self._logger.info('{name}-> Ignored state "{state}" from source "{source}'.format(
+                                                                                              name=self._name,
+                                                                                              state=state,
+                                                                                              source=source_name,
+                                                                                              ))
             return False
         self._state = mapped_state
         self._logger.info('{name}-> received command "{state}" mapped to "{mapped}" from {source}, previously {previous_state}'.format(
