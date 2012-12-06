@@ -54,7 +54,7 @@ m_family = Motion(address='D8',
 
 m_front_porch = Motion(address='F1',
                 devices=w800,
-                'Front Porch Motion',
+                name='Front Porch Motion',
                 )
 ph_front_porch = Photocell(address='F2',
                 devices=w800)
