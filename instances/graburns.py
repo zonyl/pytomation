@@ -1,7 +1,7 @@
 import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32
-from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, Photocell
+from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, Photocell, Generic
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
@@ -29,77 +29,89 @@ sg.dio_invert(12)
 ###################### DEVICE CONFIG #########################
 
 #doors
-d_foyer = Door('D1', sg)
-d_laundry = Door('D2', sg)
-d_garage = Door('D3', sg)
-d_garage_overhead = Door((49, 38, 'L'), upb)
-d_porch = Door('D4', sg)
-d_basement = Door('D5', sg)
-d_master = Door('D6', sg)
-d_crawlspace = Door('D10', sg)
-d_pool = Door('D11', sg)
+d_foyer = Door('D1', sg, name='Foyer Door')
+d_laundry = Door('D2', sg, name='Laundry Door')
+d_garage = Door('D3', sg, name='Garage Door')
+d_garage_overhead = Door((49, 38, 'L'), upb, name='Garage Overhead')
+d_porch = Door('D4', sg, name='Porch Door')
+d_basement = Door('D5', sg, name='Basement')
+d_master = Door('D6', sg, name='Master')
+d_crawlspace = Door('D10', sg, name='Crawlspace Door')
+d_pool = Door('D11', sg, name='Pool Door')
 
 #general input
-i_laundry_security = InterfaceDevice('D7', sg)
-i_master_security = InterfaceDevice('D9', sg)
-i_laser_perimeter = InterfaceDevice('D12', sg)
+i_laundry_security = InterfaceDevice('D7', sg, name='Laundry Keypad')
+i_master_security = InterfaceDevice('D9', sg, name='Master Keypad')
+i_laser_perimeter = InterfaceDevice('D12', sg, name='Laser Perimeter')
 
 #motion
 # Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
 m_family = Motion(address='D8', 
                   devices=(sg),
-                  delay_still=2*60
+                  delay_still=2*60,
+                  name='Family Motion'
                   )
 
 m_front_porch = Motion(address='F1',
-                devices=w800)
+                devices=w800,
+                'Front Porch Motion',
+                )
 ph_front_porch = Photocell(address='F2',
                 devices=w800)
 m_front_garage = Motion(address='F3',
-                devices=w800)
+                devices=w800,
+                name='Front Garage Motion')
 ph_front_garage = Photocell(address='F4',
                 devices=w800)
 m_front_driveway = Motion(address='F5',
-                devices=w800)
+                devices=w800,
+                name='Front Driveway Motion')
 ph_front_driveway = Photocell(address='F6',
                 devices=w800)
 
 
 
 m_garage = Motion(address='G1',
-                  devices=w800)
+                  devices=w800,
+                  name='Garage Motion')
 ph_garage = Motion(address='G2',
                   devices=w800)
 
 m_utility = Motion(address='G3',
-                  devices=w800)
+                  devices=w800,
+                  name='Utility Motion')
 ph_utility = Motion(address='G4',
                   devices=w800)
 
 m_breakfast = Motion(address='G5',
-                  devices=w800)
+                  devices=w800,
+                  name='Breakfast Motion')
 ph_breakfast = Motion(address='G6',
                   devices=w800)
 
 m_foyer = Motion(address='G7',
-                  devices=w800)
+                  devices=w800,
+                  name='Foyer Motion')
 ph_foyer = Motion(address='G8',
                   devices=w800)
 
 m_den = Motion(address='G9',
-                  devices=w800)
+                  devices=w800,
+                  name='Den Motion')
 ph_den = Motion(address='GA',
                   devices=w800)
 
 m_kitchen = Motion(address='GB',
-                  devices=w800)
+                  devices=w800,
+                  name='Kitchen Motion')
 ph_kitchen = Motion(address='GC',
                   devices=w800)
 
 #keypads
-k_master = InterfaceDevice(
+k_master = Generic(
                            address=(49,8),
                            devices=(upb,),
+                           name='Master Bed Keypad'
                            )
 
 #Scenes
@@ -112,7 +124,8 @@ s_all_indoor_off = InterfaceDevice(
 ph_standard = Location('35.2269', '-80.8433', 
                        tz='US/Eastern', 
                        mode=Location.MODE.STANDARD, 
-                       is_dst=True)
+                       is_dst=True,
+                       name='Sun Tracking')
 ph_civil = Location('35.2269', '-80.8433', 
                     tz='US/Eastern', 
                     mode=Location.MODE.CIVIL, 
@@ -128,6 +141,7 @@ l_foyer = Light(
                 delay_off=2*60,
                 time_off='11:59pm',
                 ignore_dark=True,
+                name='Foyer Light'
                 )
 
 l_front_porch = Light(
@@ -136,6 +150,7 @@ l_front_porch = Light(
                       initial_state=ph_standard,
                       delay_off=10*60,
                       time_off='11:59pm',
+                      name='Front Porch Light'
                       )
 
 
@@ -146,6 +161,7 @@ l_front_flood = Light(
                       initial_state=ph_standard,
                       delay_off=5*60,
                       time_off='11:59pm',
+                      name='Front Flood Light'
                       )
 
 l_front_outlet = Light(
@@ -153,6 +169,7 @@ l_front_outlet = Light(
                       devices=(upb, ph_standard),
                       initial_state=ph_standard,
                       time_off='10:30pm',
+                      name='Front Outlet Light'
                       )
 
 l_front_garage = Light(
@@ -162,6 +179,7 @@ l_front_garage = Light(
                       initial_state=ph_standard,
                       delay_off=10*60,
                       time_off='11:59pm',
+                      name='Front Garage Light',
                       )
 
 l_garage = Light(
@@ -171,6 +189,7 @@ l_garage = Light(
                       delay_off=10*60,
                       time_off='11:59pm',
                       ignore_dark=True,
+                      name='Garage Light',
                       )
 
 l_family_lamp = Light(
@@ -179,11 +198,13 @@ l_family_lamp = Light(
                       delay_off=30*60,
                       time_off='11:59pm',
                       ignore_dark=True,
+                      name='Family Lamp Light',
                       )
 
 l_family = Light(
                  address='19.05.7b',    
                  devices=(insteon, s_all_indoor_off),
+                 name='Family Light',
                  )
 
 
