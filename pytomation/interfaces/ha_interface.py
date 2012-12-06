@@ -40,8 +40,8 @@ class HAInterface(AsynchronousInterface, PytomationObject):
     
     def __init__(self, interface, *args, **kwargs):
         kwargs.update({'interface': interface})
-        super(HAInterface, self).__init__(*args, **kwargs)
         self._po_common(*args, **kwargs)
+        super(HAInterface, self).__init__(*args, **kwargs)
 
 
     def _init(self, *args, **kwargs):
