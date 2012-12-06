@@ -91,8 +91,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                    })
 
     def _onCommand(self, command=None, address=None):
-        if debug['HAInterface'] > 0:
-            print "[HAInterface] Received Command:" + str(address) + ":" + str(command)
+        self._logger.debug("[HAInterface] Received Command:" + str(address) + ":" + str(command))
         for commandDelegate in self._commandDelegates:
             if commandDelegate['address'] == None or \
                 commandDelegate['address'] == address:
@@ -140,8 +139,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                 self._outboundQueue.append(commandHash)
                 self._retryCount[commandHash] = 0
 
-                if debug['Serial'] > 0:
-                    print "[HAInterface-Serial] Queued %s" % commandHash
+                self._logger.debug("[HAInterface-Serial] Queued %s" % commandHash)
 
                 returnValue = {'commandHash': commandHash,
                                'waitEvent': waitEvent}
@@ -167,11 +165,14 @@ class HAInterface(AsynchronousInterface, PytomationObject):
             (time.time() - self._lastSendTime > self._intersend_delay):
             commandHash = self._outboundQueue.popleft()
 
-            commandExecutionDetails = self._outboundCommandDetails[commandHash]
+            try:
+                commandExecutionDetails = self._outboundCommandDetails[commandHash]
+            except Exception, ex:
+                self._logger.error('Could not find execution details: ' + str(ex))
 
             bytesToSend = commandExecutionDetails['bytesToSend']
-            if debug['Serial'] > 0:
-                print "[HAInterface-Serial] Transmit>\n", hex_dump(bytesToSend, len(bytesToSend)),
+
+            self._logger.debug("[HAInterface-Serial] Transmit>", hex_dump(bytesToSend, len(bytesToSend)))
 
             self._interface.write(bytesToSend)
 
@@ -186,8 +187,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         #check to see if there is anyting we need to read
         response = self._interface.read()
         if len(response) != 0:
-            if debug['Serial'] > 0:
-                print "[HAInterface-Serial] Response>\n" + hex_dump(response)
+            self._logger.debug("[HAInterface-Serial] Response>\n" + hex_dump(response))
         else:
             #print "Sleeping"
             #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
@@ -197,7 +197,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
     def _waitForCommandToFinish(self, commandExecutionDetails, timeout=None):
 
         if type(commandExecutionDetails) != type(dict()):
-            print "Unable to wait without a valid commandExecutionDetails parameter"
+            self._logger.error("Unable to wait without a valid commandExecutionDetails parameter")
             return False
 
         waitEvent = commandExecutionDetails['waitEvent']
@@ -235,8 +235,8 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                 self._commandLock.release()
                 return False
 
-            print "Timed out for %s - Requeueing (already had %d retries)" % \
-                (commandHash, self._retryCount[commandHash])
+            self._logger.debug("Timed out for %s - Requeueing (already had %d retries)" % \
+                (commandHash, self._retryCount[commandHash]))
 
             requiresRetry = True
             if commandHash in self._pendingCommandDetails:
@@ -248,7 +248,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                 self._outboundQueue.append(commandHash)
                 self._retryCount[commandHash] += 1
             else:
-                print "Interesting.  timed out for %s, but there is no pending command details" % commandHash
+                self._logger.debug("Interesting.  timed out for %s, but there is no pending command details" % commandHash)
                 #to prevent a huge loop here we bail out
                 requiresRetry = False
 
