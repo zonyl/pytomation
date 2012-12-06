@@ -13,7 +13,7 @@ from pytomation.utility import CronTimer
 from pytomation.utility import PeriodicTimer
 from pytomation.utility.timer import Timer as CTimer
 from threading import Timer
-from ..interfaces.common import *
+from ..interfaces.common import Command
 from ..common.pytomation_object import PytomationObject
 
 class State(object):
@@ -84,6 +84,8 @@ class StateDevice(PytomationObject):
                     self._prev_state = self._state
                 except:
                     pass
+        self._logger.info('{name}-> Initial State: {state}'.format(name=self._name,
+                                                                 state=self._state))
 
     def _initial_vars(self):
         self._state = State.UNKNOWN
@@ -135,11 +137,15 @@ class StateDevice(PytomationObject):
 #        raise AttributeError
 
     def _set_state(self, state, previous_state=None, source=None):
-        pylog(__name__,'{device} Incoming Set state: {state} {previous_state} {source}'.format(
-                             device=self,
+        source_name = None
+        if source:
+            source_name = source.name
+            
+        self._logger.debug('{device} Incoming Set state: {state} {previous_state} {source}'.format(
+                             device=str(self),
                              state=state,
                              previous_state=previous_state,
-                             source=source
+                             source=source_name
                              ))
         if state in self._ignores:
             return None
@@ -150,11 +156,12 @@ class StateDevice(PytomationObject):
         if not mapped_state: # If we get no state, then ignore this state
             return False
         self._state = mapped_state
-        pylog(__name__,'{device} Mapped Set state: {state} {previous_state} {source}'.format(
-                             device=self,
-                             state=mapped_state,
+        self._logger.info('{name}-> received command "{state}" mapped to "{mapped}" from {source}, previously {previous_state}'.format(
+                             name=self._name,
+                             state=state,
+                             mapped=mapped_state,
                              previous_state=previous_state,
-                             source=source
+                             source=source_name
                              ))
         self._delegate(mapped_state)
 
@@ -232,10 +239,11 @@ class StateDevice(PytomationObject):
         delegate_list += any_delegate_list
         if delegate_list:
             for delegate in delegate_list:
-                pylog(__name__,'{device} Delegate: {state}'.format(
-                                    device=self,
-                                     state=state,
-                                                                                     ))
+#                self._logger.debug('{self}-> Delegate: {state} to {device}'.format(
+#                                    self=self._name,
+#                                     state=state,
+#                                     device=str(delegate.name),
+#                                                                                     ))
                 delegate(state=state, previous_state=self._prev_state, source=self)
 
     def _bind_devices(self, devices):

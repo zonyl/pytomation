@@ -1,3 +1,4 @@
+from .logging import Logging
 
 class PytomationObject(object):
     instances = []
@@ -5,7 +6,13 @@ class PytomationObject(object):
         self._po_common(*args, **kwargs)
 
     def _po_common(self, *args, **kwargs):
+        
+        self._logger = Logging(self.__class__.__name__)
         self._name = kwargs.get('name', None)
+        self._logger.debug('Object created: {name} {obj}'.format(
+                                                                 name=self._name,
+                                                                 obj=str(self))
+                           )
         self.instances.append(self)
         
     @property

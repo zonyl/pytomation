@@ -35,7 +35,7 @@ import sys
 #debug = {'HAInterface':0, 
 #        'Serial':0}
 logging_modules = {
-                   'tests.common.logging': None,
+                   'LoggingTests': None,
                    }
 
 
@@ -56,9 +56,9 @@ logging_modules = {
 # logfileTimestamp = "[%Y/%M/%D-%H:%M:%S]"
 
 logging_file = os.path.join(sys.path[0], 'pylog.log')
-logging_format = '[%(asctime)s] %(name)s %(levelname)s:%(message)s'
+logging_format = '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
 logging_datefmt = "%Y/%m/%d %H:%M:%S"
-logging_default_level = "DEBUG"
+logging_default_level = "INFO"
 #logfilePreserve = True
 #logfileTimestamp = 
 #logfileTimestamp = ""
