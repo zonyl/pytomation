@@ -1,15 +1,17 @@
 import time
 from unittest import TestCase, main
-from mock import Mock
+from mock import Mock, PropertyMock
 from datetime import datetime
 
 from pytomation.utility.timer import Timer as CTimer
-from pytomation.devices import InterfaceDevice
+from pytomation.devices import InterfaceDevice, State, StateDevice
 
 class InterfaceDevice_Tests(TestCase):
     
     def setUp(self):
         self.interface = Mock()
+        p = PropertyMock(side_effect=ValueError)
+        type(self.interface).state = p
         self.device = InterfaceDevice('D1', self.interface)
         
     def test_instantiation(self):
@@ -43,6 +45,28 @@ class InterfaceDevice_Tests(TestCase):
                                  sync=True)
         self.assertIsNotNone(device)
         self.assertTrue(device.sync)
+    
+    def test_initial(self):
+        interface = Mock()
+        p = PropertyMock(side_effect=ValueError)
+        type(interface).state = p
+        device = InterfaceDevice(address='asdf',
+                                 devices=interface,
+                                 initial_state=State.ON
+                                 )
+        interface.on.assert_called_with('asdf')
+        
+        device1 = StateDevice()
+        device1.on()
+        interface2 = Mock()
+        type(interface2).state = p
+        device = InterfaceDevice(address='asdf',
+                                 devices=interface2,
+                                 initial_state=State.ON
+                                 )
+        interface2.on.assert_called_with('asdf')
+        
+        
 
 if __name__ == '__main__':
     main() 

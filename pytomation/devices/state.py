@@ -59,6 +59,7 @@ class StateDevice(PytomationObject):
                 getattr(self, k)(v)
             except Exception, ex:
                 pass
+        self._set_state(self._state, self._prev_state, self._prev_source)
     
     def _initial_state(self, *args, **kwargs):
         devices = kwargs.get('devices', ())
@@ -67,20 +68,22 @@ class StateDevice(PytomationObject):
         initial_state = kwargs.get('initial_state', None)
         if initial_state:
             try:
-#                self._state = self._state_map(initial_state, prev_state, initial_state)
-                self._set_state(initial_state.state, prev_state, initial_state)
+                
+                self._state = self._state_map(initial_state.state, prev_state, initial_state)
+                self._prev_source = initial_state
+ #               self._set_state(initial_state.state, prev_state, initial_state)
             except AttributeError, ex:
-#                self._state = self._state_map(initial_state, prev_state, None)
-                self._set_state(initial_state, prev_state, None)
+                self._state = self._state_map(initial_state, prev_state, None)
+#                self._set_state(initial_state, prev_state, None)
             self._prev_state = self._state
         else:
             self._state = State.UNKNOWN
             self._prev_state = self._state
             for device in devices:
                 try:
-#                    m_state = self._state_map(device.state, prev_state, device)
-#                    self._state = m_state
-                    self._set_state(device.state, prev_state, device)
+                    m_state = self._state_map(device.state, prev_state, device)
+                    self._state = m_state
+#                    self._set_state(device.state, prev_state, device)
                     self._prev_state = self._state
                 except:
                     pass
@@ -90,6 +93,7 @@ class StateDevice(PytomationObject):
     def _initial_vars(self):
         self._state = State.UNKNOWN
         self._prev_state = State.UNKNOWN
+        self._prev_source = None
         self._delegates = {}
         self._times = {}
         self._delays = {}
