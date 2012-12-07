@@ -39,6 +39,7 @@ class Light(InterfaceDevice):
             #if someone sends us the direct state then we will assume it is manual and needed immediately
             #Allow photocells to skip delay
             self._logger.info('{name} we have a delay for this state = "{state}" mapped to "{mapped}"'.format(
+                                                                                                              name=self.name,
                                                                                                               state=state,
                                                                                                               mapped=mapped_state))
             mapped_state = None
