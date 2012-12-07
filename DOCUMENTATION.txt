@@ -230,6 +230,8 @@ Most devices can be used with an attribute that modifies the behaviour
 of the device.  Some attributes belong to a specfic device.  Here is a 
 list and description of each device
 
+Common States Available -> on | off | motion | still | light | dark
+
 delay
     Delay is used to add a time delay to a device operation.  For 
     example if you wanted turn a light off 2 minutes after it turned on,
@@ -237,12 +239,8 @@ delay
     seconds but can be a math equation, so 300 seconds or 5*60 seconds.
     
     Syntax:
-    delay_<on|off|still>=<time in seconds>
-
-    delay_on      Delay the operation for n seconds before "on" state.
-    delay_off     Delay the operation for n seconds before "off" state.
-    delay_still   Delay the operation for n seconds before "still" state.
-    
+        delay_<state>=<time in seconds>  
+        
     Example:
         delay_off=300  or delay_off=5*60
     
@@ -257,11 +255,8 @@ ignore
     on during dark hours.
     
     Syntax:
-    ignore_<dark|light>=True|False
+	    ignore_<state>=True|False      
     
-    ignore_dark     Ignore during dark times
-    ignore_light    Ignore during light times
-
     Example:
         ignore_dark=True  or ignore_dark=False
         
@@ -273,18 +268,25 @@ name
     Example:
         name="Family room sofa lamp"
         
+sync
+    Enables the device to frequently re-send its state to the attached
+    physical device in an effort to keep the state in sync.  When enabled
+    this will send a command to the interface every 30-60 minutes randomly
+    
+    Syntax:
+    sync=<True|False>
+    
+    Example:
+    	sync=True # Enable device syncing
 
 time
-    Time is used to change the state of a device from "on" to "off".
+    Time is used to change the state of a device from whatever is stated.
     Again we use the light example.  If you wanted a light to turn on 
     at 6:00pm and off at 10:45pm, you would use "time" to do it.
     All time is valued in hours and minutes and either AM or PM.
     
     Syntax:
-    time_<on|off>=<'HH:MMpm|am'>
-    
-    time_on     Change state to "on" at time value.
-    time_off    Change state to "off" at time value.
+    time_<state>=<'HH:MMpm|am'>
     
     Example:
         time_on='6:00pm'
@@ -391,7 +393,7 @@ Light
                        time_off='10:30pm
                       )
     
-    To turn the light on 2 minutes after it comes on
+    To turn the light off 2 minutes after it comes on
     
     hall_light = Light(address='12.E4.88',
                        devices=insteon,
@@ -410,6 +412,12 @@ Location
     
     It supports Standard = Sunset / Sunrise, CIVIL, and ASTRONOMICAL 
     modes as well.
+	
+	Attributes:
+	latitude
+	longitude
+	tz == Time Zone for your location
+	is_dst == Do you observe daylight savings time
 
     Examples:
 
@@ -479,7 +487,8 @@ Photocell
     
 
    
-6) CONFIGURING
+6) CONFIGURING   ***** UNDER CONSTRUCTION *****
+    ** The configuration file is being migrated to a different format **
     
     Pytomation has a main configuration file.  It is divided into
     sections.  The first section is strictly system configuration, it
@@ -488,6 +497,7 @@ Photocell
     
     The second section is where one can set general user options.
 
+    The configuration file is found in pytomation/common/config.py
     The configuration file is found in pytomation/config/config.py
     
 
