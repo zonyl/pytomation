@@ -1,5 +1,10 @@
-﻿Pytomation                                              December 04,2012
+﻿Pytomation                                              December 06,2012
 ========================================================================
+If you find corrections or additions you would like to see incorporated
+into this document please get in touch with us.  The best way is to join 
+the Pytomation email list. You can find directions on the Pytomation
+web site.  http://www.pytomation.com
+
 
 Python Home Automation
 
@@ -19,8 +24,22 @@ SECTIONS
 1) Downloading
 2) Installation
 3) Interfaces
-4) Devices
-5) States
+      Insteon
+      UPB
+      W800RF32
+      WTDIO
+4) Attributes
+      delay
+      ignore
+      name
+      time
+5) Devices
+      Door
+      Generic
+      Light
+      Location
+      Motion
+      Photocell
 6) Configuring
 7) Creating an Instance
     
@@ -205,8 +224,75 @@ Note International models differ.
 
 
 
-  
-4) DEVICES
+4) ATTRIBUTES
+
+Most devices can be used with an attribute that modifies the behaviour 
+of the device.  Some attributes belong to a specfic device.  Here is a 
+list and description of each device
+
+delay
+    Delay is used to add a time delay to a device operation.  For 
+    example if you wanted turn a light off 2 minutes after it turned on,
+    you would use a "delay_off" attribute.  All time is valued in 
+    seconds but can be a math equation, so 300 seconds or 5*60 seconds.
+    
+    Syntax:
+    delay_<on|off|still>=<time in seconds>
+
+    delay_on      Delay the operation for n seconds before "on" state.
+    delay_off     Delay the operation for n seconds before "off" state.
+    delay_still   Delay the operation for n seconds before "still" state.
+    
+    Example:
+        delay_off=300  or delay_off=5*60
+    
+ignore
+    Ignore is used to override a state change that would be set by 
+    another device such as "Location".  For example if you have a Light
+    that is tied to a "Location" device, the light would normally turn 
+    on at sunset and off at sunrise.  Most people will want to override
+    this with a "time_off" attribute so the light doesn't stay on all
+    night long.  The "time_off" would have to be accompanied by an 
+    "ignore_dark" attribute to override the "Location" keeping the light
+    on during dark hours.
+    
+    Syntax:
+    ignore_<dark|light>=True|False
+    
+    ignore_dark     Ignore during dark times
+    ignore_light    Ignore during light times
+
+    Example:
+        ignore_dark=True  or ignore_dark=False
+        
+    
+name
+    Name is used to give your device a human readable name when used
+    in the logging of operations.
+    
+    Example:
+        name="Family room sofa lamp"
+        
+
+time
+    Time is used to change the state of a device from "on" to "off".
+    Again we use the light example.  If you wanted a light to turn on 
+    at 6:00pm and off at 10:45pm, you would use "time" to do it.
+    All time is valued in hours and minutes and either AM or PM.
+    
+    Syntax:
+    time_<on|off>=<'HH:MMpm|am'>
+    
+    time_on     Change state to "on" at time value.
+    time_off    Change state to "off" at time value.
+    
+    Example:
+        time_on='6:00pm'
+        time_off='10:45pm'
+
+
+
+5) DEVICES
 
 The following devices are currently defined but are by no means the 
 limit, new devices will be created as design dictates.
@@ -224,8 +310,8 @@ Wtdio     - 'AE'
 Note: the UPB devices have a dual part address and must be enclosed in 
 parentheses.
 
-"devices" can be many but at a minimum, it must include the device the
-address is associated with.  This device is dependent on how you 
+"devices" can be many but at a minimum, it must include the interface
+the address is associated with.  This device is dependent on how you 
 declared the interface. 
 
 
@@ -238,8 +324,30 @@ Door
     Example:
     
     front_door = Door(address='AA', devices=wtdio)
+
               
+Generic
+
+    An Interface Device is used for generic devices that don't conform 
+    to objects such as lights, doors and motion.
     
+    For example, a keychain remote such as a Slimfire KR19A or a 
+    Slimline SS13A wall switch that talks to a W800RF32 Interface and 
+    has 'ON' and 'OFF" buttons would be defined as a Generic 
+    device.  It could then be used to turn devices such as lights, on 
+    and off.
+    
+    Examples:
+    
+    # Button on a Slimline wall switch
+    living_room_sofa = Generic('A1', w800)
+
+    # Tie it to a Light device
+    sofa_light = Light(address='12.E4.88',
+                       devices=(insteon, living_room_sofa)
+                      )
+    
+
 Light
     States supported - UNKNOWN, ON, OFF
     
@@ -293,7 +401,35 @@ Light
     
     or you can use math, "delay_off=2*60"
     
+
+Location
+
+    The location device is essentially a virtual Photocell that will 
+    turn dark / light automatically based on the system clock and the 
+    specified location.   
     
+    It supports Standard = Sunset / Sunrise, CIVIL, and ASTRONOMICAL 
+    modes as well.
+
+    Examples:
+
+    # Monitoring twilight
+    # Define a virtual photocell based on longitude and latitude and
+    # whether daylight savings time used at that location.
+    ph_civil = Location('35.2269', '-80.8433', 
+                         tz='US/Eastern', 
+                         mode=Location.MODE.CIVIL, 
+                         is_dst=True)
+
+    ph_standard = Location('35.2269', '-80.8433', 
+                            tz='US/Eastern', 
+                            mode=Location.MODE.STANDARD, 
+                            is_dst=True)
+
+    # In a nut shell CIVIL is brighter than STANDARD which is brighter
+    # than ASTRONIMICAL.
+    
+
 Motion
     States supported - UNKNOWN, MOTION, STILL
     
@@ -341,61 +477,8 @@ Photocell
     front_door_cell = Photocell(address='A2', devices=w800)
 
     
-Location
 
-    The location device is essentially a virtual Photocell that will 
-    turn dark / light automatically based on the system clock and the 
-    specified location.   
-    
-    It supports Standard = Sunset / Sunrise, CIVIL, and ASTRONOMICAL 
-    modes as well.
-
-    Examples:
-
-    # Monitoring twilight
-    # Define a virtual photocell based on longitude and latitude and
-    # whether daylight savings time used at that location.
-    ph_civil = Location('35.2269', '-80.8433', 
-                         tz='US/Eastern', 
-                         mode=Location.MODE.CIVIL, 
-                         is_dst=True)
-
-    ph_standard = Location('35.2269', '-80.8433', 
-                            tz='US/Eastern', 
-                            mode=Location.MODE.STANDARD, 
-                            is_dst=True)
-
-    # In a nut shell CIVIL is brighter than STANDARD which is brighter
-    # than ASTRONIMICAL.
-
-
-InterfaceDevice
-
-    An Interface Device is used for generic devices that don't conform 
-    to objects such as lights, doors and motion.
-    
-    For example, a keychain remote such as a Slimfire KR19A or a 
-    Slimline SS13A wall switch that talks to a W800RF32 Interface and 
-    has 'ON' and 'OFF" buttons would be defined as a generic 
-    InterfaceDevice.  It could then be used to turn devices such as 
-    lights, on and off.
-    
-    Examples:
-    
-    # Button on a Slimline wall switch
-    living_room_sofa = InterfaceDevice('A1', w800)
-
-    # Tie it to a Light device
-    sofa_light = Light(address='12.E4.88',
-                       devices=(insteon, living_room_sofa)
-                      )
-
-
-5) STATES
-
-    Not written yet.
-
-    
+   
 6) CONFIGURING
     
     Pytomation has a main configuration file.  It is divided into
@@ -474,7 +557,7 @@ InterfaceDevice
     from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Wtdio, W800rf32
     
     # Import all the Pytomation Devices we will use.
-    from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, Photocell
+    from pytomation.devices import Motion, Door, Light, Location, Generic, Photocell
 
 
     ###################### INTERFACE CONFIG #########################
@@ -545,21 +628,21 @@ InterfaceDevice
     garage_door = Door('AB', wtdio)
 
     # -----------------------------------------------------------------
-    # INTERFACEDEVICE   -  Input device
+    # Generic   -  Input device
     #
     # Next we have an X10 KR22A keychain remote that transmits data to 
     # the W800rf32 interface.  This is a generic interface device so we
-    # define it as an "InterfaceDevice".  The X10 address of the KR22A
+    # define it as an "Generic".  The X10 address of the KR22A
     # has been previously set to 'E', it has two sets of 'On/Off' 
     # buttons which are E1 and E2.
 
-    kr22a_remote_1 = InterfaceDevice('E1', w800)
-    kr22a_remote_2 = InterfaceDevice('E2', w800)
+    kr22a_remote_1 = Generic('E1', w800)
+    kr22a_remote_2 = Generic('E2', w800)
 
     # We also have an X10 Slimline SS13A wall switch but use only the top 
     # button set.
     
-    sofa_switch =  = InterfaceDevice('A1', w800)
+    sofa_switch =  = Generic('A1', w800)
     
     # -----------------------------------------------------------------
     # MOTION   -  Input device
