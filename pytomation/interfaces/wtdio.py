@@ -57,6 +57,7 @@ Versions and changes:
     2012/11/10 - 1.2 - Added debug levels and global debug system
     2012/11/18 - 1.3 - Added logging 
     2012/11/30 - 1.4 - Unify Command and State magic strings
+    2012/12/07 - 1.5 - Add invert pin function.
    
 """
 import threading
@@ -71,7 +72,7 @@ from ..config import *
 
 
 class Wtdio(HAInterface):
-    VERSION = '1.4'
+    VERSION = '1.5'
     MODEM_PREFIX = ''
         
     def __init__(self, interface, *args, **kwargs):
