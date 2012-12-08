@@ -28,6 +28,10 @@ SECTIONS
       UPB
       W800RF32
       WTDIO
+        Inputs
+            Inverting an input
+        Outputs
+            Set output normally high
 4) Attributes
       delay
       ignore
@@ -202,6 +206,30 @@ Pytomation currently supports the following model:
 
 14 Channel RS232 digital I/O board  -  WTDIO
 
+You must set the I/O channels on the WTDIO board according to the 
+command set:
+    S = Switch
+    L = Output default low
+
+Inputs are set according to the wtdio manual by sending the board 
+data in the following sequence.  BOARD TYPE CHANNEL
+
+    Example:  Board 'A', Type SWITCH, Channel D  - 'ASD'
+
+Currently only SWITCH inputs are handled.  Inputs can be inverted when 
+configured so if you have a contact that is normally closed but want 
+that to be the "OFF" state you can invert it.
+
+Outputs are set as follows: BOARD LEVEL CHANNEL
+
+    Example:  Board 'A', Level LOW, Channel 'M', - 'ALM'
+
+An output can be configured to be high by default although it's probably
+better to do this in your Pytomation instance file.
+
+Configuring:
+    Use "setChannel()" to set the channel to input or output.
+    Use "dio_invert()" to invert the input.
 
 
 WGL & Associates W800RF32 
