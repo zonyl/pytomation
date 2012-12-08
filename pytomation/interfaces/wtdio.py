@@ -129,7 +129,6 @@ class Wtdio(HAInterface):
             contact = Command.OFF
         else:
             contact = Command.ON
-        print "Command -> ", contact
         self._onCommand(address=response[:2],command=contact)
 
 
