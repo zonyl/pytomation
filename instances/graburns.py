@@ -1,7 +1,7 @@
 import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32
-from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, Photocell, Generic
+from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, Photocell, Generic, GenericInput
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
@@ -40,9 +40,9 @@ d_crawlspace = Door('D10', sg, name='Crawlspace Door')
 d_pool = Door('D11', sg, name='Pool Door')
 
 #general input
-i_laundry_security = InterfaceDevice('D7', sg, name='Laundry Keypad')
-i_master_security = InterfaceDevice('D9', sg, name='Master Keypad')
-i_laser_perimeter = InterfaceDevice('D12', sg, name='Laser Perimeter')
+i_laundry_security = GenericInput('D7', sg, name='Laundry Keypad')
+i_master_security = GenericInput('D9', sg, name='Master Keypad')
+i_laser_perimeter = GenericInput('D12', sg, name='Laser Perimeter')
 
 #motion
 # Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
@@ -108,7 +108,7 @@ ph_kitchen = Motion(address='GC',
                   devices=w800)
 
 #keypads
-k_master = Generic(
+k_master = GenericInput(
                            address=(49,8),
                            devices=(upb,),
                            name='Master Bed Keypad'
