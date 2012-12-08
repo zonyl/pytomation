@@ -37,9 +37,10 @@ class InterfaceDevice(StateDevice):
             
         result = super(InterfaceDevice, self)._set_state(state, previous_state=previous_state, source=source)
         # Only send if we have interface, we approved of the state change and are not readonly
-        if self.interface and result and not self._read_only: 
+        # do not send state "unknown"
+        if self.interface and result and not self._read_only and self._state != State.UNKNOWN: 
             try:
-                self._logger.info("{device} Sending {state} to interface, from {source}".format(
+                self._logger.info('{device} Sending "{state}" to interface, from {source}'.format(
                                                                                      device=self._name,
                                                                                      state=self._state,
                                                                                      source=source_name, 
@@ -47,7 +48,7 @@ class InterfaceDevice(StateDevice):
                                   )
                 getattr(self.interface, self._state)(self.address)
             except AttributeError, ex:
-                self._logger.error("Interface ({interface}) doesn't support the State->Command: {state}".format(
+                self._logger.error('Interface ({interface}) does not support the State->Command: "{state}"'.format(
                                                                                                             interface=str(self.interface),
                                                                                                             state=self.state,
                                                                                                             )
