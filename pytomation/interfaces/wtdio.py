@@ -91,7 +91,9 @@ class Wtdio(HAInterface):
 
         self._modemResponse = {
                                }
-
+        # for inverting the I/O point 
+        self.d_inverted = [False for x in xrange(14)]
+                
         self.echoMode()	 #set echo off
 
         		
@@ -119,11 +121,14 @@ class Wtdio(HAInterface):
             #time.sleep(0.1)
             time.sleep(0.5)
 
+    # response[0] = board, resonse[1] = channel, response[2] = L or H    
     def _processDigitalInput(self, response, lastPacketHash):
-        if response[2] == 'L':
-            contact = Command.ON
-        else:
+        if (response[2] == 'L' and not self.d_inverted[ord(response[1]) - 65]):
+        #if (response[2] == 'L'):
             contact = Command.OFF
+        else:
+            contact = Command.ON
+        print "Command -> ", contact
         self._onCommand(address=response[:2],command=contact)
 
 
@@ -169,6 +174,9 @@ class Wtdio(HAInterface):
                 
         command = boardChannelType + '\r'
         commandExecutionDetails = self._sendModemCommand(command)
+
+    def dio_invert(self, channel, value=True):
+        self.d_inverted[ord(channel) - 65] = value
                     
     def on(self, board, channel):
         command = board + 'H' + channel + '\r'
