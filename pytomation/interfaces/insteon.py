@@ -7,6 +7,7 @@ Description:
         
         For more information regarding the technical details of the PLM:
                 http://www.smarthome.com/manuals/2412sdevguide.pdf
+                http://www.madreporite.com/insteon/commands.htm
 
 Author(s): 
          Pyjamasam@github <>
@@ -132,7 +133,7 @@ class InsteonPLM(HAInterface):
                                     },
                                     'SD11': {        #Devce On
                                         'callBack' : self._handle_StandardDirect_AckCompletesCommand,
-                                        'validResponseCommands' : ['SD11', 'SDFF']
+                                        'validResponseCommands' : ['SD11', 'SDFF', 'SD00']
                                     },
                                     'SD12': {        #Devce On Fast
                                         'callBack' : self._handle_StandardDirect_AckCompletesCommand,
@@ -163,9 +164,12 @@ class InsteonPLM(HAInterface):
                                                     #Set button pushed
                                         'callBack' : self._handle_StandardBroadcast_SetButtonPressed
                                     },
-                                    #Unknown
+                                    #Unknown - Seems to be light level report
                                     'SDFF': {
                                              },
+                                    'SD00': {
+                                             },
+
                                 }
 
         self._x10HouseCodes = Lookup(zip((
