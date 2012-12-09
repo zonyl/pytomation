@@ -334,7 +334,11 @@ class InsteonPLM(HAInterface):
         toIdLow = ord(responseBytes[7])
         messageFlags = ord(responseBytes[8])
         command1 = ord(responseBytes[9])
-        command2 = ord(responseBytes[10])
+        
+        if len(responseBytes) > 10:
+            command2 = ord(responseBytes[10])
+        else:
+            command2 = 0
 
         foundCommandHash = None
         waitEvent = None
