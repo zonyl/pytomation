@@ -70,14 +70,14 @@ class Location(StateDevice):
                                      self.obs.next_rising(self.sun, use_center=True).datetime())
         self._sunset = self._utc2tz(
                                      self.obs.next_setting(self.sun, use_center=True).datetime())
-        self._sunrise.replace(microsecond=0)
-        self._sunset.replace(microsecond=0)
+        self._sunrise = self._sunrise.replace(microsecond=0)
+        self._sunset = self._sunset.replace(microsecond=0)
         self._logger.info('{name} Location sunset: {sunset} sunrise: {sunrise}'.format(
                                                                                        name=self.name,
                                                                                        sunset=str(self._sunset),
                                                                                        sunrise=str(self._sunrise),
                                                                                        ))
-        if self._sunrise > self._sunset or self._sunrise == datetime.now().replace(microsecond=0):
+        if self._sunrise > self._sunset or self._sunrise == self.local_time.replace(microsecond=0):
 #            self.state = State.LIGHT
             self._set_state(State.LIGHT, self.state, self)
         else:
