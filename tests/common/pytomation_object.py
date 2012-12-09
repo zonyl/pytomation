@@ -1,4 +1,3 @@
-
 from unittest import TestCase, main
 from mock import Mock
 
@@ -17,4 +16,13 @@ class PytomationObjectTests(TestCase):
         name = "Front Outlet"
         device = StateDevice(name=name)
         self.assertEqual(device.name, name)
+
+    def test_type_id(self):
         
+        device = StateDevice(name='Test')
+        self.assertIsNotNone(device.type_id)
+        
+    def test_device_type_name(self):
+        name = "Test"
+        device = StateDevice(name=name)
+        self.assertEqual(device.type_name, "StateDevice")

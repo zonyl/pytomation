@@ -1,14 +1,17 @@
-from .logging import Logging
+from .pyto_logging import PytoLogging
 
 class PytomationObject(object):
     instances = []
     def __init__(self, *args, **kwargs):
+        self._type_id = None
         self._po_common(*args, **kwargs)
 
     def _po_common(self, *args, **kwargs):
         
-        self._logger = Logging(self.__class__.__name__)
-        self._name = kwargs.get('name', None)
+        self._logger = PytoLogging(self.__class__.__name__)
+        self.instances.append(self)
+        self._type_id = str(self.__class__.__name__) + str(len(self.instances))
+        self._name = kwargs.get('name', self._type_id)
         try:
             self._logger.debug('Object created: {name} {obj}'.format(
                                                                      name=self._name,
@@ -16,7 +19,6 @@ class PytomationObject(object):
                                )
         except Exception, ex:
             pass
-        self.instances.append(self)
         
     @property
     def name(self):
@@ -35,3 +37,11 @@ class PytomationObject(object):
     def name_ex(self, value):
         self._name = value
         return self._name
+    
+    @property
+    def type_name(self):
+        return self.__class__.__name__
+    
+    @property
+    def type_id(self):
+        return self._type_id

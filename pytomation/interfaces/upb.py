@@ -42,7 +42,6 @@ from binascii import unhexlify
 
 from .common import *
 from .ha_interface import HAInterface
-from ..config import *
 from ..devices.state import State
 
 class UPBMessage(object):
@@ -196,8 +195,7 @@ class UPB(HAInterface):
         #check to see if there is anyting we need to read
         responses = self._interface.read()
         if len(responses) != 0:
-            if debug['UPB'] > 0:
-                pylog(__name__,"[UPB] Response>\n" + hex_dump(responses) + "\n")
+            self._logger.debug("[UPB] Response>\n" + hex_dump(responses) + "\n")
             for response in responses.splitlines():
                 responseCode = response[:2]
                 if responseCode == 'PA':  # UPB Packet was received by PIM. No ack yet
@@ -234,8 +232,8 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            pylog(__name__,"[UPB] Unable to find pending command details for the following packet:\n")
-            pylog(__name__,hex_dump(response, len(response)) + "\n")
+            self._logger.debug("[UPB] Unable to find pending command details for the following packet:\n")
+            self._logger.debug(hex_dump(response, len(response)) + "\n")
 
     def _processRegister(self, response, lastPacketHash):
         foundCommandHash = None
@@ -255,8 +253,8 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            pylog(__name__,"[UPB] Unable to find pending command details for the following packet:\n")
-            pylog(__name__,hex_dump(response, len(response)) + "\n")
+            self._logger.debug("[UPB] Unable to find pending command details for the following packet:\n")
+            self._logger.debug(hex_dump(response, len(response)) + "\n")
 
     def _processNewUBP(self, response):
         command = 0x00
@@ -304,4 +302,4 @@ class UPB(HAInterface):
         return self._device_goto(address, 0x00, timeout=timeout)
 
     def version(self):
-        pylog(__name__, "UPB Pytomation driver version " + self.VERSION + "\n")
+        self._logger.info("UPB Pytomation driver version " + self.VERSION + "\n")

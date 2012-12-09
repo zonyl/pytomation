@@ -1,9 +1,9 @@
-from __future__ import absolute_import
 import logging
+
 from .config import *
 
 
-class Logging(object):
+class PytoLogging(object):
     
     def __init__(self, *args, **kwargs):
         self._name = args[0]
