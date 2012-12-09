@@ -91,7 +91,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                    })
 
     def _onCommand(self, command=None, address=None):
-        self._logger.debug("[HAInterface] Received Command:" + str(address) + ":" + str(command))
+        self._logger.debug("Received Command:" + str(address) + ":" + str(command))
         for commandDelegate in self._commandDelegates:
             if commandDelegate['address'] == None or \
                 commandDelegate['address'] == address:
@@ -139,7 +139,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                 self._outboundQueue.append(commandHash)
                 self._retryCount[commandHash] = 0
 
-                self._logger.debug("[HAInterface-Serial] Queued %s" % commandHash)
+                self._logger.debug("Queued %s" % commandHash)
 
                 returnValue = {'commandHash': commandHash,
                                'waitEvent': waitEvent}
@@ -172,8 +172,8 @@ class HAInterface(AsynchronousInterface, PytomationObject):
 
             bytesToSend = commandExecutionDetails['bytesToSend']
 
-            self._logger.debug("Transmit>" + hex_dump(bytesToSend, len(bytesToSend)))
-
+#            self._logger.debug("Transmit>" + str(hex_dump(bytesToSend, len(bytesToSend))))
+            self._logger.debug("Transmit>" + Conversions.ascii_to_hex(bytesToSend))
             self._interface.write(bytesToSend)
 
             self._pendingCommandDetails[commandHash] = commandExecutionDetails
@@ -187,7 +187,8 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         #check to see if there is anyting we need to read
         response = self._interface.read()
         if len(response) != 0:
-            self._logger.debug("[HAInterface-Serial] Response>\n" + hex_dump(response))
+#            self._logger.debug("[HAInterface-Serial] Response>\n" + hex_dump(response))
+            self._logger.debug("Response>" + Conversions.ascii_to_hex(response) + "<")
         else:
             #print "Sleeping"
             #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
