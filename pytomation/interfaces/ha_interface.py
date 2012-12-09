@@ -63,6 +63,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
 
         self._interface = kwargs['interface']
         self._commandDelegates = []
+        self._lastPacketHash = None
 
     def shutdown(self):
         if self._interfaceRunningEvent.isSet():
@@ -75,12 +76,11 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         self._interfaceRunningEvent.set()
 
         #for checking for duplicate messages received in a row
-        lastPacketHash = None
 
         while not self._shutdownEvent.isSet():
             self._writeModem()
 
-            self._readModem(lastPacketHash)
+            self._readModem(self._lastPacketHash)
 
         self._interfaceRunningEvent.clear()
 
@@ -172,7 +172,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
 
             bytesToSend = commandExecutionDetails['bytesToSend']
 
-            self._logger.debug("[HAInterface-Serial] Transmit>", hex_dump(bytesToSend, len(bytesToSend)))
+            self._logger.debug("Transmit>" + hex_dump(bytesToSend, len(bytesToSend)))
 
             self._interface.write(bytesToSend)
 

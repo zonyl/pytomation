@@ -243,7 +243,7 @@ class InsteonPLM(HAInterface):
                         else:
                             self._logger.debug("No callBack defined for for modem command %s" % modemCommand)
 
-                    lastPacketHash = currentPacketHash
+                    self._lastPacketHash = currentPacketHash
 
                 else:
                     self._logger.debug("No responseSize defined for modem command %s" % modemCommand)
@@ -324,16 +324,17 @@ class InsteonPLM(HAInterface):
 
     def _process_InboundStandardInsteonMessage(self, responseBytes):
 #        (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('xBBBBBBBBBB', responseBytes)        
-        insteonCommand = ord(responseBytes[0])
-        fromIdHigh = ord(responseBytes[1])
-        fromIdMid = ord(responseBytes[2])
-        fromIdLow = ord(responseBytes[3])
-        toIdHigh = ord(responseBytes[4])
-        toIdMid = ord(responseBytes[5])
-        toIdLow = ord(responseBytes[6])
-        messageFlags = ord(responseBytes[7])
-        command1 = ord(responseBytes[8])
-        command2 = ord(responseBytes[9])
+        modemCommand = ord(responseBytes[0])
+        insteonCommand = ord(responseBytes[1])
+        fromIdHigh = ord(responseBytes[2])
+        fromIdMid = ord(responseBytes[3])
+        fromIdLow = ord(responseBytes[4])
+        toIdHigh = ord(responseBytes[5])
+        toIdMid = ord(responseBytes[6])
+        toIdLow = ord(responseBytes[7])
+        messageFlags = ord(responseBytes[8])
+        command1 = ord(responseBytes[9])
+        command2 = ord(responseBytes[10])
 
         foundCommandHash = None
         waitEvent = None
