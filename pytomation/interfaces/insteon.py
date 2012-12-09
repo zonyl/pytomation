@@ -85,8 +85,6 @@ class InsteonPLM(HAInterface):
         
     def _init(self, *args, **kwargs):
         super(InsteonPLM, self)._init(*args, **kwargs)
-        if not debug.has_key('Insteon'):
-            debug['Insteon'] = 0
         self.version()
         self._modemCommands = {'60': {
                                     'responseSize': 7,
@@ -234,8 +232,7 @@ class InsteonPLM(HAInterface):
                 if responseSize != -1:
                     remainingBytes = self._interface.read(responseSize)
                     currentPacketHash = hashPacket(firstByte + secondByte + remainingBytes)
-                    if debug['Insteon'] > 0:
-                        pylog(self,"[Insteon] < " + hex_dump(firstByte + secondByte + remainingBytes, len(firstByte + secondByte + remainingBytes)) + currentPacketHash + "\n")
+                    self._logger.debug(" < " + hex_dump(firstByte + secondByte + remainingBytes, len(firstByte + secondByte + remainingBytes)) + currentPacketHash + "\n")
 
                     if lastPacketHash and lastPacketHash == currentPacketHash:
                         #duplicate packet.  Ignore
@@ -244,18 +241,16 @@ class InsteonPLM(HAInterface):
                         if callBack:
                             callBack(firstByte + secondByte + remainingBytes)
                         else:
-                            pylog(self,"[Insteon] No callBack defined for for modem command %s\n" % modemCommand)
+                            self._logger.debug("No callBack defined for for modem command %s" % modemCommand)
 
                     lastPacketHash = currentPacketHash
 
                 else:
-                    pylog(self,"[Insteon] No responseSize defined for modem command %s\n" % modemCommand)
+                    self._logger.debug("No responseSize defined for modem command %s" % modemCommand)
             elif firstByte[0] == '\x15':
-                if debug['Insteon'] > 0:
-                    pylog(self,"[Insteon] Received a Modem NAK!\n")
+                self._logger.debug("Received a Modem NAK!")
             else:
-                if debug['Insteon'] > 0:
-                    pylog(self,"[Insteon] Unknown first byte %s\n" % binascii.hexlify(firstByte[0]))
+                self._logger.debug("Unknown first byte %s" % binascii.hexlify(firstByte[0]))
         else:
             #print "Sleeping"
             #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
@@ -263,8 +258,7 @@ class InsteonPLM(HAInterface):
             time.sleep(0.5)
 
     def _sendStandardP2PInsteonCommand(self, destinationDevice, commandId1, commandId2):
-        if debug['Insteon'] > 0:
-            pylog(self,"[Insteon] Command: %s %s %s\n" % (destinationDevice, commandId1, commandId2))
+        self._logger.debug("Command: %s %s %s" % (destinationDevice, commandId1, commandId2))
         return self._sendModemCommand('62', _stringIdToByteIds(destinationDevice) + _buildFlags() + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2), extraCommandDetails = { 'destinationDevice': destinationDevice, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
 
     def _getX10UnitCommand(self,deviceId):
@@ -279,10 +273,9 @@ class InsteonPLM(HAInterface):
 
     def _sendStandardP2PX10Command(self,destinationDevice,commandId1, commandId2 = None):
         # X10 sends 1 complete message in two commands
-        if debug['Insteon'] > 0:
-            pylog(self,"[Insteon] Command: %s %s %s\n" % (destinationDevice, commandId1, commandId2))
-            pylog(self, "[Insteon] C: %s\n" % self._getX10UnitCommand(destinationDevice))
-            pylog(self, "[Insteon] c1: %s\n" % self._getX10CommandCommand(destinationDevice, commandId1))
+        self._logger.debug("Command: %s %s %s" % (destinationDevice, commandId1, commandId2))
+        self._logger.debug("C: %s" % self._getX10UnitCommand(destinationDevice))
+        self._logger.debug("c1: %s" % self._getX10CommandCommand(destinationDevice, commandId1))
             
         self._sendModemCommand('63', binascii.unhexlify(self._getX10UnitCommand(destinationDevice)))
 
@@ -309,8 +302,8 @@ class InsteonPLM(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            pylog(self, "[Insteon] Unable to find pending command details for the following packet:\n")
-            pylog(self, hex_dump(responseBytes, len(responseBytes)))
+            self._logger.warning("Unable to find pending command details for the following packet:")
+            self._logger.warning(hex_dump(responseBytes, len(responseBytes)))
 
     def _process_StandardInsteonMessagePLMEcho(self, responseBytes):
         #print utilities.hex_dump(responseBytes, len(responseBytes))
@@ -389,7 +382,7 @@ class InsteonPLM(HAInterface):
                         #this pending command isn't waiting for a response with this command code...  Move along
                         continue
                 else:
-                    pylog(self,"[Insteon] Unable to find a list of valid response messages for command %s\n" % originatingCommandId1)
+                    self._logger.warning("Unable to find a list of valid response messages for command %s" % originatingCommandId1)
                     continue
 
 
@@ -414,9 +407,9 @@ class InsteonPLM(HAInterface):
                                 if requestCycleDone:
                                     waitEvent = commandDetails['waitEvent']
                             else:
-                                pylog(self,"[Insteon] No callBack for insteon command code %s\n" % insteonCommandCode)
+                                self._logger.warning("No callBack for insteon command code %s" % insteonCommandCode)
                         else:
-                            pylog(self,"[Insteon] No insteonCommand lookup defined for insteon command code %s\n" % insteonCommandCode)
+                            self._logger.warning("No insteonCommand lookup defined for insteon command code %s" % insteonCommandCode)
 
                         if len(returnData):
                             self._commandReturnData[commandHash] = returnData
@@ -425,14 +418,13 @@ class InsteonPLM(HAInterface):
                         break
 
         if foundCommandHash == None:
-            pylog(self,"[Insteon] Unhandled packet (couldn't find any pending command to deal with it)\n")
-            pylog(self,"[Insteon] This could be an unsolocicited broadcast message\n")
+            self._logger.warning("Unhandled packet (couldn't find any pending command to deal with it)")
+            self._logger.warning("This could be an unsolocicited broadcast message")
 
         if waitEvent and foundCommandHash:
             waitEvent.set()
             del self._pendingCommandDetails[foundCommandHash]
-            if debug['Insteon'] > 0:
-                pylog(self,"[Insteon] Command %s completed\n" % foundCommandHash)
+            self._logger.debug("Command %s completed\n" % foundCommandHash)
 
     def _process_InboundExtendedInsteonMessage(self, responseBytes):
         #51 
@@ -452,8 +444,7 @@ class InsteonPLM(HAInterface):
         #TODO not implemented
         unitCode = None
         commandCode = None
-        if debug['Insteon'] > 0:
-            pylog(self,"[Insteon] X10> " + hex_dump(responseBytes, len(responseBytes)))
+        self._logger.debug("X10> " + hex_dump(responseBytes, len(responseBytes)))
              #       (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('xBBBBBBBBBB', responseBytes)        
 #        houseCode =     (int(responseBytes[4:6],16) & 0b11110000) >> 4 
  #       houseCodeDec = X10_House_Codes.get_key(houseCode)
@@ -528,16 +519,13 @@ class InsteonPLM(HAInterface):
         command = command.lower()
         if isinstance(device, InsteonDevice):
             commandExecutionDetails = self._sendStandardP2PInsteonCommand(device.deviceId, "%02x" % (HACommand()[command]['primary']['insteon']), "%02x" % (HACommand()[command]['secondary']['insteon']))
-            if debug['Insteon'] > 0:
-                pylog(self,"[Insteon] InsteonA" + commandExecutionDetails + "\n")
+            self._logger.debug("InsteonA" + commandExecutionDetails)
             
         elif isinstance(device, X10Device):
             commandExecutionDetails = self._sendStandardP2PX10Command(device.deviceId,"%02x" % (HACommand()[command]['primary']['x10']))
-            if debug['Insteon'] > 0:
-                pylog(self,"[Insteon] X10A" + commandExecutionDetails + "\n")
+            self._logger.debug("X10A" + commandExecutionDetails)
         else:
-            if debug['Insteon'] > 0:
-                pylog(self,"[Insteon] stuffing\n")
+            self._logger.debug("stuffing")
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def on(self, deviceId, timeout = None):
@@ -579,7 +567,7 @@ class InsteonPLM(HAInterface):
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def version(self):
-        pylog(__name__, "Insteon Pytomation driver version " + self.VERSION + "\n")
+        self._logger.info("Insteon Pytomation driver version " + self.VERSION)
         
 ######################
 # EXAMPLE            #
