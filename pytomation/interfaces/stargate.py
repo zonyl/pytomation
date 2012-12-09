@@ -29,7 +29,7 @@ Versions and changes:
     2012/11/14 - 1.1 - Added debug levels and global debug system
     2012/11/19 - 1.2 - Added logging, use pylog instead of print
     2012/11/30 - 1.3 - Unify Command and State magic strings across the system
-    
+    2012/12/09 - 1.4 - Bump version number
 """
 import threading
 import time
@@ -39,12 +39,11 @@ from binascii import unhexlify
 from .common import *
 from ..devices import State
 from .ha_interface import HAInterface
-from ..config import *
 
 class Stargate(HAInterface):
 #    MODEM_PREFIX = '\x12'
     MODEM_PREFIX = ''
-    VERSION = '1.3'
+    VERSION = '1.4'
 
     def __init__(self, interface, *args, **kwargs):
         super(Stargate, self).__init__(interface, *args, **kwargs)
@@ -52,8 +51,6 @@ class Stargate(HAInterface):
     def _init(self, *args, **kwargs):
         super(Stargate, self)._init(*args, **kwargs)
 
-        if not debug.has_key('Stargate'):
-            debug['Stargate'] = 0
         self.version()
         
         self._last_input_map_low = None
@@ -75,8 +72,7 @@ class Stargate(HAInterface):
         responses = self._interface.read()
         if len(responses) != 0:
             for response in responses.split():
-                if debug['Stargate'] > 0:
-                    pylog("[Stargate] Response>\n" + hex_dump(response) + "\n")
+                self._logger.debug("Response>" + hex_dump(response))
                 if response[:2] == "!!":  # Echo Mode activity -- !!mm/ddttttttjklm[cr]
                     if self._decode_echo_mode_activity(response)['j'] == 'a' or \
                         self._decode_echo_mode_activity(response)['j'] == 'c':
@@ -126,7 +122,7 @@ class Stargate(HAInterface):
         else:
             self._last_input_map_low = io_map
 
-        pylog(__name__, " Process digital input {iomap} {offset} {last_inputl} {last_inputh}".format(
+        self._logger.debug("Process digital input {iomap} {offset} {last_inputl} {last_inputh}".format(
                                              iomap=Conversions.int_to_hex(io_map),
                                              offset=offset,
                                              last_inputl=Conversions.int_to_hex(self._last_input_map_low),
@@ -163,8 +159,8 @@ class Stargate(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            pylog("[Stargate] Unable to find pending command details for the following packet:\n")
-            pylog(hex_dump(response, len(response)) + "\n")
+            self._logger.warning("[Stargate] Unable to find pending command details for the following packet:")
+            self._logger.warning(hex_dump(response))
 
 
     def echoMode(self, timeout=None):
@@ -177,4 +173,4 @@ class Stargate(HAInterface):
         self.d_inverted[channel-1] = value
 
     def version(self):
-        pylog(__name__, "Stargate Pytomation driver version " + self.VERSION + "\n")
+        self._logger.info("Stargate Pytomation driver version " + self.VERSION)
