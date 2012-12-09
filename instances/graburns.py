@@ -2,6 +2,8 @@ import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, Photocell, Generic, GenericInput
+from pytomation.utility import Manhole
+
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
@@ -207,6 +209,7 @@ l_family = Light(
                  name='Family Light',
                  )
 
+Manhole.start()
 
 ##################### USER CODE ###############################
 #Manually controlling the light
@@ -215,24 +218,24 @@ l_family = Light(
 #l_front_porch.on()
 #l_front_porch.off()
 
-##################### TELNET MANHOLE ##########################
-from twisted.internet import reactor
-from twisted.manhole import telnet
-def createShellServer( ):
-	print 'Creating shell server instance'
-	factory = telnet.ShellFactory()
-	port = reactor.listenTCP( 2000, factory)
-	factory.namespace.update(
-			{'l_family_lamp': l_family_lamp}
-			)
-	factory.username = 'pyto'
-	factory.password = 'mation'
-	print 'Listening on port 2000'
-	return port
-
-if __name__ == "__main__":
-	reactor.callWhenRunning( createShellServer )
-	reactor.run()
+###################### TELNET MANHOLE ##########################
+#from twisted.internet import reactor
+#from twisted.manhole import telnet
+#def createShellServer( ):
+#	print 'Creating shell server instance'
+#	factory = telnet.ShellFactory()
+#	port = reactor.listenTCP( 2000, factory)
+#	factory.namespace.update(
+#			{'l_family_lamp': l_family_lamp}
+#			)
+#	factory.username = 'pyto'
+#	factory.password = 'mation'
+#	print 'Listening on port 2000'
+#	return port
+#
+#if __name__ == "__main__":
+#	reactor.callWhenRunning( createShellServer )
+#	reactor.run()
 
 # sit and spin - Let the magic flow
-select.select([],[],[])
+#select.select([],[],[])
