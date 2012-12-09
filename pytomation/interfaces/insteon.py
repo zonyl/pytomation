@@ -36,7 +36,7 @@ Versions and changes:
     2012/11/14 - 1.1 - Added debug levels and global debug system
     2012/11/19 - 1.2 - Added logging, use pylog instead of print
     2012/11/30 - 1.3 - Unify Command and State magic strings across the system
-    
+    2012/12/09 - 1.4 - Been a lot of changes.. Bump
 '''
 import select
 import traceback
@@ -50,7 +50,6 @@ import hashlib
 from collections import deque
 from .common import *
 from .ha_interface import HAInterface
-from ..config import *
 
 def _byteIdToStringId(idHigh, idMid, idLow):
     return '%02X.%02X.%02X' % (idHigh, idMid, idLow)
@@ -79,7 +78,7 @@ def simpleMap(value, in_min, in_max, out_min, out_max):
 
 
 class InsteonPLM(HAInterface):
-    VERSION = '1.3'
+    VERSION = '1.4'
     
     def __init__(self, interface, *args, **kwargs):
         super(InsteonPLM, self).__init__(interface, *args, **kwargs)
@@ -581,39 +580,4 @@ class InsteonPLM(HAInterface):
 
     def version(self):
         self._logger.info("Insteon Pytomation driver version " + self.VERSION)
-        
-######################
-# EXAMPLE            #
-######################
 
-
-def _x10_received(houseCode, unitCode, commandCode):
-    if debug['Insteon'] > 0:
-        pylog(self,"[Insteon] X10 Received: %s%s->%s\n" % (houseCode, unitCode, commandCode))
-
-
-def _insteon_received(*params):
-    if debug['Insteon'] > 0:
-        pylog(self,"[Insteon] InsteonPLM Received: %s\n" % params)
-
-if __name__ == "__main__":
-
-    #Lets get this party started
-    insteonPLM = InsteonPLM(TCP('192.168.13.146', 9761))
-#    insteonPLM = InsteonPLM(Serial('/dev/ttyMI0'))
-
-    jlight = InsteonDevice('19.05.7b', insteonPLM)
-    jRelay = X10Device('m1', insteonPLM)
-
-    insteonPLM.start()
-
-    jlight.set('faston')
-    jlight.set('fastoff')
-    jRelay.set('on')
-    jRelay.set('off')
-
-    # Need to get a callback implemented
-    #    insteon.onReceivedInsteon(insteon_received)
-
-    #sit and spin, let the magic happen
-    select.select([], [], [])
