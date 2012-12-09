@@ -209,7 +209,7 @@ l_family = Light(
                  name='Family Light',
                  )
 
-Manhole.start()
+Manhole().start()
 
 ##################### USER CODE ###############################
 #Manually controlling the light
