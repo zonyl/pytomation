@@ -11,8 +11,10 @@ class Manhole(object):
         port = reactor.listenTCP( 2000, factory)
         for instance_id, instance_detail in get_instances_detail():
             factory.namespace.update(
-                {instance_detail['name']: instance_detail['instance']},
-                {instance_id: instance_detail['instance']}
+                {
+                    instance_detail['name']: instance_detail['instance'],
+                    instance_id: instance_detail['instance']
+                }
                 )
         factory.username = 'pyto'
         factory.password = 'mation'
