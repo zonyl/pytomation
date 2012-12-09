@@ -87,28 +87,28 @@ class InsteonPLM(HAInterface):
         super(InsteonPLM, self)._init(*args, **kwargs)
         self.version()
         self._modemCommands = {'60': {
-                                    'responseSize': 7,
+                                    'responseSize': 6,
                                     'callBack':self._process_PLMInfo
                                   },
                                 '62': {
-                                    'responseSize': 7,
+                                    'responseSize': 6,
                                     'callBack':self._process_StandardInsteonMessagePLMEcho
                                   },
 
                                 '50': {
-                                    'responseSize': 9,
+                                    'responseSize': 8,
                                     'callBack':self._process_InboundStandardInsteonMessage
                                   },
                                 '51': {
-                                    'responseSize': 23,
+                                    'responseSize': 22,
                                     'callBack':self._process_InboundExtendedInsteonMessage
                                   },
                                 '63': {
-                                    'responseSize': 4,
+                                    'responseSize': 3,
                                     'callBack':self._process_StandardX10MessagePLMEcho
                                   },
                                 '52': {
-                                    'responseSize':4,
+                                    'responseSize':3,
                                     'callBack':self._process_InboundX10Message
                                  },
                             }
@@ -132,7 +132,7 @@ class InsteonPLM(HAInterface):
                                     },
                                     'SD11': {        #Devce On
                                         'callBack' : self._handle_StandardDirect_AckCompletesCommand,
-                                        'validResponseCommands' : ['SD11']
+                                        'validResponseCommands' : ['SD11', 'SDFF']
                                     },
                                     'SD12': {        #Devce On Fast
                                         'callBack' : self._handle_StandardDirect_AckCompletesCommand,
@@ -163,6 +163,9 @@ class InsteonPLM(HAInterface):
                                                     #Set button pushed
                                         'callBack' : self._handle_StandardBroadcast_SetButtonPressed
                                     },
+                                    #Unknown
+                                    'SDFF': {
+                                             },
                                 }
 
         self._x10HouseCodes = Lookup(zip((
@@ -232,7 +235,7 @@ class InsteonPLM(HAInterface):
                 if responseSize != -1:
                     remainingBytes = self._interface.read(responseSize)
                     currentPacketHash = hashPacket(firstByte + secondByte + remainingBytes)
-                    self._logger.debug(" < " + hex_dump(firstByte + secondByte + remainingBytes, len(firstByte + secondByte + remainingBytes)) + currentPacketHash + "\n")
+                    self._logger.debug("Receive< " + hex_dump(firstByte + secondByte + remainingBytes, len(firstByte + secondByte + remainingBytes)) + currentPacketHash + "\n")
 
                     if lastPacketHash and lastPacketHash == currentPacketHash:
                         #duplicate packet.  Ignore
@@ -413,6 +416,7 @@ class InsteonPLM(HAInterface):
                                     waitEvent = commandDetails['waitEvent']
                             else:
                                 self._logger.warning("No callBack for insteon command code %s" % insteonCommandCode)
+                                waitEvent = commandDetails['waitEvent']
                         else:
                             self._logger.warning("No insteonCommand lookup defined for insteon command code %s" % insteonCommandCode)
 

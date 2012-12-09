@@ -64,6 +64,19 @@ class InsteonInterfaceTests(TestCase):
         #time.sleep(4000)
         self.assertEqual(response, True)
 
+    def test_bug_ackknowledge(self):
+        """
+        >026219057b0f11ff
+        <02 62 19 05 7B 0F FF 06
+        <02 50 19 05 7B 09 36 F7 2B FF         
+        """
+        self.ms.add_response({Conversions.hex_to_ascii('026219057b0f11ff'):
+                              Conversions.hex_to_ascii('026219057B0FFF06') + \
+                              Conversions.hex_to_ascii('025019057B0936F72BFF')})
+        response = self.insteon.on('19.05.7b')
+#        time.sleep(4000)
+        self.assertEqual(response, True)
+        #time.sleep(4000)
 
 if __name__ == '__main__':
     main()
