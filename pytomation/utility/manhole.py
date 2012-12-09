@@ -11,10 +11,10 @@ class Manhole(object):
     directly.  All objects names will be converted to lowercase and spaces will
     be converted to underscore _ .
     """    
-    def createShellServer(self ):
+    def createShellServer(self, user='pyto', password='mation', port=2000 ):
         print 'Creating shell server instance'
         factory = telnet.ShellFactory()
-        port = reactor.listenTCP( 2000, factory)
+        port = reactor.listenTCP( port, factory)
         for instance_id, instance_detail in get_instances_detail().iteritems():
             name = re.sub('[\s]','_', instance_detail['name'].lower())
             factory.namespace.update(
@@ -23,11 +23,11 @@ class Manhole(object):
                     instance_id: instance_detail['instance']
                 }
                 )
-        factory.username = 'pyto'
-        factory.password = 'mation'
-        print 'Listening on port 2000'
+        factory.username = user
+        factory.password = password
+        print 'Listening on port '  + str(port)
         return port
 
-    def start(self):
-        reactor.callWhenRunning( self.createShellServer )
+    def start(self, user='pyto', password='mation', port=2000):
+        reactor.callWhenRunning( self.createShellServer, user, password, port)
         reactor.run()

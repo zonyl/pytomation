@@ -209,7 +209,7 @@ l_family = Light(
                  name='Family Light',
                  )
 
-Manhole().start()
+Manhole().start(user='pyto', password='mation', port=2000)
 
 ##################### USER CODE ###############################
 #Manually controlling the light
