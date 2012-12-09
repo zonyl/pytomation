@@ -14,7 +14,7 @@ class Manhole(object):
     def createShellServer(self, user='pyto', password='mation', port=2000 ):
         print 'Creating shell server instance'
         factory = telnet.ShellFactory()
-        port = reactor.listenTCP( port, factory)
+        listen_port = reactor.listenTCP( port, factory)
         for instance_id, instance_detail in get_instances_detail().iteritems():
             name = re.sub('[\s]','_', instance_detail['name'].lower())
             factory.namespace.update(
@@ -26,7 +26,7 @@ class Manhole(object):
         factory.username = user
         factory.password = password
         print 'Listening on port '  + str(port)
-        return port
+        return listen_port
 
     def start(self, user='pyto', password='mation', port=2000):
         reactor.callWhenRunning( self.createShellServer, user, password, port)
