@@ -90,7 +90,7 @@ class W800rf32(HAInterface):
     def _readModem(self, lastPacketHash):
         #check to see if there is anyting we need to read
         responses = self._interface.read()
-        if len(responses) >= 3:
+        if len(responses) >= 4:
             x = "{0:08b}".format(ord(responses[0]))  # format binary string
             b3 = int(x[::-1],2)   # reverse the string and assign to byte 3
             x = "{0:08b}".format(ord(responses[1]))  # format binary string
