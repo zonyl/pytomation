@@ -159,7 +159,7 @@ class Stargate(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            self._logger.warning("[Stargate] Unable to find pending command details for the following packet:")
+            self._logger.warning("Unable to find pending command details for the following packet:")
             self._logger.warning(hex_dump(response))
 
 
