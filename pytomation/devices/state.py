@@ -44,6 +44,7 @@ class StateDevice(PytomationObject):
     TIME_PREFIX = 'time_'
     DELAY_PREFIX = 'delay_'
     IGNORE_PREFIX = 'ignore_'
+    IDLE_PREFIX = 'idle_'
     ANY_STATE = 'any'
 
     def __init__(self, devices=(), *args, **kwargs):
@@ -98,6 +99,7 @@ class StateDevice(PytomationObject):
         self._times = {}
         self._delays = {}
         self._ignores = []
+        self._idle_timer = None
         self._last_set = datetime.now()
         pass
 
@@ -136,6 +138,8 @@ class StateDevice(PytomationObject):
             return lambda x: self._add_delay(name[len(self.DELAY_PREFIX):len(name)], x)
         elif name[0:len(self.IGNORE_PREFIX)] == self.IGNORE_PREFIX:
             return lambda x=True: self._add_ignore(name[len(self.IGNORE_PREFIX):len(name)], x)
+        elif name[0:len(self.IDLE_PREFIX)] == self.IDLE_PREFIX:
+            return lambda x: self._add_idle(name[len(self.IDLE_PREFIX):len(name)], x)
 #        else:
 #            return super(StateDevice, self).__getattr__(name)
 #        raise AttributeError
@@ -175,6 +179,8 @@ class StateDevice(PytomationObject):
         self._delegate(mapped_state)
 
         self._trigger_delay(mapped_state, state, previous_state, source )
+
+        self._trigger_idle(mapped_state, state, previous_state, source)
 
         self._prev_state = self._state
         self._last_set = datetime.now()
@@ -235,6 +241,21 @@ class StateDevice(PytomationObject):
                 elif d_state == orig_state:
                     timer.stop()
         return True
+
+    def _add_idle(self, state, secs):
+        if secs:
+#            self._delays.update({state: secs})
+            self._idle_timer = CTimer()
+            self._idle_timer.interval = secs
+            self._idle_timer.action(self._idle_action, (state, ))
+
+    def _trigger_idle(self, mapped, state, previous_state, source):
+        if self._idle_timer:
+            self._idle_timer.restart()
+
+    def _idle_action(self, *args, **kwargs):
+        state = args[0]
+        return self._set_state(state, None, self)
 
     def _add_ignore(self, state, value=True):
         if value:

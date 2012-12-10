@@ -20,7 +20,7 @@ class StateDevice_Tests(TestCase):
         device = StateDevice()
         self.assertTrue(len(device.instances) > prev)
                 
-    def test_idle(self):
+    def test_idle_property(self):
         self.device.on()
         time.sleep(2)
         self.assertTrue(self.device.idle >= 2)
@@ -133,6 +133,19 @@ class StateDevice_Tests(TestCase):
                          )
         self.assertIsNotNone(s1)
     
+    def test_idle(self):
+        s1 = StateDevice()
+        s2 = StateDevice(devices=s1,
+                         idle_l20=2
+                         )
+        s1.on()
+        self.assertEqual(s2.state, State.ON)
+        time.sleep(2)
+        self.assertEqual(s2.state, State.L20)
+        s1.on()
+        self.assertEqual(s2.state, State.ON)
+        
+        
     def tearDown(self):
         self.device = None
 
