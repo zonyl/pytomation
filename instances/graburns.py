@@ -153,7 +153,8 @@ l_front_porch = Light(
                       address=(49, 4),
                       devices=(upb, d_foyer, m_front_porch, ph_standard, ),
                       initial_state=ph_standard,
-                      delay_off=10*60,
+                      delay_off=180*60,
+                      idle_l40=10*60,
                       time_off='11:59pm',
                       name='Front Porch Light'
                       )
@@ -164,7 +165,8 @@ l_front_flood = Light(
                       devices=(upb, d_garage, d_garage_overhead, 
                                d_foyer, m_front_garage, ph_standard),
                       initial_state=ph_standard,
-                      delay_off=5*60,
+                      delay_off=10*60,
+                      idle_l40=5*60,
                       time_off='11:59pm',
                       name='Front Flood Light'
                       )
@@ -182,7 +184,8 @@ l_front_garage = Light(
                       devices=(upb, d_garage, d_garage_overhead, 
                                m_front_garage, ph_standard),
                       initial_state=ph_standard,
-                      delay_off=10*60,
+                      delay_off=180*60,
+                      idle_l40=10*60,
                       time_off='11:59pm',
                       name='Front Garage Light',
                       )
