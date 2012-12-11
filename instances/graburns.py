@@ -146,6 +146,7 @@ l_foyer = Light(
                 delay_off=2*60,
                 time_off='11:59pm',
                 ignore_dark=True,
+		ignore_motion=True,
                 name='Foyer Light'
                 )
 
