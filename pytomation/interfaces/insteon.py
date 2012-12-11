@@ -87,7 +87,7 @@ class InsteonPLM(HAInterface):
         super(InsteonPLM, self)._init(*args, **kwargs)
         self.version()
         self._modemCommands = {'60': {
-                                    'responseSize': 6,
+                                    'responseSize': 7,
                                     'callBack':self._process_PLMInfo
                                   },
                                 '62': {
