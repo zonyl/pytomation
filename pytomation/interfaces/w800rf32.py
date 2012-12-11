@@ -45,6 +45,7 @@ Versions and changes:
     2012/11/14 - 1.1 - Added debug levels and global debug system
     2012/11/18 - 1.2 - Added logging
     2012/11/30 - 1.3 - Unify Command and State magic strings across the system
+    2012/12/10 - 1.4 - New logging system
     
 """
 import threading
@@ -55,10 +56,9 @@ from binascii import unhexlify
 
 from .common import *
 from .ha_interface import HAInterface
-from ..config import *
 
 class W800rf32(HAInterface):
-    VERSION = '1.3'
+    VERSION = '1.4'
     MODEM_PREFIX = ''
     
     hcodeDict = {
