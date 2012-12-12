@@ -149,15 +149,13 @@ class UPBMessage(object):
 class UPB(HAInterface):
 #    MODEM_PREFIX = '\x12'
     MODEM_PREFIX = ''
-    VERSION = '1.3'
+    VERSION = '1.4'
 
     def __init__(self, interface, *args, **kwargs):
         super(UPB, self).__init__(interface, *args, **kwargs)
 
     def _init(self, *args, **kwargs):
         super(UPB, self)._init(*args, **kwargs)
-        if not debug.has_key('UPB'):
-            debug['UPB'] = 0
         self.version()
         
         self._modemRegisters = ""
@@ -232,7 +230,7 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            self._logger.debug("[UPB] Unable to find pending command details for the following packet:\n")
+            self._logger.debug("Unable to find pending command details for the following packet:\n")
             self._logger.debug(hex_dump(response, len(response)) + "\n")
 
     def _processRegister(self, response, lastPacketHash):
@@ -253,15 +251,15 @@ class UPB(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-            self._logger.debug("[UPB] Unable to find pending command details for the following packet:\n")
+            self._logger.debug("Unable to find pending command details for the following packet:\n")
             self._logger.debug(hex_dump(response, len(response)) + "\n")
 
     def _processNewUBP(self, response):
         command = 0x00
-        print "UBP New Response: " + response
+        self._logger.debug("Incoming message: " + response)
         incoming = UPBMessage()
         incoming.decode(response)
-        print 'UPBN:' + str(incoming.network) + ":" + str(incoming.source) + ":" + str(incoming.destination) + ":" + Conversions.int_to_hex(incoming.message_did)
+        self._logger.debug('UPBN:' + str(incoming.network) + ":" + str(incoming.source) + ":" + str(incoming.destination) + ":" + Conversions.int_to_hex(incoming.message_did))
         address = (incoming.network, incoming.source)
         if incoming.message_did == 0x22 \
             or incoming.message_did == 0x23 \
@@ -301,5 +299,14 @@ class UPB(HAInterface):
     def off(self, address, timeout=None, rate=None):
         return self._device_goto(address, 0x00, timeout=timeout)
 
+    def __getattr__(self, name):
+        name = name.lower()
+        # Support levels of lighting
+        if name[0] == 'l' and len(name) == 3:
+            level = name[1:3]
+            level = int((int(level) / 100) * int(0x64))
+            return lambda x, y=None: self._device_goto(x, level, timeout=y ) 
+        
+        
     def version(self):
         self._logger.info("UPB Pytomation driver version " + self.VERSION + "\n")

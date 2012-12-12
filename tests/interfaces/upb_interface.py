@@ -100,6 +100,9 @@ class UPBInterfaceTests(TestCase):
         m_interface.callback.assert_called_with(address=(49,38,'L'), command=State.ON, source=upb)  
         m_interface.read.return_value = ''
         
+    def test_level(self):
+        response = self.upb.l40((39,4))
+        self.assertTrue(True)
 
 if __name__ == '__main__':
     main()
