@@ -250,7 +250,7 @@ class StateDevice(PytomationObject):
             self._idle_timer.action(self._idle_action, (state, ))
 
     def _trigger_idle(self, mapped, state, previous_state, source):
-        if self._idle_timer:
+        if mapped == State.ON and self._idle_timer and source != self:
             self._idle_timer.restart()
 
     def _idle_action(self, *args, **kwargs):
