@@ -78,5 +78,9 @@ class InsteonInterfaceTests(TestCase):
         self.assertEqual(response, True)
         #time.sleep(4000)
 
+    def test_insteon_level(self):
+        response = self.insteon.l40('19.05.7b')
+        self.assertEqual(response, False)
+
 if __name__ == '__main__':
     main()

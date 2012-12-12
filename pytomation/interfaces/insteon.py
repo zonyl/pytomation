@@ -553,7 +553,15 @@ class InsteonPLM(HAInterface):
         else: #X10 device address
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'03')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
-
+    
+    def __getattr__(self, name):
+        name = name.lower()
+        # Support levels of lighting
+        if name[0] == 'l' and len(name) == 3:
+            level = name[1:3]
+            level = int((int(level) / 100) * int(0xFF))
+            return lambda x, y=None: self.level(x, level, timeout=y ) 
+        
     def on_fast(self, deviceId, timeout = None):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '12', 'ff')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
