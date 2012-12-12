@@ -58,14 +58,14 @@ logging_default_level = "INFO"
 #
 logging_modules = {
                    'LoggingTests': "CRITICAL",
-                   'InsteonPLM': 'DEBUG',
+                   #'InsteonPLM': 'DEBUG',
                    }
 
 # Logging file path
 logging_file = os.path.join(sys.path[0], 'pylog.log')
 
 # Logging entry message format
-logging_format = '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+logging_format = '[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s'
 
 # Logging entry date format
 logging_datefmt = "%Y/%m/%d %H:%M:%S"
