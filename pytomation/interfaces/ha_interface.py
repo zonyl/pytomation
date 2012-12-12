@@ -168,18 +168,21 @@ class HAInterface(AsynchronousInterface, PytomationObject):
             try:
                 commandExecutionDetails = self._outboundCommandDetails[commandHash]
             except Exception, ex:
-                self._logger.error('Could not find execution details: ' + str(ex))
-
-            bytesToSend = commandExecutionDetails['bytesToSend']
-
-#            self._logger.debug("Transmit>" + str(hex_dump(bytesToSend, len(bytesToSend))))
-            self._logger.debug("Transmit>" + Conversions.ascii_to_hex(bytesToSend))
-            self._interface.write(bytesToSend)
-
-            self._pendingCommandDetails[commandHash] = commandExecutionDetails
-            del self._outboundCommandDetails[commandHash]
-
-            self._lastSendTime = time.time()
+                self._logger.error('Could not find execution details: {command} {error}'.format(
+                                                                                                command=commandHash,
+                                                                                                error=str(ex))
+                                   )
+            else:
+                bytesToSend = commandExecutionDetails['bytesToSend']
+    
+    #            self._logger.debug("Transmit>" + str(hex_dump(bytesToSend, len(bytesToSend))))
+                self._logger.debug("Transmit>" + Conversions.ascii_to_hex(bytesToSend))
+                self._interface.write(bytesToSend)
+    
+                self._pendingCommandDetails[commandHash] = commandExecutionDetails
+                del self._outboundCommandDetails[commandHash]
+    
+                self._lastSendTime = time.time()
 
         self._commandLock.release()
 
