@@ -217,7 +217,6 @@ l_family = Light(
                  name='Family Light',
                  )
 
-Manhole().start(user='pyto', password='mation', port=2000)
 
 ##################### USER CODE ###############################
 #Manually controlling the light
@@ -225,7 +224,8 @@ Manhole().start(user='pyto', password='mation', port=2000)
 #l_foyer.off()
 #l_front_porch.on()
 #l_front_porch.off()
-
+#l_family_lamp.l40()
 
 # sit and spin - Let the magic flow
+Manhole().start(user='pyto', password='mation', port=2000)
 #select.select([],[],[])
