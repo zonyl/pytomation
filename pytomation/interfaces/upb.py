@@ -304,7 +304,8 @@ class UPB(HAInterface):
         # Support levels of lighting
         if name[0] == 'l' and len(name) == 3:
             level = name[1:3]
-            level = int((int(level) / 100) * int(0x64))
+	    self._logger.debug("Level->{level}".format(level=level))
+	    level = int(level)
             return lambda x, y=None: self._device_goto(x, level, timeout=y ) 
         
         
