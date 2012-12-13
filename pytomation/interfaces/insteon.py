@@ -559,7 +559,7 @@ class InsteonPLM(HAInterface):
         # Support levels of lighting
         if name[0] == 'l' and len(name) == 3:
             level = name[1:3]
-            level = int((int(level) / 100) * int(0xFF))
+            level = int((int(level) / 100.0) * int(0xFF))
             return lambda x, y=None: self.level(x, level, timeout=y ) 
         
     def on_fast(self, deviceId, timeout = None):
