@@ -289,8 +289,16 @@ class InsteonPLM(HAInterface):
 
     #low level processing methods
     def _process_PLMInfo(self, responseBytes):
-        (modemCommand, idHigh, idMid, idLow, deviceCat, deviceSubCat, firmwareVer, acknak) = struct.unpack('xBBBBBBBB', responseBytes)
-
+        #(modemCommand, idHigh, idMid, idLow, deviceCat, deviceSubCat, firmwareVer, acknak) = struct.unpack('xBBBBBBBB', responseBytes)
+        modemCommand = responseBytes[0]
+        idHigh = responseBytes[1] 
+        idMid = responseBytes[2] 
+        idLow = responseBytes[3] 
+        deviceCat = responseBytes[4] 
+        deviceSubCat = responseBytes[5] 
+        firmwareVer = responseBytes[6] 
+        acknak = responseBytes[7]
+        
         foundCommandHash = None
         #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
         for (commandHash, commandDetails) in self._pendingCommandDetails.items():
