@@ -136,15 +136,15 @@ class StateDevice_Tests(TestCase):
     def test_idle(self):
         s1 = StateDevice()
         s2 = StateDevice(devices=s1,
-                         idle_l20=2
+                         idle_off=2
                          )
         s1.on()
         self.assertEqual(s2.state, State.ON)
-        time.sleep(2)
-        self.assertEqual(s2.state, State.L20)
+        time.sleep(3)
+        self.assertEqual(s2.state, State.OFF)
         s1.on()
         self.assertEqual(s2.state, State.ON)
-        
+
         
     def tearDown(self):
         self.device = None
