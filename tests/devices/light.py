@@ -147,7 +147,9 @@ class LightTests(TestCase):
         photo.light()
         self.assertEqual(light.state, State.OFF)
         
-        
+    def test_level(self):
+        self.device.l40()
+        self.assertTrue(self.interface.l40.called)
 
 
 if __name__ == '__main__':

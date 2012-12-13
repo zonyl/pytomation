@@ -2,6 +2,20 @@ from .interface import InterfaceDevice
 from .state import State
 
 class Light(InterfaceDevice):
+    STATES = [State.UNKNOWN,
+              State.ON,
+              State.OFF,
+              State.L10,
+              State.L20,
+              State.L30,
+              State.L40,
+              State.L50,
+              State.L60,
+              State.L70,
+              State.L80,
+              State.L90,
+              ]
+
     def _initial_vars(self):
         super(Light, self)._initial_vars()
         self._restricted = False
