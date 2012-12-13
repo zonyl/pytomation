@@ -59,6 +59,7 @@ logging_default_level = "INFO"
 logging_modules = {
                    'LoggingTests': "CRITICAL",
                    #'InsteonPLM': 'DEBUG',
+		   #'UPB': 'DEBUG',
                    }
 
 # Logging file path
