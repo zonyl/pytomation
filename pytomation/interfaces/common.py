@@ -194,11 +194,11 @@ class UDP(AsynchronousInterface):
 
 
 class Serial(Interface):
-    def __init__(self, serialDevicePath, serialSpeed=19200, serialTimeout=0.1):
+    def __init__(self, serialDevicePath, serialSpeed=19200, serialTimeout=0.1, xonxoff=True, rtscts=False, dsrdtr=True):
         super(Serial, self).__init__()
         print "Using %s for PLM communication" % serialDevicePath
 #       self.__serialDevice = serial.Serial(serialDevicePath, 19200, timeout = 0.1) 
-        self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout, xonxoff=True, rtscts=False, dsrdtr=True) 
+        self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout) 
 
     def read(self, bufferSize=1024):
         return self.__serialDevice.read(bufferSize)
