@@ -91,12 +91,12 @@ class InsteonPLM(HAInterface):
                                     'callBack':self._process_PLMInfo
                                   },
                                 '62': {
-                                    'responseSize': 6,
+                                    'responseSize': 7,
                                     'callBack':self._process_StandardInsteonMessagePLMEcho
                                   },
 
                                 '50': {
-                                    'responseSize': 8,
+                                    'responseSize': 9,
                                     'callBack':self._process_InboundStandardInsteonMessage
                                   },
                                 '51': {
