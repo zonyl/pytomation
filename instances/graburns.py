@@ -9,7 +9,7 @@ from pytomation.utility import Manhole
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
 #insteon = InsteonPLM(TCP('192.168.13.146', 9761))
-insteon = InsteonPLM(Serial('/dev/ttyMI1', 19200))
+insteon = InsteonPLM(Serial('/dev/ttyMI1', 19200, xonxoff=False))
 
 w800 = W800rf32(Serial('/dev/ttyMI3', 4800)) 
 
@@ -172,11 +172,16 @@ l_front_flood = Light(
                       name='Front Flood Light'
                       )
 
+# Cron Format
+#  secs=allMatch, min=allMatch, hour=allMatch, day=allMatch, month=allMatch, dow=allMatch
 l_front_outlet = Light(
                       address=(49, 21), 
                       devices=(upb, ph_standard),
                       initial_state=ph_standard,
-                      time_off='10:30pm',
+#                      time_off='10:30pm',
+# Im usually working on the code at this time of night, so lets send multiple off signals
+# just in case I am not running pyto during its designated time.
+                      time_off=(0, 30, [22,23,0,01]),
                       name='Front Outlet Light'
                       )
 
