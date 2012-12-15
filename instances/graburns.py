@@ -130,11 +130,12 @@ ph_standard = Location('35.2269', '-80.8433',
                        tz='US/Eastern', 
                        mode=Location.MODE.STANDARD, 
                        is_dst=True,
-                       name='Sun Tracking')
+                       name='Standard Photocell')
 ph_civil = Location('35.2269', '-80.8433', 
                     tz='US/Eastern', 
                     mode=Location.MODE.CIVIL, 
-                    is_dst=True)
+                    is_dst=True,
+                    name='Civil Photocell')
 
 #lights
 # Turn on the foyer light at night when either the door is opened or family PIR is tripped.
@@ -176,8 +177,8 @@ l_front_flood = Light(
 #  secs=allMatch, min=allMatch, hour=allMatch, day=allMatch, month=allMatch, dow=allMatch
 l_front_outlet = Light(
                       address=(49, 21), 
-                      devices=(upb, ph_standard),
-                      initial_state=ph_standard,
+                      devices=(upb, ph_civil),
+                      initial_state=ph_civil,
 #                      time_off='10:30pm',
 # Im usually working on the code at this time of night, so lets send multiple off signals
 # just in case I am not running pyto during its designated time.
