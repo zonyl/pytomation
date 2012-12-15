@@ -151,6 +151,10 @@ class LightTests(TestCase):
         self.device.l40()
         self.assertTrue(self.interface.l40.called)
 
+    def test_time_cron(self):
+        light = Light('a2',
+                      time_off=(0, 30, range(0,5), 0, 0))
+        self.assertIsNotNone(light)
 
 if __name__ == '__main__':
     main() 
