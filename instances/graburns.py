@@ -233,11 +233,12 @@ l_family = Light(
 #l_family_lamp.l40()
 
 def MainLoop(*args, **kwargs):
-    print 'Im in a main loop!'
-    if l_foyer.state == State.ON:
-        l_foyer.off()
-    else:
-        l_foyer.on()
+#    print 'Im in a main loop!'
+#    if l_foyer.state == State.ON:
+#        l_foyer.off()
+#    else:
+#        l_foyer.on()
+    pass
         
 
 # Start the whole system.  pytomation.common.system.start()

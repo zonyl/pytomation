@@ -2,6 +2,8 @@ import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate
 from pytomation.devices import Motion, Door, Light, Location
+from pytomation.common.system import *
+
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
@@ -38,6 +40,19 @@ l_foyer.ignore_dark(True)
 l_foyer.on()
 l_foyer.off()
 
+# Loop control
+def MainLoop(*args, **kwargs):
+    print 'Im in a main loop!'
+    if l_foyer.state == State.ON:
+        l_foyer.off()
+    else:
+        l_foyer.on()
+        
 
-# sit and spin - Let the magic flow
-select.select([],[],[])
+# Start the whole system.  pytomation.common.system.start()
+start(
+      loop_action=MainLoop,
+      loop_time=1, # Loop every 1 sec
+      admin_user='pyto',
+      admin_password='mation'
+      )
