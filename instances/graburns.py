@@ -2,8 +2,8 @@ import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
-                                Photocell, Generic, GenericInput, StateDevice
-from pytomation.utility import Manhole
+                                Photocell, Generic, GenericInput, StateDevice, State
+from pytomation.common.system import *
 
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
@@ -232,6 +232,21 @@ l_family = Light(
 #l_front_porch.off()
 #l_family_lamp.l40()
 
-# sit and spin - Let the magic flow
-Manhole().start(user='pyto', password='mation', port=2000)
-#select.select([],[],[])
+def MainLoop(*args, **kwargs):
+    print 'Im in a main loop!'
+    if l_foyer.state == State.ON:
+        l_foyer.off()
+    else:
+        l_foyer.on()
+        
+
+# Start the whole system.  pytomation.common.system.start()
+start(
+      loop_action=MainLoop,
+      loop_time=1, # Loop every 1 sec
+      admin_user='pyto',
+      admin_password='mation'
+      )
+
+
+
