@@ -25,6 +25,6 @@ def start(loop_action=None, loop_time=1, admin_user=None, admin_password=None, t
         myLooper.start()
     
     if admin_user:
-        Manhole().start(user=admin_user, password=admin_password, port=telnet_port)
+        Manhole().start(user=admin_user, password=admin_password, port=telnet_port, instances=get_instances_detail())
     
     
