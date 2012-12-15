@@ -10,11 +10,12 @@ class SystemTests(TestCase):
     def test_get_instances(self):
         mint = Mock()
         mint.read.return_value = ''
+        before = get_instances()
         int = HAInterface(mint, name='Int1')
         dev = StateDevice(name='Dev1')
         a = get_instances()
         self.assertIsNotNone(a)
-        self.assertEqual(len(a), 2)
+        self.assertEqual(len(a), len(before))
         
     def test_get_instances_detail(self):
         l = len(get_instances())
