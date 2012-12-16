@@ -59,7 +59,8 @@ Versions and changes:
     2012/11/30 - 1.4 - Unify Command and State magic strings
     2012/12/07 - 1.5 - Add invert pin function.
     2012/12/07 - 1.6 - Update to new logging stuff
-   
+    2012/12/17 - 1.7 - readModem command now readInterface
+    
 """
 import threading
 import time
@@ -72,7 +73,7 @@ from .ha_interface import HAInterface
 
 
 class Wtdio(HAInterface):
-    VERSION = '1.5'
+    VERSION = '1.7'
     MODEM_PREFIX = ''
         
     def __init__(self, interface, *args, **kwargs):
@@ -156,7 +157,7 @@ class Wtdio(HAInterface):
 	# Turn echo mode off on Weeder board
     def echoMode(self, timeout=None):
         command = 'AX0\r'
-        commandExecutionDetails = self._sendModemCommand(
+        commandExecutionDetails = self._sendInterfaceCommand(
                              command)
 
     # Initialize the Weeder board, input example "ASA"
@@ -170,19 +171,19 @@ class Wtdio(HAInterface):
             self.boardSettings.append(boardChannelType)
                 
         command = boardChannelType + '\r'
-        commandExecutionDetails = self._sendModemCommand(command)
+        commandExecutionDetails = self._sendInterfaceCommand(command)
 
     def dio_invert(self, channel, value=True):
         self.d_inverted[ord(channel) - 65] = value
                     
     def on(self, board, channel):
         command = board + 'H' + channel + '\r'
-        commandExecutionDetails = self._sendModemCommand(command)
+        commandExecutionDetails = self._sendInterfaceCommand(command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
 
     def off(self, board, channel):
         command = board + 'L' + channel + '\r'
-        commandExecutionDetails = self._sendModemCommand(command)
+        commandExecutionDetails = self._sendInterfaceCommand(command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
 		
     def listBoards(self):
