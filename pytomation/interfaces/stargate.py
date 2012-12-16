@@ -67,7 +67,7 @@ class Stargate(HAInterface):
         self.d_inverted = [False for x in xrange(16)]
         self.echoMode()
 
-    def _readModem(self, lastPacketHash):
+    def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read
         responses = self._interface.read()
         if len(responses) != 0:
@@ -165,7 +165,7 @@ class Stargate(HAInterface):
 
     def echoMode(self, timeout=None):
         command = '##%1d\r'
-        commandExecutionDetails = self._sendModemCommand(
+        commandExecutionDetails = self._sendInterfaceCommand(
                              command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 

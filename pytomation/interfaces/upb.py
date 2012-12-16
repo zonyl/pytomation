@@ -184,12 +184,12 @@ class UPB(HAInterface):
                                     )
                                )
         command = command + Conversions.hex_to_ascii('0D')
-        commandExecutionDetails = self._sendModemCommand(
+        commandExecutionDetails = self._sendInterfaceCommand(
                              self._modemCommands['read_register'], command)
         return self._waitForCommandToFinish(commandExecutionDetails,
                                              timeout=timeout)
 
-    def _readModem(self, lastPacketHash):
+    def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read
         responses = self._interface.read()
         if len(responses) != 0:
@@ -289,7 +289,7 @@ class UPB(HAInterface):
                                     Conversions.int_to_ascii(rate)
         command = message.to_hex()
         command = command + Conversions.hex_to_ascii('0D')
-        commandExecutionDetails = self._sendModemCommand(
+        commandExecutionDetails = self._sendInterfaceCommand(
                              self._modemCommands['send_upb'], command)
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 

@@ -78,9 +78,9 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         #for checking for duplicate messages received in a row
 
         while not self._shutdownEvent.isSet():
-            self._writeModem()
+            self._writeInterface()
 
-            self._readModem(self._lastPacketHash)
+            self._readInterface(self._lastPacketHash)
 
         self._interfaceRunningEvent.clear()
 
@@ -101,7 +101,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                                 source=self
                                                 )
 
-    def _sendModemCommand(self, modemCommand,
+    def _sendInterfaceCommand(self, modemCommand,
                           commandDataString=None,
                           extraCommandDetails=None, modemCommandPrefix=None):
 
@@ -158,7 +158,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
 
         return returnValue
 
-    def _writeModem(self):
+    def _writeInterface(self):
         #check to see if there are any outbound messages to deal with
         self._commandLock.acquire()
         if (len(self._outboundQueue) > 0) and \
@@ -186,7 +186,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
 
         self._commandLock.release()
 
-    def _readModem(self, lastPacketHash):
+    def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read
         response = self._interface.read()
         if len(response) != 0:

@@ -87,7 +87,7 @@ class W800rf32(HAInterface):
         self._modemResponse = {
                                }
 
-    def _readModem(self, lastPacketHash):
+    def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read
         responses = self._interface.read()
         if len(responses) >= 4:

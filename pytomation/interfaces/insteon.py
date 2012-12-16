@@ -210,11 +210,11 @@ class InsteonPLM(HAInterface):
 
         self._allLinkDatabase = dict()
 
-    def _sendModemCommand(self, modemCommand, commandDataString = None, extraCommandDetails = None):
+    def _sendInterfaceCommand(self, modemCommand, commandDataString = None, extraCommandDetails = None):
         command = binascii.unhexlify(modemCommand)
-        return super(InsteonPLM, self)._sendModemCommand(command, commandDataString, extraCommandDetails, modemCommandPrefix='\x02')
+        return super(InsteonPLM, self)._sendInterfaceCommand(command, commandDataString, extraCommandDetails, modemCommandPrefix='\x02')
 
-    def _readModem(self, lastPacketHash):
+    def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read
         firstByte = self._interface.read(1)
         if len(firstByte) == 1:
@@ -265,7 +265,7 @@ class InsteonPLM(HAInterface):
 
     def _sendStandardP2PInsteonCommand(self, destinationDevice, commandId1, commandId2):
         self._logger.debug("Command: %s %s %s" % (destinationDevice, commandId1, commandId2))
-        return self._sendModemCommand('62', _stringIdToByteIds(destinationDevice) + _buildFlags() + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2), extraCommandDetails = { 'destinationDevice': destinationDevice, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
+        return self._sendInterfaceCommand('62', _stringIdToByteIds(destinationDevice) + _buildFlags() + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2), extraCommandDetails = { 'destinationDevice': destinationDevice, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
 
     def _getX10UnitCommand(self,deviceId):
         "Send just an X10 unit code message"
@@ -283,9 +283,9 @@ class InsteonPLM(HAInterface):
         self._logger.debug("C: %s" % self._getX10UnitCommand(destinationDevice))
         self._logger.debug("c1: %s" % self._getX10CommandCommand(destinationDevice, commandId1))
             
-        self._sendModemCommand('63', binascii.unhexlify(self._getX10UnitCommand(destinationDevice)))
+        self._sendInterfaceCommand('63', binascii.unhexlify(self._getX10UnitCommand(destinationDevice)))
 
-        return self._sendModemCommand('63', binascii.unhexlify(self._getX10CommandCommand(destinationDevice, commandId1)))
+        return self._sendInterfaceCommand('63', binascii.unhexlify(self._getX10CommandCommand(destinationDevice, commandId1)))
 
     #low level processing methods
     def _process_PLMInfo(self, responseBytes):
@@ -502,7 +502,7 @@ class InsteonPLM(HAInterface):
 
     #public methods
     def getPLMInfo(self, timeout = None):
-        commandExecutionDetails = self._sendModemCommand('60')
+        commandExecutionDetails = self._sendInterfaceCommand('60')
 
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
