@@ -54,17 +54,17 @@ class InterfaceDevice(StateDevice):
                     self._logger.error("Interface ({interface}) does not have the State '{state}' for address ({address})".format(
                                                                                     state=self._state,
                                                                                     address=self.address,
-                                                                                    interface=str(self._interface),
+                                                                                    interface=str(self.interface.name),
                                                                                                          ))
                     
             except AttributeError, ex:
                 self._logger.error('Interface ({interface}) does not support the State->Command: "{state}"'.format(
-                                                                                                            interface=str(self.interface),
+                                                                                                            interface=str(self.interface.name),
                                                                                                             state=self.state,
                                                                                                             )
                       )
             except Exception, ex:
-                self._logger.critical('Interface ({interface}) suffered a critical error: {error}'.format(interface=str(self.interface),
+                self._logger.critical('Interface ({interface}) suffered a critical error: {error}'.format(interface=str(self.interface.name),
                                                                                                           error=str(ex)))
         return result
 

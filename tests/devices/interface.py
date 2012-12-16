@@ -66,7 +66,12 @@ class InterfaceDevice_Tests(TestCase):
                                  )
         interface2.on.assert_called_with('asdf')
         
-        
+    def test_interface_unknown_state(self):
+        # Should ignore unknown states
+        interface = Mock()
+        device = InterfaceDevice('asdf', devices=interface)
+        device._set_state('notknown')
+        self.assertFalse(interface.notknown.called)
 
 if __name__ == '__main__':
     main() 

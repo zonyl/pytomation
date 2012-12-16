@@ -146,6 +146,16 @@ class StateDevice_Tests(TestCase):
         self.assertEqual(s2.state, State.ON)
 
         
+    def test_notknown_state(self):
+        self.device.on()
+        self.device._set_state('notknown')
+        self.assertEqual(self.device.state, State.ON)
+        
+    def test_state_setstate(self):
+        self.device.off()
+        self.device.set_state(State.ON)
+        self.assertEqual(self.device.state, State.ON)
+        
     def tearDown(self):
         self.device = None
 

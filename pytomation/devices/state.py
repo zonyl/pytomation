@@ -144,6 +144,9 @@ class StateDevice(PytomationObject):
 #            return super(StateDevice, self).__getattr__(name)
 #        raise AttributeError
 
+    def set_state(self, state, previous_state=None, source=None):
+        self._set_state(state, previous_state=previous_state, source=source)
+
     def _set_state(self, state, previous_state=None, source=None):
         source_name = None
         if source:
@@ -168,6 +171,15 @@ class StateDevice(PytomationObject):
                                                                                               source=source_name,
                                                                                               ))
             return False
+        if mapped_state not in self.STATES:
+            self._logger.error('{name}-> Not recognized mapped state "{mapped_state}" from source "{source} state {state}'.format(
+                                                                                              name=self._name,
+                                                                                              state=state,
+                                                                                              source=source_name,
+                                                                                              mapped_state=mapped_state,
+                                                                                              ))
+            return False
+            
         self._state = mapped_state
         self._logger.info('{name}-> received command "{state}" mapped to "{mapped}" from {source}, previously {previous_state}'.format(
                              name=self._name,
