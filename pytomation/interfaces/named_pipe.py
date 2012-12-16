@@ -1,4 +1,4 @@
-import os, tempfile
+import os, tempfile, time
 
 from .common import Interface
 from ..common.pytomation_object import PytoLogging
@@ -20,18 +20,30 @@ class NamedPipe(Interface):
             self._logger.critical("Unknown exception: %s" % ex)
             return
         if self._is_read:
-            self._pipe = open(path_name, 'r')
+# Unintuitive behavior IMO: 
+#   http://stackoverflow.com/questions/5782279/python-why-does-a-read-only-open-of-a-named-pipe-block
+#            self._pipe = open(path_name, 'r')
+            self._pipe = os.open(path_name, os.O_RDONLY|os.O_NONBLOCK)
         else:
-            self._pipe = open(path_name, 'w')
-        a=1
+#            self._pipe = open(path_name, 'w')
+            self._pipe = os.open(path_name, os.O_WRONLY|os.O_NONBLOCK)
             
     def read(self, bufferSize=1024):
-        return self._pipe.read(bufferSize)
+        result = ''
+        try:
+            result = os.read(self._pipe, bufferSize)
+        except OSError, ex:
+            self._logger.debug('Nothing to read in pipe: %s' % ex)
+        except Exception, ex:
+            self._logger.error('Error reading pipe %s' % ex)
+            raise ex
+        return result
 
     def write(self, bytesToSend):
-        return self._pipe.write(bytesToSend)  
+        return os.write(self._pipe, bytesToSend)
 
     def close(self):
-        self._pipe.close()
+#        self._pipe.close()
+        os.close(self._pipe)
         os.remove(self._path_name)
 #        os.rmdir(tmpdir)    
