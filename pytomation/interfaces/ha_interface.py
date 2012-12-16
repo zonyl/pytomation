@@ -192,6 +192,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         if len(response) != 0:
 #            self._logger.debug("[HAInterface-Serial] Response>\n" + hex_dump(response))
             self._logger.debug("Response>" + hex_dump(response) + "<")
+            self._onCommand(response)
         else:
             #print "Sleeping"
             #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
