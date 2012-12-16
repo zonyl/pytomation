@@ -40,19 +40,32 @@ class InterfaceDevice(StateDevice):
         # do not send state "unknown"
         if self.interface and result and not self._read_only and self._state != State.UNKNOWN: 
             try:
-                self._logger.info('{device} Sending "{state}" to interface, from {source}'.format(
+                self._logger.info('{device} Sending "{state}" to interface: {interface}, from {source}'.format(
                                                                                      device=self._name,
                                                                                      state=self._state,
-                                                                                     source=source_name, 
+                                                                                     source=source_name,
+                                                                                     interface=str(self.interface), 
                                                                                      r=result)
                                   )
-                getattr(self.interface, self._state)(self.address)
+                state_method = getattr(self.interface, self._state)
+                if state_method:
+                    result = state_method(self.address)
+                else:
+                    self._logger.error("Interface ({interface}) does not have the State '{state}' for address ({address})".format(
+                                                                                    state=self._state,
+                                                                                    address=self.address,
+                                                                                    interface=str(self._interface),
+                                                                                                         ))
+                    
             except AttributeError, ex:
                 self._logger.error('Interface ({interface}) does not support the State->Command: "{state}"'.format(
                                                                                                             interface=str(self.interface),
                                                                                                             state=self.state,
                                                                                                             )
                       )
+            except Exception, ex:
+                self._logger.critical('Interface ({interface}) suffered a critical error: {error}'.format(interface=str(self.interface),
+                                                                                                          error=str(ex)))
         return result
 
     def _on_command(self, address=None, command=None, source=None):
