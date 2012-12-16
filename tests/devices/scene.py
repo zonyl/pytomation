@@ -10,12 +10,15 @@ class SceneDeviceTests(TestCase):
         
     def test_scene_activate(self):
         interface = Mock()
+        interface.onCommand.return_value = True
+        
         d1 = InterfaceDevice('d1', interface)
         d2 = InterfaceDevice('d2', interface)
 
         scene = Scene(
                       address='s1',
-                      devices= {d1: {
+                      devices= (interface,
+                                {d1: {
                                      'level': State.ON,
                                      'rate': 10,
                                      },
@@ -23,16 +26,17 @@ class SceneDeviceTests(TestCase):
                                      'level': State.L30,
                                      'rate': 10,
                                      },
-                                },
+                                }),
                       update=True,
                       )
-        scene.activate()
+        self.assertIsNotNone(scene)
+        scene.active()
         
         self.assertTrue(interface.update_scene.called)
-        self.assertTrue(interface.activate.called)
+        self.assertTrue(interface.active.called)
         
-        self.assertTrue(interface.update_scene.called_with(
-                                                           address='s1',
+        interface.update_scene.assert_called_with(
+                                                           's1',
                                                           devices= {d1: {
                                                                          'level': State.ON,
                                                                          'rate': 10,
@@ -42,4 +46,4 @@ class SceneDeviceTests(TestCase):
                                                                          'rate': 10,
                                                                          },
                                                                     },
-                                                           ))
+                                                           )

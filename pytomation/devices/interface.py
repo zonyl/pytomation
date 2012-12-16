@@ -49,7 +49,7 @@ class InterfaceDevice(StateDevice):
                                   )
                 state_method = getattr(self.interface, self._state)
                 if state_method:
-                    result = state_method(self.address)
+                    result = self._call_interface_method(state_method)
                 else:
                     self._logger.error("Interface ({interface}) does not have the State '{state}' for address ({address})".format(
                                                                                     state=self._state,
@@ -67,6 +67,9 @@ class InterfaceDevice(StateDevice):
                 self._logger.critical('Interface ({interface}) suffered a critical error: {error}'.format(interface=str(self.interface.name),
                                                                                                           error=str(ex)))
         return result
+
+    def _call_interface_method(self, interface_method):
+        return interface_method(self.address)
 
     def _on_command(self, address=None, command=None, source=None):
         if address == self.address:

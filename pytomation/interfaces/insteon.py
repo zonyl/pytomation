@@ -594,6 +594,20 @@ class InsteonPLM(HAInterface):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
+    def active(self, address):
+        # Activate scene with the address passed
+        pass
+    
+    def inactive(self, address):
+        # Deactive scene with the address passed
+        pass
+
+    def update_scene(self, address, devices):
+        # we are passed a scene number to update and a bunch of objects to update
+        for device in devices:
+            for k, v in device.iteritems():
+                print 'This is a device member' + str(k)
+        
     def version(self):
         self._logger.info("Insteon Pytomation driver version " + self.VERSION)
 

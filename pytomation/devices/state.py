@@ -28,6 +28,8 @@ class State(object):
     VACANT = 'vacant'
     OPEN = 'open'
     CLOSED = 'closed'
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'
     L10 = Command.L10
     L20 = Command.L20
     L30 = Command.L30
