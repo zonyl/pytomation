@@ -1,6 +1,7 @@
 import select
 
-from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32
+from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32, \
+                                    NamedPipe, StateInterface
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
                                 Photocell, Generic, GenericInput, StateDevice, State
 from pytomation.common.system import *
@@ -27,6 +28,9 @@ sg.dio_invert(9)
 sg.dio_invert(10)
 sg.dio_invert(11)
 sg.dio_invert(12)
+
+# My camera motion software will echo a "motion" to this pipe.
+pipe_front_yard_motion = StateInterface(NamedPipe('/tmp/front_yard_motion'))
 
 
 ###################### DEVICE CONFIG #########################
@@ -71,8 +75,8 @@ m_front_driveway = Motion(address='F5',
                 name='Front Driveway Motion')
 ph_front_driveway = Photocell(address='F6',
                 devices=w800)
-
-
+m_front_yard = Motion(address=None,
+                      devices=pipe_front_yard_motion)
 
 m_garage = Motion(address='G1',
                   devices=w800,
@@ -153,7 +157,7 @@ l_foyer = Light(
 
 l_front_porch = Light(
                       address=(49, 4),
-                      devices=(upb, d_foyer, m_front_porch, ph_standard, ),
+                      devices=(upb, d_foyer, m_front_porch, m_front_yard, ph_standard, ),
                       initial_state=ph_standard,
                       delay_off=180*60,
                       idle_l40=10*60,
@@ -165,7 +169,7 @@ l_front_porch = Light(
 l_front_flood = Light(
                       address=(49, 5), 
                       devices=(upb, d_garage, d_garage_overhead, 
-                               d_foyer, m_front_garage, ph_standard),
+                               d_foyer, m_front_garage, m_front_yard, ph_standard),
                       initial_state=ph_standard,
                       delay_off=10*60,
                       idle_l40=5*60,
@@ -189,7 +193,7 @@ l_front_outlet = Light(
 l_front_garage = Light(
                       address=(49, 2), 
                       devices=(upb, d_garage, d_garage_overhead, 
-                               m_front_garage, ph_standard),
+                               m_front_garage, m_front_yard, ph_standard),
                       initial_state=ph_standard,
                       delay_off=180*60,
                       idle_l40=10*60,
