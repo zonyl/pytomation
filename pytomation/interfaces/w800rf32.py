@@ -114,9 +114,11 @@ class W800rf32(HAInterface):
             
             # Find command
             if b1 == 0x19:
-                self.command = 'dim' # Probably should internalize this command to something higher level at the interface level
-            elif b1 == 0x11:
-                self.command = 'bright'
+                self.command = Command.OFF  # 0x19 and 0x11 map to dim and bright but we don't support dim
+                self.unitNumber += 1        # and bright here.
+            elif b1 == 0x11:                
+                self.command = Command.ON
+                self.unitNumber += 1
             elif b1 & 0x05 == 4:
                 self.command = Command.OFF
             elif b1 & 0x05 == 0:
