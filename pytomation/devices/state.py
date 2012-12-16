@@ -165,14 +165,14 @@ class StateDevice(PytomationObject):
             
         mapped_state = self._state_map(state, previous_state, source)
         if not mapped_state: # If we get no state, then ignore this state
-            self._logger.info('{name}-> Ignored state "{state}" from source "{source}'.format(
+            self._logger.info('{name}-> Ignored state "{state}" from source "{source}"'.format(
                                                                                               name=self._name,
                                                                                               state=state,
                                                                                               source=source_name,
                                                                                               ))
             return False
         if mapped_state not in self.STATES:
-            self._logger.error('{name}-> Not recognized mapped state "{mapped_state}" from source "{source} state {state}'.format(
+            self._logger.error('{name}-> Not recognized mapped state "{mapped_state}" from source "{source}" state "{state}"'.format(
                                                                                               name=self._name,
                                                                                               state=state,
                                                                                               source=source_name,
@@ -181,7 +181,7 @@ class StateDevice(PytomationObject):
             return False
             
         self._state = mapped_state
-        self._logger.info('{name}-> received command "{state}" mapped to "{mapped}" from {source}, previously {previous_state}'.format(
+        self._logger.info('{name}-> received command "{state}" mapped to "{mapped}" from "{source}", previously "{previous_state}"'.format(
                              name=self._name,
                              state=state,
                              mapped=mapped_state,
