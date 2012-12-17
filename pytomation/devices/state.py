@@ -98,7 +98,7 @@ class StateDevice(PytomationObject):
         self._prev_state = State.UNKNOWN
         self._prev_source = None
         self._delegates = {}
-        self._times = {}
+        self._times = []
         self._delays = {}
         self._ignores = []
         self._idle_timer = None
@@ -216,9 +216,10 @@ class StateDevice(PytomationObject):
         return True
     
     def _add_time(self, state, time):
-        timer = self._times.get(state, None)
-        if timer:
-            del timer
+#        timer = self._times.get(state, None)
+#        if timer:
+#            del timer
+        
         
         if time:
             timer = CronTimer()
@@ -228,7 +229,8 @@ class StateDevice(PytomationObject):
                 timer.interval(*CronTimer.to_cron(time))
             timer.action(self._set_state, (state))
             timer.start()
-            self._times.update({state: timer})
+#            self._times.update({state: timer})
+            self._times.append((state, timer))
     
     def _add_delay(self, state, secs):
         delay = self._delays.get(state, None)

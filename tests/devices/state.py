@@ -37,7 +37,22 @@ class StateDevice_Tests(TestCase):
         self.assertTrue(callback_obj.callback.called)
         callback_obj.callback.assert_called_once_with(state=self.device.OFF, previous_state=self.device.UNKNOWN, source=self.device)
         
-    def test_time_on(self):
+#    def test_time_on(self):
+#        now = datetime.now()
+#        hours, mins, secs = now.timetuple()[3:6]
+#        secs = (secs + 2) % 60
+#        mins += (secs + 2) / 60
+#        trigger_time = '{h}:{m}:{s}'.format(
+#                                             h=hours,
+#                                             m=mins,
+#                                             s=secs,
+#                                                 )
+#        print 'Trigger Time' + trigger_time
+#        self.device.time_on(trigger_time)
+#        time.sleep(4)
+#        self.assertEqual(self.device.state, self.device.ON)
+
+    def test_time_on_multiple(self):
         now = datetime.now()
         hours, mins, secs = now.timetuple()[3:6]
         secs = (secs + 2) % 60
@@ -49,8 +64,25 @@ class StateDevice_Tests(TestCase):
                                                  )
         print 'Trigger Time' + trigger_time
         self.device.time_on(trigger_time)
+        hours, mins, secs = now.timetuple()[3:6]
+        secs = (secs + 5) % 60
+        mins += (secs + 5) / 60
+        trigger_time = '{h}:{m}:{s}'.format(
+                                             h=hours,
+                                             m=mins,
+                                             s=secs,
+                                                 )
+        print 'Trigger Time2' + trigger_time
+        self.device.time_on(trigger_time)
         time.sleep(4)
+        print datetime.now()
         self.assertEqual(self.device.state, self.device.ON)
+        self.device.off()
+        self.assertEqual(self.device.state, self.device.OFF)
+        time.sleep(3)
+        print datetime.now()
+        self.assertEqual(self.device.state, self.device.ON)
+        
 
     def test_bind_devices(self):
         s2 = StateDevice(self.device)
@@ -155,7 +187,7 @@ class StateDevice_Tests(TestCase):
         self.device.off()
         self.device.set_state(State.ON)
         self.assertEqual(self.device.state, State.ON)
-        
+
     def tearDown(self):
         self.device = None
 
