@@ -58,8 +58,11 @@ logging_default_level = "INFO"
 #
 logging_modules = {
                    'LoggingTests': "CRITICAL",
+                   #'Stargate': 'DEBUG',
                    #'InsteonPLM': 'DEBUG',
-		   #'UPB': 'DEBUG',
+                   #'W800rf32': 'DEBUG',
+                   #'Wtdio': 'DEBUG',
+                   #'UPB': 'DEBUG',
                    }
 
 # Logging file path
