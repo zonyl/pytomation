@@ -86,40 +86,52 @@ class InsteonPLM(HAInterface):
     def _init(self, *args, **kwargs):
         super(InsteonPLM, self)._init(*args, **kwargs)
         self.version()
-        self._modemCommands = {'60': {
+        # Response sizes do not include the start of message (0x02) and the command
+        self._modemCommands = {'60': {  # Get IM Info
                                     'responseSize': 7,
                                     'callBack':self._process_PLMInfo
                                   },
-                                '62': {
+                                '61': { # Send All Link Command
+                                    'responseSize': 5,
+                                    'callBack':self._process_StandardInsteonMessagePLMEcho
+                                  },
+                                '62': { # Send Standard or Extended Message
                                     'responseSize': 7,
                                     'callBack':self._process_StandardInsteonMessagePLMEcho
                                   },
-
-                                '50': {
-                                    'responseSize': 9,
-                                    'callBack':self._process_InboundStandardInsteonMessage
-                                  },
-                                '51': {
-                                    'responseSize': 22,
-                                    'callBack':self._process_InboundExtendedInsteonMessage
-                                  },
-                                '63': {
+                                '63': { # Send X10
                                     'responseSize': 3,
                                     'callBack':self._process_StandardX10MessagePLMEcho
                                   },
-                                '69': {
+                                '64': { # Start All Linking
+                                    'responseSize': 3,
+                                    'callBack':self._process_StandardInsteonMessagePLMEcho
+                                  },
+                                '65': { # Cancel All Linking
                                     'responseSize': 1,
                                     'callBack':self._process_StandardInsteonMessagePLMEcho
                                   },
-                                '6A': {
+                                '69': { # Get First All Link Record
                                     'responseSize': 1,
                                     'callBack':self._process_StandardInsteonMessagePLMEcho
                                   },
-                                '52': {
+                                '6A': { # Get Next All Link Record
+                                    'responseSize': 1,
+                                    'callBack':self._process_StandardInsteonMessagePLMEcho
+                                  },
+                                '50': { # Received Standard Message
+                                    'responseSize': 9,
+                                    'callBack':self._process_InboundStandardInsteonMessage
+                                  },
+                                '51': { # Received Extended Message
+                                    'responseSize': 22,
+                                    'callBack':self._process_InboundExtendedInsteonMessage
+                                  },
+                                '52': { # Received X10
                                     'responseSize':3,
                                     'callBack':self._process_InboundX10Message
                                  },
-                                '57': {
+                                '57': { # All Link Record Response
                                     'responseSize':8,
                                     'callBack':self._process_InboundAllLinkRecordResponse
                                   },
