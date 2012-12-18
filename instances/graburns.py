@@ -40,9 +40,9 @@ d_foyer = Door('D1', sg, name='Foyer Door')
 d_laundry = Door('D2', sg, name='Laundry Door')
 d_garage = Door('D3', sg, name='Garage Door')
 d_garage_overhead = Door((49, 38, 'L'), upb, name='Garage Overhead')
-d_porch = Door('D4', sg, name='Porch Door')
-d_basement = Door('D5', sg, name='Basement')
-d_master = Door('D6', sg, name='Master')
+d_porch = Door('D5', sg, name='Porch Door')
+d_basement = Door('D6', sg, name='Basement')
+d_master = Door('D4', sg, name='Master')
 d_crawlspace = Door('D10', sg, name='Crawlspace Door')
 d_pool = Door('D11', sg, name='Pool Door')
 
@@ -75,7 +75,7 @@ m_front_driveway = Motion(address='F5',
                 name='Front Driveway Motion')
 ph_front_driveway = Photocell(address='F6',
                 devices=w800)
-m_front_yard = Motion(address=None,
+m_front_camera = Motion(address=None,
                       devices=pipe_front_yard_motion)
 
 m_garage = Motion(address='G1',
