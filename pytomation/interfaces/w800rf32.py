@@ -113,12 +113,17 @@ class W800rf32(HAInterface):
             self.unitNumber = x + x1 + y + 1
             
             # Find command
+            # 0x19 and 0x11 map to dim and bright but we don't support dim  and bright here so 
+            # we map it to the illegal unit code "0". 0x11 and 0x19 will not map correctly
+            # on all keypads.  4 unit keypads will have units 1 to 3 correct but unit 4 will be
+            # 4 for "on" but 5 for "off".  Five unit keypads will be opposite, 5 will be "on" 
+            # and 4 will be "off" but we already have a 4 "off".
             if b1 == 0x19:
-                self.command = Command.OFF  # 0x19 and 0x11 map to dim and bright but we don't support dim
-                self.unitNumber += 1        # and bright here.
+                self.command = Command.OFF  
+                self.unitNumber = 0         
             elif b1 == 0x11:                
                 self.command = Command.ON
-                self.unitNumber += 1
+                self.unitNumber = 0
             elif b1 & 0x05 == 4:
                 self.command = Command.OFF
             elif b1 & 0x05 == 0:
