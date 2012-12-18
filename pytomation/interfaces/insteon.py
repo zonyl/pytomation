@@ -107,10 +107,22 @@ class InsteonPLM(HAInterface):
                                     'responseSize': 3,
                                     'callBack':self._process_StandardX10MessagePLMEcho
                                   },
+                                '69': {
+                                    'responseSize': 1,
+                                    'callBack':self._process_StandardInsteonMessagePLMEcho
+                                  },
+                                '6A': {
+                                    'responseSize': 1,
+                                    'callBack':self._process_StandardInsteonMessagePLMEcho
+                                  },
                                 '52': {
                                     'responseSize':3,
                                     'callBack':self._process_InboundX10Message
                                  },
+                                '57': {
+                                    'responseSize':8,
+                                    'callBack':self._process_InboundAllLinkRecordResponse
+                                  },
                             }
 
         self._insteonCommands = {
@@ -457,7 +469,8 @@ class InsteonPLM(HAInterface):
         (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2, data) = struct.unpack('xBBBBBBBBBB14s', responseBytes)        
 
         pass
-
+    
+    
     def _process_InboundX10Message(self, responseBytes):
         "Receive Handler for X10 Data"
         #X10 sends commands fully in two separate messages. Not sure how to handle this yet
@@ -610,4 +623,40 @@ class InsteonPLM(HAInterface):
         
     def version(self):
         self._logger.info("Insteon Pytomation driver version " + self.VERSION)
+
+
+#**********************************************************************************************
+#
+#   Experimental Insteon link stuff
+#
+#-----------------------------------------------------------------------------------------------
+
+    def bitstring(self, s):
+        return str(s) if s<=1 else self.bitstring(s>>1) + str(s&1)
+    
+    def _process_InboundAllLinkRecordResponse(self, responseBytes):
+        print hex_dump(responseBytes)
+        (modemCommand, insteonCommand, recordFlags, recordGroup, toIdHigh, toIdMid, toIdLow, linkData1, linkData2, linkData3) = struct.unpack('BBBBBBBBBB', responseBytes)
+        print "    ALL-Link Record Flags: %s" % self.bitstring(recordFlags)
+        print "    ALL-Link Group:        %d" % recordGroup
+        print "    Link Data 1:           %d" % linkData1
+        print "    Link Data 2:           %d" % linkData2
+        print "    Link Data 3:           %d" % linkData3
+
+    
+    def print_linked_insteon_devices(self):
+        self.request_first_all_link_record()
+        while self.request_next_all_link_record():
+            continue
+       
+    def request_first_all_link_record(self, timeout=None):
+        commandExecutionDetails = self._sendInterfaceCommand('69')
+        print "Sending Command 0x69..."
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+
+
+    def request_next_all_link_record(self, timeout=None):
+        commandExecutionDetails = self._sendInterfaceCommand('6A')
+        print "Sending Command 0x6A..."
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
