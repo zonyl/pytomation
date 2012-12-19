@@ -79,7 +79,8 @@ class InterfaceDevice(StateDevice):
         for device in devices:
             # bind any interfaces
             try:
-                device.onCommand(address=self.address, callback=self._on_command)
+#                device.onCommand(address=self.address, callback=self._on_command)
+                device.onCommand(device=self)
                 self.interface = device
             except Exception, ex:
                 pass

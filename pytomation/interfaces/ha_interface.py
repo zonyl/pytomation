@@ -63,6 +63,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
 
         self._interface = kwargs['interface']
         self._commandDelegates = []
+        self._devices = []
         self._lastPacketHash = None
 
     def shutdown(self):
@@ -84,12 +85,15 @@ class HAInterface(AsynchronousInterface, PytomationObject):
 
         self._interfaceRunningEvent.clear()
 
-    def onCommand(self, callback=None, address=None):
-        self._commandDelegates.append({
-                                   'address': address,
-                                   'callback': callback,
-                                   })
-
+    def onCommand(self, callback=None, address=None, device=None):
+        if not device:
+            self._commandDelegates.append({
+                                       'address': address,
+                                       'callback': callback,
+                                       })
+        else:
+            self._devices.append(device)
+    
     def _onCommand(self, command=None, address=None):
         self._logger.debug("Received Command:" + str(address) + ":" + str(command))
         for commandDelegate in self._commandDelegates:
@@ -100,6 +104,13 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                                 address=address,
                                                 source=self
                                                 )
+        for device in self._devices:
+            if device.address == address or device.address == None:
+                device._on_command(
+                                   command=command,
+                                   address=address,
+                                   source=self,
+                                   )
 
     def _sendInterfaceCommand(self, modemCommand,
                           commandDataString=None,
