@@ -8,5 +8,6 @@ from .location import *
 from .motion import *
 from .photocell import *
 from .scene import *
+from .state2 import *
 
 
