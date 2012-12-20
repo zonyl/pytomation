@@ -78,6 +78,7 @@ class Command(object):
     L70 = 'l70'
     L80 = 'l80'
     L90 = 'l90'
+    LEVEL = 'level'
 
 class Interface(object):
     def __init__(self):

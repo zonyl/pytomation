@@ -21,4 +21,12 @@ class State2Tests(TestCase):
         self.assertEqual(device.state, State2.UNKNOWN)
         device.on()
         self.assertEqual(device.state, State2.ON)
+    
+    def test_command_subcommand(self):
+        device = State2Device()
+        self.assertEqual(device.state, State2.UNKNOWN)
+        device.level(80)
+        self.assertEqual(device.state, (State2.LEVEL, 80))
+    
+    
         
