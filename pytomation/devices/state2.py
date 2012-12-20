@@ -1,5 +1,6 @@
 from ..common import PytomationObject
 from ..interfaces import Command
+from ..utility import CronTimer
 
 class State2(object):
     UNKNOWN = 'unknown'
@@ -13,8 +14,12 @@ class State2Device(PytomationObject):
     
     def __init__(self, *args, **kwargs):
         super(State2Device, self).__init__(*args, **kwargs)
-        self._state = State2.UNKNOWN
+        self._initial_vars(*args, **kwargs)
         self._process_kwargs(kwargs)
+        
+    def _initial_vars(self, *args, **kwargs):
+        self._state = State2.UNKNOWN
+        self._times = []
         
     @property
     def state(self):
@@ -47,7 +52,10 @@ class State2Device(PytomationObject):
     def _process_kwargs(self, kwargs):
         # Process each initializing attribute as a method call on this object
         for k, v in kwargs.iteritems():
-            getattr(self, k)(v)
+            try:
+                getattr(self, k)(**v)
+            except:
+                getattr(self, k)(v)
             
     def _is_valid_state(self, state):
         isFound = state in self.STATES
@@ -63,3 +71,21 @@ class State2Device(PytomationObject):
 
     def initial(self, state):
         self.state = state
+        
+    def time(self, *args, **kwargs):
+        # time, command
+        times = kwargs.get('time', None)
+        command = kwargs.get('command', State2.UNKNOWN)
+        
+        if times:
+            if not isinstance( times, tuple):
+                times = (times, )
+            for time in times:
+                timer = CronTimer()
+                if isinstance(time, tuple):
+                    timer.interval(*time)
+                else:
+                    timer.interval(*CronTimer.to_cron(time))
+                timer.action(self.command, (command))
+                timer.start()
+                self._times.append((command, timer))
