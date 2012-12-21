@@ -66,3 +66,12 @@ class State2Tests(TestCase):
         print device._times
         self.assertEqual(device.state, State2.OFF)
         
+    def test_binding(self):
+        d1 = State2Device()
+        d1.off()
+        d2 = State2Device(devices=d1)
+        self.assertEqual(d2.state, State2.UNKNOWN)
+        d1.on()
+        self.assertEqual(d2.state, State2.ON)
+        
+        

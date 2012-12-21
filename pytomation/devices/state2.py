@@ -3,6 +3,7 @@ from ..interfaces import Command
 from ..utility import CronTimer
 
 class State2(object):
+    ALL = 'all'
     UNKNOWN = 'unknown'
     ON = 'on'
     OFF = 'off'
@@ -19,6 +20,7 @@ class State2Device(PytomationObject):
         
     def _initial_vars(self, *args, **kwargs):
         self._state = State2.UNKNOWN
+        self._delegates = []
         self._times = []
         
     @property
@@ -36,18 +38,22 @@ class State2Device(PytomationObject):
             return lambda *a, **k: self.command(name, *a, sub_state=a, **k)
 
     def command(self, command, *args, **kwargs):
-        state = self._command_state_map(command, *args, **kwargs)
+        (state, map_command) = self._command_state_map(command, *args, **kwargs)
         if state and self._is_valid_state(state):
             self.state = state
+            self._delegate_command(map_command)
 
     def _command_state_map(self, command, *args, **kwargs):
         if command == Command.ON:
             state = State2.ON
+            m_command = Command.ON
         elif command == Command.OFF:
             state = State2.OFF
+            m_command = Command.OFF
         elif command == Command.LEVEL:
             state = (State2.LEVEL, kwargs.get('sub_state', (0,))[0])
-        return state
+            m_command = Command.LEVEL
+        return (state, m_command)
 
     def _process_kwargs(self, kwargs):
         # Process each initializing attribute as a method call on this object
@@ -89,3 +95,22 @@ class State2Device(PytomationObject):
                 timer.action(self.command, (command))
                 timer.start()
                 self._times.append((command, timer))
+
+    def on_command(self, device=None):
+        self._delegates.append(device)
+    
+    def _delegate_command(self, command):
+        for delegate in self._delegates:
+            delegate.command(command=command, source=self)
+        
+    def devices(self, *args, **kwargs):
+        devices = args[0]
+
+        if not isinstance(devices, tuple):
+            devices = (devices, )
+                   
+        for device in devices:
+            if device:
+                device.on_command(device=self)
+
+            
