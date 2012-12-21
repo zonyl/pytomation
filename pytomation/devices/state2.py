@@ -22,6 +22,7 @@ class State2Device(PytomationObject):
         self._state = State2.UNKNOWN
         self._delegates = []
         self._times = []
+        self._maps = []
         
     @property
     def state(self):
@@ -44,6 +45,12 @@ class State2Device(PytomationObject):
             self._delegate_command(map_command)
 
     def _command_state_map(self, command, *args, **kwargs):
+        m_command = None
+        source = kwargs.get('source', None)
+        for mapped in self._maps:
+            if mapped['command'] == command and \
+                (mapped['source'] == source or not mapped['source']):
+                command = mapped['mapped']
         if command == Command.ON:
             state = State2.ON
             m_command = Command.ON
@@ -113,4 +120,8 @@ class State2Device(PytomationObject):
             if device:
                 device.on_command(device=self)
 
-            
+    def mapped(self, *args, **kwargs):
+        command = kwargs.get('command', None)
+        mapped = kwargs.get('mapped', None)
+        source = kwargs.get('source', None)
+        self._maps.append({'command': command, 'mapped': mapped, 'source': source})

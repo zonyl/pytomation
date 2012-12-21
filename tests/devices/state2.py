@@ -74,4 +74,19 @@ class State2Tests(TestCase):
         d1.on()
         self.assertEqual(d2.state, State2.ON)
         
+    def test_map(self):
+        d1 = State2Device()
+        d2 = State2Device()
+        d3 = State2Device(devices=(d1, d2),
+                          mapped={'command': Command.ON,
+                                   'mapped': Command.OFF,
+                                   'source': d2}
+                          )
+        self.assertEqual(d3.state, State2.UNKNOWN)
+        d1.on()
+        self.assertEqual(d3.state, State2.ON)
+        d2.on()
+        self.assertEqual(d3.state, State2.OFF)
+        
+        
         
