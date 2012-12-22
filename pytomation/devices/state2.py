@@ -1,6 +1,7 @@
 from ..common import PytomationObject
 from ..interfaces import Command
 from ..utility import CronTimer
+from ..utility.timer import Timer as CTimer
 
 class State2(object):
     ALL = 'all'
@@ -23,6 +24,7 @@ class State2Device(PytomationObject):
         self._delegates = []
         self._times = []
         self._maps = []
+        self._delays = []
         
     @property
     def state(self):
@@ -39,27 +41,33 @@ class State2Device(PytomationObject):
             return lambda *a, **k: self.command(name, *a, sub_state=a, **k)
 
     def command(self, command, *args, **kwargs):
+        source = kwargs.get('source', None)
         (state, map_command) = self._command_state_map(command, *args, **kwargs)
+
         if state and self._is_valid_state(state):
-            self.state = state
-            self._delegate_command(map_command)
+            if not self._is_delayed(map_command):
+                self.state = state
+                self._delegate_command(map_command)
+            else:
+                self._delay_start(map_command, source)
 
     def _command_state_map(self, command, *args, **kwargs):
         m_command = None
-        source = kwargs.get('source', None)
-        for mapped in self._maps:
-            if mapped['command'] == command and \
-                (mapped['source'] == source or not mapped['source']):
-                command = mapped['mapped']
+        state = None
+        command = self._process_maps(*args, command=command, **kwargs)
         if command == Command.ON:
             state = State2.ON
             m_command = Command.ON
         elif command == Command.OFF:
             state = State2.OFF
             m_command = Command.OFF
-        elif command == Command.LEVEL:
-            state = (State2.LEVEL, kwargs.get('sub_state', (0,))[0])
-            m_command = Command.LEVEL
+        elif command == Command.LEVEL or (isinstance(command, tuple) and command[0] == Command.LEVEL):
+            if isinstance(command, tuple):
+                state = (State2.LEVEL, command[1])
+                m_command = command
+            else:
+                state = (State2.LEVEL, kwargs.get('sub_state', (0,))[0])
+                m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
         return (state, m_command)
 
     def _process_kwargs(self, kwargs):
@@ -70,6 +78,15 @@ class State2Device(PytomationObject):
             except:
                 getattr(self, k)(v)
             
+    def _process_maps(self, *args, **kwargs):
+        source = kwargs.get('source', None)
+        command = kwargs.get('command', None)
+        for mapped in self._maps:
+            if mapped['command'] == command and \
+                (mapped['source'] == source or not mapped['source']):
+                command = mapped['mapped']
+        return command
+ 
     def _is_valid_state(self, state):
         isFound = state in self.STATES
         if not isFound:
@@ -125,3 +142,23 @@ class State2Device(PytomationObject):
         mapped = kwargs.get('mapped', None)
         source = kwargs.get('source', None)
         self._maps.append({'command': command, 'mapped': mapped, 'source': source})
+        
+    def delay(self, *args, **kwargs):
+        command = kwargs.get('command', None)
+        mapped = kwargs.get('mapped', None)
+        if not mapped:
+            mapped = command
+        source = kwargs.get('source', None)
+        secs = kwargs.get('secs', None)
+        timer = CTimer()
+        timer.interval=secs
+        timer.action(self.command, (mapped, ))
+        self._delays.append({'command': command, 'mapped': mapped, 'source': source, 'secs': secs, 'timer': timer})
+
+    def _is_delayed(self, command):
+        return command in [ delay['command'] for delay in self._delays]
+    
+    def _delay_start(self, command, source):
+        for delay in self._delays:
+            if delay['command'] == command and (delay['source'] == None or delay['source'] == source):
+                delay['timer'].start()
