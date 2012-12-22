@@ -32,7 +32,10 @@ class Timer(object):
     
     def _run_action(self):
         if self._action:
-            self._action(*self._action_args, **self._action_kwargs)
+            if isinstance(self._action_args, tuple):
+                self._action(*self._action_args, **self._action_kwargs)
+            else:
+                self._action(self._action_args, **self._action_kwargs)
         else:
             self.stop()
 

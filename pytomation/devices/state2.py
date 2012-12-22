@@ -45,7 +45,7 @@ class State2Device(PytomationObject):
         (state, map_command) = self._command_state_map(command, *args, **kwargs)
 
         if state and self._is_valid_state(state):
-            if not self._is_delayed(map_command):
+            if source == self or not self._is_delayed(map_command):
                 self.state = state
                 self._delegate_command(map_command)
             else:
@@ -152,7 +152,8 @@ class State2Device(PytomationObject):
         secs = kwargs.get('secs', None)
         timer = CTimer()
         timer.interval=secs
-        timer.action(self.command, (mapped, ))
+        timer.action(self.command, (mapped, ), source=self)
+#            timer.action(self.command, (mapped), source=self)
         self._delays.append({'command': command, 'mapped': mapped, 'source': source, 'secs': secs, 'timer': timer})
 
     def _is_delayed(self, command):

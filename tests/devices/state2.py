@@ -106,7 +106,19 @@ class State2Tests(TestCase):
         self.assertEqual(d1.state, (State2.LEVEL, 80))
         
         
-        
-        
+    def test_delay_single(self):
+        d1 = State2Device(
+                          delay={'command': Command.OFF,
+                                 'secs': 2,
+                                 }
+                          )
+        self.assertEqual(d1.state, State2.UNKNOWN)
+        d1.on()
+        self.assertEqual(d1.state, State2.ON)
+        d1.off()
+        self.assertEqual(d1.state, State2.ON)
+        time.sleep(3)
+#        time.sleep(20000)
+        self.assertEqual(d1.state, State2.OFF)
         
         
