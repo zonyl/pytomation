@@ -79,7 +79,14 @@ class Command(object):
     L80 = 'l80'
     L90 = 'l90'
     LEVEL = 'level'
-
+    PREVIOUS = 'previous'
+    TOGGLE = 'toggle'
+    BRIGHT = 'bright'
+    DIM = 'dim'
+    ACTIVATE = 'activate'
+    DEACTIVATE = 'deactivate'
+    
+    
 class Interface(object):
     def __init__(self):
         super(Interface, self).__init__()

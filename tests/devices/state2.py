@@ -101,7 +101,7 @@ class State2Tests(TestCase):
         self.assertEqual(d1.state, State2.ON)
         d2.off()
         self.assertEqual(d1.state, State2.ON)
-        time.sleep(2)
+        time.sleep(3)
 #        time.sleep(2000)
         self.assertEqual(d1.state, (State2.LEVEL, 80))
         
@@ -121,4 +121,39 @@ class State2Tests(TestCase):
 #        time.sleep(20000)
         self.assertEqual(d1.state, State2.OFF)
         
+    def test_idle_time_property(self):
+        d = State2Device()
+        d.on()
+        time.sleep(2)
+        self.assertTrue(d.idle_time >= 2)
+        
+    def test_idle_timer(self):
+        s1 = State2Device()
+        s2 = State2Device(devices=s1,
+                         idle={
+                               'command': State2.OFF,
+                               'secs': 2,
+                               }
+                         )
+        s1.on()
+        self.assertEqual(s2.state, State2.ON)
+        time.sleep(3)
+        self.assertEqual(s2.state, State2.OFF)
+        s1.on()
+        self.assertEqual(s2.state, State2.ON)
+
+    def test_ignore_state(self):
+        s1 = State2Device()
+        s2 = State2Device(devices = s1,
+                          ignore={
+                                  'command': Command.ON,
+                                  'source:': s1,
+                                  },
+                          )
+        s1.on()
+        self.assertEqual(s2.state, State2.UNKNOWN)
+        s1.off()
+        self.assertEqual(s2.state, State2.OFF)
+        s1.on()
+        self.assertEqual(s2.state, State2.OFF)
         

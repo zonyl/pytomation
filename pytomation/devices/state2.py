@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from ..common import PytomationObject
 from ..interfaces import Command
 from ..utility import CronTimer
@@ -21,10 +23,13 @@ class State2Device(PytomationObject):
         
     def _initial_vars(self, *args, **kwargs):
         self._state = State2.UNKNOWN
+        self._last_set = datetime.now()
         self._delegates = []
         self._times = []
         self._maps = []
         self._delays = []
+        self._ignores = []
+        self._idle_timer = None
         
     @property
     def state(self):
@@ -32,7 +37,11 @@ class State2Device(PytomationObject):
 
     @state.setter
     def state(self, value):
+        self._previous_state = value
+        self._last_set = datetime.now()
         self._state = value
+        if self._idle_timer:
+            self._idle_timer.start()
         return self._state
     
     def __getattr__(self, name):
@@ -42,14 +51,15 @@ class State2Device(PytomationObject):
 
     def command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
-        (state, map_command) = self._command_state_map(command, *args, **kwargs)
-
-        if state and self._is_valid_state(state):
-            if source == self or not self._is_delayed(map_command):
-                self.state = state
-                self._delegate_command(map_command)
-            else:
-                self._delay_start(map_command, source)
+        if not self._is_ignored(command, source):
+            (state, map_command) = self._command_state_map(command, *args, **kwargs)
+    
+            if state and self._is_valid_state(state):
+                if source == self or not self._is_delayed(map_command):
+                    self.state = state
+                    self._delegate_command(map_command)
+                else:
+                    self._delay_start(map_command, source)
 
     def _command_state_map(self, command, *args, **kwargs):
         m_command = None
@@ -75,7 +85,7 @@ class State2Device(PytomationObject):
         for k, v in kwargs.iteritems():
             try:
                 getattr(self, k)(**v)
-            except:
+            except Exception, ex:
                 getattr(self, k)(v)
             
     def _process_maps(self, *args, **kwargs):
@@ -163,3 +173,29 @@ class State2Device(PytomationObject):
         for delay in self._delays:
             if delay['command'] == command and (delay['source'] == None or delay['source'] == source):
                 delay['timer'].start()
+                
+    @property
+    def idle_time(self):
+        difference = datetime.now() - self._last_set
+        return difference.total_seconds()
+
+    def idle(self, *args, **kwargs):
+        command = kwargs.get('command', None)
+        secs = kwargs.get('secs', None)
+        if secs:
+            timer = CTimer()
+            timer.interval = secs
+            timer.action(self.command, (command, ), source=self)
+            self._idle_timer = timer
+            
+    def ignore(self, *args, **kwargs):
+        command = kwargs.get('command', None)
+        source = kwargs.get('source', None)
+        self._ignores.append({'command': command,'source': source})
+        
+    def _is_ignored(self, command, source):
+        for ignore in self._ignores:
+            if ignore['command'] == command and \
+            (ignore['source'] == None or ignore['source'] == source):
+                return True
+        return False
