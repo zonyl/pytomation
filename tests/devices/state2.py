@@ -157,3 +157,13 @@ class State2Tests(TestCase):
         s1.on()
         self.assertEqual(s2.state, State2.OFF)
         
+    def test_previous_state(self):
+        s1 = State2Device()
+        s1.on()
+        self.assertEqual(s1.state, State2.ON)
+        s1.off()
+        self.assertEqual(s1.state, State2.OFF)
+        s1.previous()
+        self.assertEqual(s1.state, State2.ON)
+
+        

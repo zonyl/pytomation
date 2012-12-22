@@ -14,7 +14,7 @@ class State2(object):
     
 class State2Device(PytomationObject):
     STATES = [State2.UNKNOWN, State2.ON, State2.OFF, State2.LEVEL]
-    COMMANDS = [Command.ON, Command.OFF, Command.LEVEL]
+    COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS]
     
     def __init__(self, *args, **kwargs):
         super(State2Device, self).__init__(*args, **kwargs)
@@ -37,7 +37,7 @@ class State2Device(PytomationObject):
 
     @state.setter
     def state(self, value):
-        self._previous_state = value
+        self._previous_state = self._state
         self._last_set = datetime.now()
         self._state = value
         if self._idle_timer:
@@ -62,9 +62,9 @@ class State2Device(PytomationObject):
                     self._delay_start(map_command, source)
 
     def _command_state_map(self, command, *args, **kwargs):
-        m_command = None
         state = None
         command = self._process_maps(*args, command=command, **kwargs)
+        m_command = command
         if command == Command.ON:
             state = State2.ON
             m_command = Command.ON
@@ -78,6 +78,9 @@ class State2Device(PytomationObject):
             else:
                 state = (State2.LEVEL, kwargs.get('sub_state', (0,))[0])
                 m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
+        elif command == Command.PREVIOUS:
+            state = self._previous_state
+            m_command = command
         return (state, m_command)
 
     def _process_kwargs(self, kwargs):
