@@ -166,4 +166,12 @@ class State2Tests(TestCase):
         s1.previous()
         self.assertEqual(s1.state, State2.ON)
 
+    def test_toggle_state(self):
+        s1 = State2Device()
+        s1.on()
+        self.assertEqual(s1.state, State2.ON)
+        s1.toggle()
+        self.assertEqual(s1.state, State2.OFF)
+        s1.toggle()
+        self.assertEqual(s1.state, State2.ON)
         

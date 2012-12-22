@@ -14,7 +14,7 @@ class State2(object):
     
 class State2Device(PytomationObject):
     STATES = [State2.UNKNOWN, State2.ON, State2.OFF, State2.LEVEL]
-    COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS]
+    COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE]
     
     def __init__(self, *args, **kwargs):
         super(State2Device, self).__init__(*args, **kwargs)
@@ -80,6 +80,12 @@ class State2Device(PytomationObject):
                 m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
         elif command == Command.PREVIOUS:
             state = self._previous_state
+            m_command = command
+        elif command == Command.TOGGLE:
+            if self.state == State2.ON:
+                state = State2.OFF
+            else:
+                state = State2.ON
             m_command = command
         return (state, m_command)
 
