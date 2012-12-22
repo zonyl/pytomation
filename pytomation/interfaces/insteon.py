@@ -80,6 +80,10 @@ def simpleMap(value, in_min, in_max, out_min, out_max):
 class InsteonPLM(HAInterface):
     VERSION = '1.4'
     
+    #(address:engineVersion) engineVersion 0x00=i1, 0x01=i2, 0x02=i2cs
+    deviceList = {};
+    currentCommand = ""
+    
     def __init__(self, interface, *args, **kwargs):
         super(InsteonPLM, self).__init__(interface, *args, **kwargs)
         
@@ -235,6 +239,7 @@ class InsteonPLM(HAInterface):
         self._allLinkDatabase = dict()
 
     def _sendInterfaceCommand(self, modemCommand, commandDataString = None, extraCommandDetails = None):
+        self.currentCommand = [modemCommand, commandDataString, extraCommandDetails]
         command = binascii.unhexlify(modemCommand)
         return super(InsteonPLM, self)._sendInterfaceCommand(command, commandDataString, extraCommandDetails, modemCommandPrefix='\x02')
 
@@ -278,16 +283,23 @@ class InsteonPLM(HAInterface):
                 else:
                     self._logger.debug("No responseSize defined for modem command %s" % modemCommand)
             elif firstByte[0] == '\x15':
-                self._logger.debug("Received a Modem NAK!")
+                
+                self.nakRetries -= 1
+                self._logger.debug("Received a Modem NAK! Retries left %d" % self.nakRetries)
+                if self.nakRetries:
+                    self._sendInterfaceCommand(self.currentCommand[0], self.currentCommand[1], self.currentCommand[2])
+                else:
+                    self._logger.debug("Too many NAK's! Device not responding...")
             else:
                 self._logger.debug("Unknown first byte %s" % binascii.hexlify(firstByte[0]))
         else:
             #print "Sleeping"
             #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
             #time.sleep(0.1)
-            time.sleep(0.5)
+            time.sleep(0.3)
 
     def _sendStandardP2PInsteonCommand(self, destinationDevice, commandId1, commandId2):
+        self.nakRetries = 3
         self._logger.debug("Command: %s %s %s" % (destinationDevice, commandId1, commandId2))
         return self._sendInterfaceCommand('62', _stringIdToByteIds(destinationDevice) + _buildFlags() + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2), extraCommandDetails = { 'destinationDevice': destinationDevice, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
 
@@ -361,22 +373,23 @@ class InsteonPLM(HAInterface):
         return False
 
     def _process_InboundStandardInsteonMessage(self, responseBytes):
-#        (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('xBBBBBBBBBB', responseBytes)        
-        modemCommand = ord(responseBytes[0])
-        insteonCommand = ord(responseBytes[1])
-        fromIdHigh = ord(responseBytes[2])
-        fromIdMid = ord(responseBytes[3])
-        fromIdLow = ord(responseBytes[4])
-        toIdHigh = ord(responseBytes[5])
-        toIdMid = ord(responseBytes[6])
-        toIdLow = ord(responseBytes[7])
-        messageFlags = ord(responseBytes[8])
-        command1 = ord(responseBytes[9])
+        #print hex_dump(responseBytes)
+        (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('BBBBBBBBBBB', responseBytes)        
+        #modemCommand = ord(responseBytes[0])
+        #insteonCommand = ord(responseBytes[1])
+        #fromIdHigh = ord(responseBytes[2])
+        #fromIdMid = ord(responseBytes[3])
+        #fromIdLow = ord(responseBytes[4])
+        #toIdHigh = ord(responseBytes[5])
+        #toIdMid = ord(responseBytes[6])
+        #toIdLow = ord(responseBytes[7])
+        #messageFlags = ord(responseBytes[8])
+        #command1 = ord(responseBytes[9])
         
-        if len(responseBytes) > 10:
-            command2 = ord(responseBytes[10])
-        else:
-            command2 = 0
+        #if len(responseBytes) > 10:
+        #    command2 = ord(responseBytes[10])
+        #else:
+        #    command2 = 0
 
         foundCommandHash = None
         waitEvent = None
@@ -478,9 +491,9 @@ class InsteonPLM(HAInterface):
         #FF         cmd1
         #C0         cmd2
         #02 90 00 00 00 00 00 00 00 00 00 00 00 00    data
-        (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2, data) = struct.unpack('xBBBBBBBBBB14s', responseBytes)        
-
         pass
+        #(modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2, data) = struct.unpack('BBBBBBBBBBB14s', responseBytes)        
+                
     
     
     def _process_InboundX10Message(self, responseBytes):
@@ -513,8 +526,16 @@ class InsteonPLM(HAInterface):
 
     def _handle_StandardDirect_EngineResponse(self, messageBytes):
         #02 50 17 C4 4A 18 BA 62 2B 0D 01
+        print hex_dump(messageBytes)
         engineVersionIdentifier = messageBytes[10]
-        return (True, {'engineVersion': engineVersionIdentifier == '\x01' and 'i2' or 'i1'})
+        if engineVersionIdentifier == '\x00':
+            return (True, {'engineVersion': 'i1'})
+        elif engineVersionIdentifier == '\x01':
+            return (True, {'engineVersion': 'i2'})
+        elif engineVersionIdentifier == '\x02':
+            return (True, {'engineVersion': 'i2cs'})
+        else:
+            return (True, {'engineVersion': 'FF'})
 
     def _handle_StandardDirect_LightStatusResponse(self, messageBytes):
         #02 50 17 C4 4A 18 BA 62 2B 00 00
@@ -657,9 +678,16 @@ class InsteonPLM(HAInterface):
 
     
     def print_linked_insteon_devices(self):
-        self.request_first_all_link_record()
-        while self.request_next_all_link_record():
-            continue
+        for d in self._devices:
+            print d.address
+            print self.getInsteonEngineVersion(d.address)
+            time.sleep(1)
+            #print result['engineVersion']
+            #self.getProductData(d.address)
+                        
+        #self.request_first_all_link_record()
+        #while self.request_next_all_link_record():
+        #    continue
        
     def request_first_all_link_record(self, timeout=None):
         commandExecutionDetails = self._sendInterfaceCommand('69')
