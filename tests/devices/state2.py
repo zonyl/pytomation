@@ -19,6 +19,14 @@ class State2Tests(TestCase):
                         )
         self.assertEqual(device.state, State2.ON)
         
+        
+    def test_initial_delegate(self):
+        d1 = State2Device()
+        d1.on()
+        d2 = State2Device(devices=(d1),
+                          initial=d1)
+        self.assertEqual(d2.state, State2.ON)
+        
     def test_command_on(self):
         device = State2Device()
         self.assertEqual(device.state, State2.UNKNOWN)
@@ -73,6 +81,15 @@ class State2Tests(TestCase):
         self.assertEqual(d2.state, State2.UNKNOWN)
         d1.on()
         self.assertEqual(d2.state, State2.ON)
+        
+    def test_binding_default(self):
+        d1 = State2Device()
+        d1.off()
+        d2 = State2Device(d1)
+        self.assertEqual(d2.state, State2.UNKNOWN)
+        d1.on()
+        self.assertEqual(d2.state, State2.ON)
+
         
     def test_map(self):
         d1 = State2Device()

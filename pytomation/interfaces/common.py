@@ -85,6 +85,7 @@ class Command(object):
     DIM = 'dim'
     ACTIVATE = 'activate'
     DEACTIVATE = 'deactivate'
+    INITIAL = 'initial'
     
     
 class Interface(object):

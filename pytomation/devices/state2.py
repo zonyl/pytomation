@@ -14,12 +14,15 @@ class State2(object):
     
 class State2Device(PytomationObject):
     STATES = [State2.UNKNOWN, State2.ON, State2.OFF, State2.LEVEL]
-    COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE]
+    COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
     
     def __init__(self, *args, **kwargs):
         super(State2Device, self).__init__(*args, **kwargs)
+        if not kwargs.get('devices', None) and len(args)>0:
+            kwargs.update({'devices': args[0]})
         self._initial_vars(*args, **kwargs)
         self._process_kwargs(kwargs)
+        self.command(Command.INITIAL, source=self)
         
     def _initial_vars(self, *args, **kwargs):
         self._state = State2.UNKNOWN
@@ -87,6 +90,9 @@ class State2Device(PytomationObject):
             else:
                 state = State2.ON
             m_command = command
+        elif command == Command.INITIAL:
+            state = self.state
+
         return (state, m_command)
 
     def _process_kwargs(self, kwargs):
@@ -119,7 +125,10 @@ class State2Device(PytomationObject):
         return command in self.COMMANDS
 
     def initial(self, state):
-        self.state = state
+        try: # Check to see if this is a device reference
+            self.state = state.state
+        except: # Just a value
+            self.state = state
         
     def time(self, *args, **kwargs):
         # time, command
@@ -154,7 +163,10 @@ class State2Device(PytomationObject):
                    
         for device in devices:
             if device:
-                device.on_command(device=self)
+                self._add_device(device)
+
+    def _add_device(self, device):
+        return device.on_command(device=self)
 
     def mapped(self, *args, **kwargs):
         command = kwargs.get('command', None)
