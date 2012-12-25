@@ -11,6 +11,12 @@ class State2(object):
     ON = 'on'
     OFF = 'off'
     LEVEL = 'level'
+    MOTION = 'motion'
+    STILL = 'still'
+    OPEN = 'open'
+    CLOSED = "closed"
+    LIGHT = "light"
+    DARK = "dark"
     
 class State2Device(PytomationObject):
     STATES = [State2.UNKNOWN, State2.ON, State2.OFF, State2.LEVEL]
@@ -55,7 +61,14 @@ class State2Device(PytomationObject):
     def command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
         if not self._is_ignored(command, source):
-            (state, map_command) = self._command_state_map(command, *args, **kwargs)
+            m_command = self._process_maps(*args, command=command, **kwargs)
+            if m_command != command:
+                self._logger.debug("{name} Map from '{command}' to '{m_command}'".format(
+                                                                        name=self.name,
+                                                                        command=command,
+                                                                        m_command=m_command,
+                                                                                         ))
+            (state, map_command) = self._command_state_map(m_command, *args, **kwargs)
     
             if state and self._is_valid_state(state):
                 if source == self or not self._is_delayed(map_command):
@@ -66,7 +79,6 @@ class State2Device(PytomationObject):
 
     def _command_state_map(self, command, *args, **kwargs):
         state = None
-        command = self._process_maps(*args, command=command, **kwargs)
         m_command = command
         if command == Command.ON:
             state = State2.ON
