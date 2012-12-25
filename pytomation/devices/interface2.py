@@ -15,6 +15,7 @@ class Interface2Device(State2Device):
         self._interfaces=[]
         self._sync = False
         self._sync_timer = None
+        self._read_only = False
     
     @property
     def address(self):
@@ -34,14 +35,15 @@ class Interface2Device(State2Device):
             return super(Interface2Device, self)._add_device(device)
 
     def _delegate_command(self, command):
-        for interface in self._interfaces:
-            try:
-                getattr(interface, command)(self._address)
-            except Exception, ex:
-                self._logger.error("{name} Could not send command '{command}' to interface '{interface}'".format(
-                                                                                    name=self.name,
-                                                                                    command=command,
-                                                                                    interface=interface.name
+        if not self._read_only:
+            for interface in self._interfaces:
+                try:
+                    getattr(interface, command)(self._address)
+                except Exception, ex:
+                    self._logger.error("{name} Could not send command '{command}' to interface '{interface}'".format(
+                                                                                        name=self.name,
+                                                                                        command=command,
+                                                                                        interface=interface.name
                                                                                                                  ))
         return super(Interface2Device, self)._delegate_command(command)
         
@@ -67,3 +69,8 @@ class Interface2Device(State2Device):
         if self.interface:
             getattr(self.interface, self._state)()
         self._start_sync()
+        
+    def read_only(self, value=None):
+        if value:
+            self._read_only=value
+        return self._read_only
