@@ -135,13 +135,17 @@ class InsteonPLM(HAInterface):
                                     'responseSize':3,
                                     'callBack':self._process_InboundX10Message
                                  },
+                                '56': { # All Link Record Response
+                                    'responseSize':5,
+                                    'callBack':self._process_InboundAllLinkCleanupFailureReport
+                                  },
                                 '57': { # All Link Record Response
                                     'responseSize':8,
                                     'callBack':self._process_InboundAllLinkRecordResponse
                                   },
                                 '58': { # All Link Record Response
                                     'responseSize':1,
-                                    'callBack':self._process_InboundAllLinkRecordResponse
+                                    'callBack':self._process_InboundAllLinkCleanupStatusReport
                                   },
                             }
 
@@ -381,8 +385,6 @@ class InsteonPLM(HAInterface):
         return False
 
     def _process_InboundStandardInsteonMessage(self, responseBytes):
-        print "length ", len(responseBytes)
-        print hex_dump(responseBytes)
         (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('BBBBBBBBBBB', responseBytes)        
         #modemCommand = ord(responseBytes[0])
         #insteonCommand = ord(responseBytes[1])
@@ -535,8 +537,6 @@ class InsteonPLM(HAInterface):
 
     def _handle_StandardDirect_EngineResponse(self, messageBytes):
         #02 50 17 C4 4A 18 BA 62 2B 0D 01
-        print "In response....................."
-        print len(messageBytes)
         engineVersionIdentifier = messageBytes[10]
         if engineVersionIdentifier == '\x00':
             return (True, {'engineVersion': 'i1'})
