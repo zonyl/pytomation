@@ -96,7 +96,7 @@ class InsteonPLM(HAInterface):
                                     'callBack':self._process_PLMInfo
                                   },
                                 '61': { # Send All Link Command
-                                    'responseSize': 5,
+                                    'responseSize': 4,
                                     'callBack':self._process_StandardInsteonMessagePLMEcho
                                   },
                                 '62': { # Send Standard or Extended Message
@@ -137,6 +137,10 @@ class InsteonPLM(HAInterface):
                                  },
                                 '57': { # All Link Record Response
                                     'responseSize':8,
+                                    'callBack':self._process_InboundAllLinkRecordResponse
+                                  },
+                                '58': { # All Link Record Response
+                                    'responseSize':1,
                                     'callBack':self._process_InboundAllLinkRecordResponse
                                   },
                             }
@@ -283,7 +287,6 @@ class InsteonPLM(HAInterface):
                 else:
                     self._logger.debug("No responseSize defined for modem command %s" % modemCommand)
             elif firstByte[0] == '\x15':
-                
                 self.nakRetries -= 1
                 self._logger.debug("Received a Modem NAK! Retries left %d" % self.nakRetries)
                 if self.nakRetries:
@@ -296,12 +299,17 @@ class InsteonPLM(HAInterface):
             #print "Sleeping"
             #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
             #time.sleep(0.1)
-            time.sleep(0.3)
+            time.sleep(0.5)
 
     def _sendStandardP2PInsteonCommand(self, destinationDevice, commandId1, commandId2):
         self.nakRetries = 3
         self._logger.debug("Command: %s %s %s" % (destinationDevice, commandId1, commandId2))
         return self._sendInterfaceCommand('62', _stringIdToByteIds(destinationDevice) + _buildFlags() + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2), extraCommandDetails = { 'destinationDevice': destinationDevice, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
+
+    def _sendStandardAllLinkInsteonCommand(self, destinationGroup, commandId1, commandId2):
+        self.nakRetries = 3
+        self._logger.debug("Command: %s %s %s" % (destinationGroup, commandId1, commandId2))
+        return self._sendInterfaceCommand('61', binascii.unhexlify(destinationGroup) + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2))
 
     def _getX10UnitCommand(self,deviceId):
         "Send just an X10 unit code message"
@@ -373,7 +381,8 @@ class InsteonPLM(HAInterface):
         return False
 
     def _process_InboundStandardInsteonMessage(self, responseBytes):
-        #print hex_dump(responseBytes)
+        print "length ", len(responseBytes)
+        print hex_dump(responseBytes)
         (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('BBBBBBBBBBB', responseBytes)        
         #modemCommand = ord(responseBytes[0])
         #insteonCommand = ord(responseBytes[1])
@@ -385,9 +394,9 @@ class InsteonPLM(HAInterface):
         #toIdLow = ord(responseBytes[7])
         #messageFlags = ord(responseBytes[8])
         #command1 = ord(responseBytes[9])
-        
+                
         #if len(responseBytes) > 10:
-        #    command2 = ord(responseBytes[10])
+            #command2 = ord(responseBytes[10])
         #else:
         #    command2 = 0
 
@@ -526,7 +535,8 @@ class InsteonPLM(HAInterface):
 
     def _handle_StandardDirect_EngineResponse(self, messageBytes):
         #02 50 17 C4 4A 18 BA 62 2B 0D 01
-        print hex_dump(messageBytes)
+        print "In response....................."
+        print len(messageBytes)
         engineVersionIdentifier = messageBytes[10]
         if engineVersionIdentifier == '\x00':
             return (True, {'engineVersion': 'i1'})
@@ -640,13 +650,15 @@ class InsteonPLM(HAInterface):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
-    def active(self, address):
-        # Activate scene with the address passed
-        pass
-    
-    def inactive(self, address):
-        # Deactive scene with the address passed
-        pass
+    # Activate scene with the address passed
+    def active(self, address, timeout=None):
+        commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '11', 'FF')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        
+    def inactive(self, address, timeout=None):
+        commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '13', '00')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+
 
     def update_scene(self, address, devices):
         # we are passed a scene number to update and a bunch of objects to update
@@ -663,6 +675,13 @@ class InsteonPLM(HAInterface):
 #   Experimental Insteon link stuff
 #
 #-----------------------------------------------------------------------------------------------
+
+    def scanDeviceVersions(self):
+        for d in self._devices:
+            r = self.getInsteonEngineVersion(d.address)
+            print r
+            time.sleep(1)
+
 
     def bitstring(self, s):
         return str(s) if s<=1 else self.bitstring(s>>1) + str(s&1)
@@ -681,7 +700,7 @@ class InsteonPLM(HAInterface):
         for d in self._devices:
             print d.address
             print self.getInsteonEngineVersion(d.address)
-            time.sleep(1)
+            time.sleep(2)
             #print result['engineVersion']
             #self.getProductData(d.address)
                         
