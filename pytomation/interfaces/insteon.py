@@ -313,7 +313,8 @@ class InsteonPLM(HAInterface):
     def _sendStandardAllLinkInsteonCommand(self, destinationGroup, commandId1, commandId2):
         self.nakRetries = 3
         self._logger.debug("Command: %s %s %s" % (destinationGroup, commandId1, commandId2))
-        return self._sendInterfaceCommand('61', binascii.unhexlify(destinationGroup) + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2))
+        return self._sendInterfaceCommand('61', binascii.unhexlify(destinationGroup) + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2)) #,
+                        #extraCommandDetails = { 'destinationDevice': destinationGroup, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2}))
 
     def _getX10UnitCommand(self,deviceId):
         "Send just an X10 unit code message"
@@ -694,6 +695,12 @@ class InsteonPLM(HAInterface):
         print "    Link Data 1:           %d" % linkData1
         print "    Link Data 2:           %d" % linkData2
         print "    Link Data 3:           %d" % linkData3
+
+    def _process_InboundAllLinkCleanupStatusReport(self, responseBytes):
+        pass
+
+    def _process_InboundAllLinkCleanupFailureReport(self, responseBytes):
+        pass
 
     
     def print_linked_insteon_devices(self):
