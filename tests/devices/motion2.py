@@ -29,9 +29,8 @@ class MotionTests(TestCase):
         self.device = Motion2('D1', devices=(self.interface), ignore={
                                                                       'command': Command.OFF,
                                                                       },
-                              initial={'state': State2.MOTION},
                               )
-        self.device.command(Command.OFF, source=self.interface)
+        self.device.command(Command.ON, source=self.interface)
 #        self.device._on_command('D1', State2.ON, self.interface)
         self.assertEqual(self.device.state, State2.MOTION)
         self.device.command(Command.OFF, source=self.interface)
