@@ -96,7 +96,8 @@ class Light2Tests(TestCase):
                       devices=(self.interface, door),
                       delay={
                              'command': Command.OFF,
-                             'secs': 3}
+                             'secs': 3,
+                             'source': door}
                        )
         door.on()
         self.assertEqual(light.state, State2.ON)
@@ -119,8 +120,9 @@ class Light2Tests(TestCase):
         motion = Motion2()
         light = Light2(address='D1', 
                       devices=(self.interface, motion),
-                      delay={
-                             'command': Command.OFF,
+                      trigger={
+                             'command': Command.ON,
+                             'mapped': Command.OFF,
                              'secs': 3,
                              },
                        ignore={
