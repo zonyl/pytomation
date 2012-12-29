@@ -70,12 +70,24 @@ class State2Device(PytomationObject):
                                                                                          ))
             (state, map_command) = self._command_state_map(m_command, *args, **kwargs)
     
-            if state and self._is_valid_state(state):
+            if state and map_command and self._is_valid_state(state):
                 if source == self or not self._is_delayed(map_command):
+                    self._logger.info('{name} changed state to state "{state}" by command {command} from {source}'.format(
+                                                      name=self.name,
+                                                      state=state,
+                                                      command=map_command,
+                                                      source=source.name if source else None,
+                                                                                                                  ))
                     self.state = state
                     self._delegate_command(map_command)
                 else:
                     self._delay_start(map_command, source)
+            else:
+                self._logger.debug("{name} ignored command {command} from {source}".format(
+                                                                                           name=self.name,
+                                                                                           command=command,
+                                                                                           source=source.name
+                                                                                           ))
 
     def _command_state_map(self, command, *args, **kwargs):
         state = None
