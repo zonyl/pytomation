@@ -18,6 +18,10 @@ class Interface2Device_Tests(TestCase):
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
                              'HADevice could not be instantiated')
+        
+    def test_no_param_init(self):
+        d = Interface2Device()
+        self.assertIsNotNone(d)
 
     def test_on(self):
         self.device.on()

@@ -5,7 +5,7 @@ from .state2 import State2Device, State2
 
 class Interface2Device(State2Device):
     
-    def __init__(self, address, *args, **kwargs):
+    def __init__(self, address=None, *args, **kwargs):
         self._address = address
         super(Interface2Device, self).__init__(*args, **kwargs)
         
