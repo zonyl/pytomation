@@ -7,6 +7,7 @@ from .door import *
 from .door2 import *
 from .light import *
 from .location import *
+from .location2 import *
 from .motion import *
 from .motion2 import *
 from .photocell import *
