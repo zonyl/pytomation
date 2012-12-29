@@ -37,6 +37,7 @@ class State2Device(PytomationObject):
         self._times = []
         self._maps = []
         self._delays = []
+        self._triggers = []
         self._ignores = []
         self._idle_timer = None
         
@@ -71,7 +72,7 @@ class State2Device(PytomationObject):
             (state, map_command) = self._command_state_map(m_command, *args, **kwargs)
     
             if state and map_command and self._is_valid_state(state):
-                if source == self or not self._is_delayed(map_command):
+                if source == self or not self._is_delayed(map_command, source):
                     self._logger.info('{name} changed state to state "{state}" by command {command} from {source}'.format(
                                                       name=self.name,
                                                       state=state,
@@ -80,6 +81,7 @@ class State2Device(PytomationObject):
                                                                                                                   ))
                     self.state = state
                     self._delegate_command(map_command)
+                    self._trigger_start(map_command, source)
                 else:
                     self._delay_start(map_command, source)
             else:
@@ -211,9 +213,14 @@ class State2Device(PytomationObject):
 #            timer.action(self.command, (mapped), source=self)
         self._delays.append({'command': command, 'mapped': mapped, 'source': source, 'secs': secs, 'timer': timer})
 
-    def _is_delayed(self, command):
-        return command in [ delay['command'] for delay in self._delays]
-    
+    def _is_delayed(self, command, source):
+        for delay in self._delays:
+            if delay['command'] == command and \
+                (not delay['source'] or delay['source'] == source):
+                return True
+#        return command in [ delay['command'] for delay in self._delays]
+        return False
+       
     def _delay_start(self, command, source):
         for delay in self._delays:
             if delay['command'] == command and (delay['source'] == None or delay['source'] == source):
@@ -244,3 +251,20 @@ class State2Device(PytomationObject):
             (ignore['source'] == None or ignore['source'] == source):
                 return True
         return False
+    
+    def trigger(self, *args, **kwargs):
+        command = kwargs.get('command', None)
+        source = kwargs.get('source', None)
+        mapped = kwargs.get('mapped', command)
+        secs = kwargs.get('secs', None)
+        timer = CTimer()
+        timer.interval=secs
+        timer.action(self.command, (mapped, ), source=self)
+        self._triggers.append({'command': command, 'mapped': mapped, 'source': source, 'secs': secs, 'timer': timer})
+
+    def _trigger_start(self, command, source):
+        for trigger in self._triggers:
+            if trigger['command'] == command and \
+            (not trigger['source'] or trigger['source'] == source):
+                trigger['timer'].start()
+                

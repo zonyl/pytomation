@@ -122,7 +122,21 @@ class State2Tests(TestCase):
 #        time.sleep(2000)
         self.assertEqual(d1.state, (State2.LEVEL, 80))
         
+    def test_delay_no_retrigger(self):
+        d1 = State2Device(delay={
+                                 'command': Command.OFF,
+                                 'secs': 3}
+                          )
+        d1.on()
+        self.assertEqual(d1.state, State2.ON)
+        d1.off()
+        self.assertEqual(d1.state, State2.ON)
+        time.sleep(2)
+        d1.off()
+        time.sleep(1)
+        self.assertEqual(d1.state, State2.OFF)
         
+                
     def test_delay_single(self):
         d1 = State2Device(
                           delay={'command': Command.OFF,
@@ -191,4 +205,17 @@ class State2Tests(TestCase):
         self.assertEqual(s1.state, State2.OFF)
         s1.toggle()
         self.assertEqual(s1.state, State2.ON)
+        
+    def test_trigger(self):
+        s1 = State2Device(
+                          trigger={
+                                   'command': Command.ON,
+                                   'mapped': Command.OFF,
+                                   'secs': 2
+                                   }
+                          )
+        s1.on();
+        self.assertEqual(s1.state, State2.ON)
+        time.sleep(3)
+        self.assertEqual(s1.state, State2.OFF)
         
