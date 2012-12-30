@@ -37,6 +37,8 @@ Versions and changes:
     2012/11/19 - 1.2 - Added logging, use pylog instead of print
     2012/11/30 - 1.3 - Unify Command and State magic strings across the system
     2012/12/09 - 1.4 - Been a lot of changes.. Bump
+    2012/12/29 - 1.5 - Add support for tunring scenes on and off
+    
 '''
 import select
 import traceback
@@ -136,7 +138,7 @@ class InsteonPLM(HAInterface):
                                     'callBack':self._process_InboundX10Message
                                  },
                                 '56': { # All Link Record Response
-                                    'responseSize':5,
+                                    'responseSize':4,
                                     'callBack':self._process_InboundAllLinkCleanupFailureReport
                                   },
                                 '57': { # All Link Record Response
@@ -264,7 +266,8 @@ class InsteonPLM(HAInterface):
 
                 responseSize = -1
                 callBack = None
-
+                
+                # set the callback and response size expected
                 modemCommand = binascii.hexlify(secondByte).upper()
                 if self._modemCommands.has_key(modemCommand):
                     if self._modemCommands[modemCommand].has_key('responseSize'):
@@ -313,8 +316,8 @@ class InsteonPLM(HAInterface):
     def _sendStandardAllLinkInsteonCommand(self, destinationGroup, commandId1, commandId2):
         self.nakRetries = 3
         self._logger.debug("Command: %s %s %s" % (destinationGroup, commandId1, commandId2))
-        return self._sendInterfaceCommand('61', binascii.unhexlify(destinationGroup) + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2)) #,
-                        #extraCommandDetails = { 'destinationDevice': destinationGroup, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2}))
+        return self._sendInterfaceCommand('61', binascii.unhexlify(destinationGroup) + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2),
+                        extraCommandDetails = { 'destinationDevice': destinationGroup, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
 
     def _getX10UnitCommand(self,deviceId):
         "Send just an X10 unit code message"
@@ -435,7 +438,6 @@ class InsteonPLM(HAInterface):
 
         #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
         for (commandHash, commandDetails) in self._pendingCommandDetails.items():
-
             #since this was a standard insteon message the modem command used to send it was a 0x62 so we check for that
 #            if binascii.unhexlify(commandDetails['modemCommand']) == '\x62':
             if commandDetails['modemCommand'] == '\x62':
@@ -688,41 +690,82 @@ class InsteonPLM(HAInterface):
         return str(s) if s<=1 else self.bitstring(s>>1) + str(s&1)
     
     def _process_InboundAllLinkRecordResponse(self, responseBytes):
-        print hex_dump(responseBytes)
+        #print hex_dump(responseBytes)
         (modemCommand, insteonCommand, recordFlags, recordGroup, toIdHigh, toIdMid, toIdLow, linkData1, linkData2, linkData3) = struct.unpack('BBBBBBBBBB', responseBytes)
-        print "    ALL-Link Record Flags: %s" % self.bitstring(recordFlags)
-        print "    ALL-Link Group:        %d" % recordGroup
-        print "    Link Data 1:           %d" % linkData1
-        print "    Link Data 2:           %d" % linkData2
-        print "    Link Data 3:           %d" % linkData3
+        #keep the prints commented, for example format only
+        #print "Device    Group Flags     Data1 Data2 Data3"
+        #print "------------------------------------------------"
+        print "%02x.%02x.%02x  %02x    %s  %d    %d    %d" % (toIdHigh, toIdMid, toIdLow, recordGroup,self.bitstring(recordFlags),linkData1, linkData2, linkData3)
 
     def _process_InboundAllLinkCleanupStatusReport(self, responseBytes):
-        pass
+        if responseBytes[2] == '\x06':
+            self._logger.debug("All-Link Cleanup completed...")
+        else:
+            self._logger.debug("All-Link Cleanup received a NAK...")
 
+
+    # The group command failed, lets dig out the original command and re-issue 
+    # we will also delete the original command from pendingCommandDetails.
     def _process_InboundAllLinkCleanupFailureReport(self, responseBytes):
-        pass
+        (modemCommand, insteonCommand, deviceGroup, toIdHigh, toIdMid, toIdLow) = struct.unpack('BBBBBB', responseBytes)
+        self._logger.debug("All-Link Cleanup Failure, resending command after 1 second...")
+        #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
+        foundCommandHash = None
+        for (commandHash, commandDetails) in self._pendingCommandDetails.items():
+            if commandDetails['modemCommand'] == '\x61':
+                originatingCommandId1 = None
+                
+                if commandDetails.has_key('commandId1'):  #example SD11
+                    originatingCommandId1 = commandDetails['commandId1']  # = SD11
+                print 'originatingCommandId1 ', originatingCommandId1
 
+                if commandDetails.has_key('commandId2'):  #example FF
+                    originatingCommandId2 = commandDetails['commandId2']
+                print 'originatingCommandId2 ', originatingCommandId2
+                
+                #since there could be multiple insteon messages flying out over the wire, check to see if this one is from the device we send this command to
+                destDeviceId = None
+                if commandDetails.has_key('destinationDevice'):
+                    destDeviceId = commandDetails['destinationDevice']
+                print 'Dest device ', destDeviceId
+                
+                waitEvent = commandDetails['waitEvent']
+                foundCommandHash = commandHash
+                break
+
+        if foundCommandHash == None:
+            self._logger.warning("Unhandled packet (couldn't find any pending command to deal with it)")
+            self._logger.warning("This could be an unsolocicited broadcast message")
+
+        if waitEvent and foundCommandHash:
+            waitEvent.set()
+            del self._pendingCommandDetails[foundCommandHash]
+            self._sendStandardAllLinkInsteonCommand(destDeviceId, originatingCommandId1[2:], originatingCommandId2)
+            
+        
+#    def print_linked_insteon_devices(self):
+#        for d in self._devices:
+#            print d.address
+#            print self.getInsteonEngineVersion(d.address)
+#            time.sleep(2)
+        
     
     def print_linked_insteon_devices(self):
-        for d in self._devices:
-            print d.address
-            print self.getInsteonEngineVersion(d.address)
-            time.sleep(2)
-            #print result['engineVersion']
-            #self.getProductData(d.address)
-                        
-        #self.request_first_all_link_record()
-        #while self.request_next_all_link_record():
-        #    continue
+        print "Device    Group Flags     Data1 Data2 Data3"
+        print "------------------------------------------------"
+        self.request_first_all_link_record()
+        while self.request_next_all_link_record():
+            time.sleep(1.0)
+            pass
        
     def request_first_all_link_record(self, timeout=None):
         commandExecutionDetails = self._sendInterfaceCommand('69')
-        print "Sending Command 0x69..."
+        #print "Sending Command 0x69..."
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
 
     def request_next_all_link_record(self, timeout=None):
         commandExecutionDetails = self._sendInterfaceCommand('6A')
-        print "Sending Command 0x6A..."
+        #print "Sending Command 0x6A..."
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
