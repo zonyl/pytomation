@@ -12,6 +12,7 @@ from .location2 import *
 from .motion import *
 from .motion2 import *
 from .photocell import *
+from .photocell2 import *
 from .scene import *
 from .state2 import *
 
