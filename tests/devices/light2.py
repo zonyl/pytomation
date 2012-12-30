@@ -5,7 +5,7 @@ from unittest import TestCase, main
 from mock import Mock
 
 from pytomation.devices import Light2, Door2, Location2, State2, Motion2, \
-                                Photocell
+                                Photocell2
 from pytomation.interfaces import Command
 
 class Light2Tests(TestCase):
@@ -66,21 +66,21 @@ class Light2Tests(TestCase):
         self.assertEqual(light.state, State2.ON)
 
     def test_photocell_triggered(self):
-        photo = Photocell('D1', initial=State2.LIGHT)
+        photo = Photocell2('D1', initial=State2.LIGHT)
         light = Light2('D1', photo)
         self.assertEquals(light.state, State2.OFF)
-        photo.dark()
+        photo.on()
         self.assertEquals(light.state, State2.ON)
         
         
     def test_light_restricted(self):
-        photo = Photocell('D1', initial=State2.LIGHT)
+        photo = Photocell2('D1', initial=State2.LIGHT)
         motion = Motion2('D1', initial=State2.STILL)
         light = Light2('D2', (motion, photo))
         self.assertEqual(light.state, State2.OFF)
         motion.on()
         self.assertEqual(light.state, State2.OFF)
-        photo.dark()
+        photo.on()
         self.assertEqual(light.state, State2.ON)
         light.off()
         self.assertEqual(light.state, State2.OFF)
@@ -141,8 +141,8 @@ class Light2Tests(TestCase):
     def test_light_photocell_intial(self):
         motion = Motion2()
         motion.off()
-        photo = Photocell(address='asdf')
-        photo.dark()
+        photo = Photocell2(address='asdf')
+        photo.on()
         light = Light2(address='e3',
                       devices=(photo, motion),
                       initial=photo,
@@ -152,8 +152,8 @@ class Light2Tests(TestCase):
     def test_light_photocell_delay(self):
         # Delay off should not trigger when photocell tells us to go dark.
         # Do it immediately
-        photo = Photocell()
-        photo.dark()
+        photo = Photocell2()
+        photo.on()
         light = Light2(address='e3',
                       devices=photo,
                       delay={
@@ -161,7 +161,7 @@ class Light2Tests(TestCase):
                              'secs': 3
                              })
         self.assertEqual(light.state, State2.ON)
-        photo.light()
+        photo.off()
         self.assertEqual(light.state, State2.OFF)
         
     def test_level(self):
