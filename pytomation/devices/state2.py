@@ -28,10 +28,13 @@ class State2Device(PytomationObject):
             kwargs.update({'devices': args[0]})
         self._initial_vars(*args, **kwargs)
         self._process_kwargs(kwargs)
+        self._initial_from_devices(*args, **kwargs)
         self.command(Command.INITIAL, source=self)
         
     def _initial_vars(self, *args, **kwargs):
         self._state = State2.UNKNOWN
+        self._previous_state = self._state
+        self._previous_command = None
         self._last_set = datetime.now()
         self._delegates = []
         self._times = []
@@ -40,6 +43,7 @@ class State2Device(PytomationObject):
         self._triggers = []
         self._ignores = []
         self._idle_timer = None
+        self._devices = []
         
     @property
     def state(self):
@@ -80,6 +84,7 @@ class State2Device(PytomationObject):
                                                       source=source.name if source else None,
                                                                                                                   ))
                     self.state = state
+                    self._previous_command = map_command
                     self._delegate_command(map_command)
                     self._trigger_start(map_command, source)
                 else:
@@ -109,7 +114,7 @@ class State2Device(PytomationObject):
                 m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
         elif command == Command.PREVIOUS:
             state = self._previous_state
-            m_command = command
+            m_command = self._previous_command
         elif command == Command.TOGGLE:
             if self.state == State2.ON:
                 state = State2.OFF
@@ -192,6 +197,7 @@ class State2Device(PytomationObject):
                 self._add_device(device)
 
     def _add_device(self, device):
+        self._devices.append(device)
         return device.on_command(device=self)
 
     def mapped(self, *args, **kwargs):
@@ -268,3 +274,15 @@ class State2Device(PytomationObject):
             (not trigger['source'] or trigger['source'] == source):
                 trigger['timer'].start()
                 
+    def _initial_from_devices(self, *args, **kwargs):
+        state = None
+        if self.state == State2.UNKNOWN:
+            for device in self._devices:
+                state = device.state
+        if state:
+            self.initial(state)
+        return
+    
+    @property
+    def last_command(self):
+        return self._previous_command

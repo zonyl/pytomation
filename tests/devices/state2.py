@@ -18,8 +18,16 @@ class State2Tests(TestCase):
                         initial=State2.ON
                         )
         self.assertEqual(device.state, State2.ON)
-        
-        
+    
+    def test_initial_from_device(self):
+        d1 = State2Device(
+                          )
+        self.assertEqual(d1.state, State2.UNKNOWN)
+        d1.on()
+        self.assertEqual(d1.state, State2.ON)
+        d2 = State2Device(devices=d1)
+        self.assertEqual(d2.state, State2.ON)
+    
     def test_initial_delegate(self):
         d1 = State2Device()
         d1.on()
@@ -32,7 +40,7 @@ class State2Tests(TestCase):
         self.assertEqual(device.state, State2.UNKNOWN)
         device.on()
         self.assertEqual(device.state, State2.ON)
-    
+
     def test_command_subcommand(self):
         device = State2Device()
         self.assertEqual(device.state, State2.UNKNOWN)
@@ -78,7 +86,7 @@ class State2Tests(TestCase):
         d1 = State2Device()
         d1.off()
         d2 = State2Device(devices=d1)
-        self.assertEqual(d2.state, State2.UNKNOWN)
+        self.assertEqual(d2.state, State2.OFF)
         d1.on()
         self.assertEqual(d2.state, State2.ON)
         
@@ -86,7 +94,7 @@ class State2Tests(TestCase):
         d1 = State2Device()
         d1.off()
         d2 = State2Device(d1)
-        self.assertEqual(d2.state, State2.UNKNOWN)
+        self.assertEqual(d2.state, State2.OFF)
         d1.on()
         self.assertEqual(d2.state, State2.ON)
 
@@ -188,7 +196,15 @@ class State2Tests(TestCase):
         s1.on()
         self.assertEqual(s2.state, State2.OFF)
         
-    def test_previous_state(self):
+    def test_last_command(self):
+        s1 = State2Device()
+        s1.on()
+        self.assertEqual(s1.state, State2.ON)
+        s1.off()
+        self.assertEqual(s1.state, State2.OFF)
+        self.assertEqual(s1.last_command, Command.OFF)
+
+    def test_previous_state_command(self):
         s1 = State2Device()
         s1.on()
         self.assertEqual(s1.state, State2.ON)
