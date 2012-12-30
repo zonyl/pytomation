@@ -157,7 +157,9 @@ class State2Device(PytomationObject):
 
     def initial(self, state):
         try: # Check to see if this is a device reference
-            self.state = state.state
+            last_command = state.last_command
+            (m_state, m_command) = self._command_state_map(last_command)
+            self.state = m_state
         except: # Just a value
             self.state = state
         
@@ -278,7 +280,8 @@ class State2Device(PytomationObject):
         state = None
         if self.state == State2.UNKNOWN:
             for device in self._devices:
-                state = device.state
+#                state = device.state
+                (state, command) =  self._command_state_map(device.last_command)
         if state:
             self.initial(state)
         return
