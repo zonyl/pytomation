@@ -38,7 +38,10 @@ class Interface2Device(State2Device):
         if not self._read_only:
             for interface in self._interfaces:
                 try:
-                    getattr(interface, command)(self._address)
+                    if isinstance(command, tuple):
+                        getattr(interface, command[0])(self._address, *command[1:])
+                    else:
+                        getattr(interface, command)(self._address)
                 except Exception, ex:
                     self._logger.error("{name} Could not send command '{command}' to interface '{interface}'".format(
                                                                                         name=self.name,

@@ -25,8 +25,12 @@ class Interface2Device_Tests(TestCase):
 
     def test_on(self):
         self.device.on()
-        self.interface.on.called_with('D1')
+        self.interface.on.assert_called_with('D1')
         
+    def test_substate(self):    
+        self.device.command((State2.LEVEL, 80))
+        self.interface.level.assert_called_with('D1', 80)
+    
     def test_read_only(self):
         self.device.read_only(True)
         self.device.on()
