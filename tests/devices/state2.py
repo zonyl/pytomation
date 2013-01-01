@@ -85,6 +85,7 @@ class State2Tests(TestCase):
     def test_binding(self):
         d1 = State2Device()
         d1.off()
+        self.assertEqual(d1.state, State2.OFF)
         d2 = State2Device(devices=d1)
         self.assertEqual(d2.state, State2.OFF)
         d1.on()

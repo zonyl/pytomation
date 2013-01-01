@@ -93,39 +93,64 @@ class State2Device(PytomationObject):
                 self._logger.debug("{name} ignored command {command} from {source}".format(
                                                                                            name=self.name,
                                                                                            command=command,
-                                                                                           source=source.name
+                                                                                           source=source.name if source else None
                                                                                            ))
 
     def _command_state_map(self, command, *args, **kwargs):
+        source = kwargs.get('source', None)
         state = None
         m_command = command
-        if command == Command.ON:
-            state = State2.ON
-            m_command = Command.ON
-        elif command == Command.OFF:
-            state = State2.OFF
-            m_command = Command.OFF
-        elif command == Command.LEVEL or (isinstance(command, tuple) and command[0] == Command.LEVEL):
+        state = self._command_to_state(command, state)
+        if command == Command.LEVEL or (isinstance(command, tuple) and command[0] == Command.LEVEL):
             if isinstance(command, tuple):
                 state = (State2.LEVEL, command[1])
-                m_command = command
+#                m_command = command
             else:
                 state = (State2.LEVEL, kwargs.get('sub_state', (0,))[0])
-                m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
+#                m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
         elif command == Command.PREVIOUS:
             state = self._previous_state
-            m_command = self._previous_command
+            m_command = self._state_to_command(state, m_command)            
         elif command == Command.TOGGLE:
-            if self.state == State2.ON:
-                state = State2.OFF
-            else:
-                state = State2.ON
-            m_command = command
+            state = self.toggle_state()
+            m_command = self._state_to_command(state, m_command)
         elif command == Command.INITIAL:
             state = self.state
 
         return (state, m_command)
 
+    def toggle_state(self):
+        if self.state == State2.ON:
+            state = State2.OFF
+        else:
+            state = State2.ON
+        return state
+    
+    def _command_to_state(self, command, state):
+        # Try to map the same state ID
+        try:
+#            state = getattr(State2, command)
+            for attribute in dir(State2):
+                if getattr(State2, attribute) == command:
+                    return command
+        except Exception, ex:
+            self._logger.debug("{name} Could not find command to state for {command}".format(
+                                                                            name=self.name,
+                                                                            command=command,                                                                                                                 
+                                                                            ))
+        return state
+    
+    def _state_to_command(self, state, command):
+        try:
+#            return Command['state']
+            return getattr(Command, state)
+        except Exception, ex:
+            self._logger.debug("{name} could not map state {state} to command".format(
+                                                                        name=self.name,
+                                                                        state=state,
+                                                                                                    ))
+            return command
+    
     def _process_kwargs(self, kwargs):
         # Process each initializing attribute as a method call on this object
         for k, v in kwargs.iteritems():

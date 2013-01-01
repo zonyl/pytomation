@@ -86,7 +86,12 @@ class Command(object):
     ACTIVATE = 'activate'
     DEACTIVATE = 'deactivate'
     INITIAL = 'initial'
-    
+    MOTION = 'motion'
+    STILL = 'still'
+    DARK = 'dark'
+    LIGHT = 'light'
+    OPEN = 'open'
+    CLOSE = 'close'
     
 class Interface(object):
     def __init__(self):
