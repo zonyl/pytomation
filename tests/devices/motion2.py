@@ -18,22 +18,22 @@ class MotionTests(TestCase):
 
     def test_motion_motion(self):
         self.assertEqual(self.device.state, State2.UNKNOWN)
-        self.device.command(Command.ON, source=self.interface)
+        self.device.command(Command.MOTION, source=self.interface)
 #        self.device._on_command('D1', State2.ON)
         self.assertEqual(self.device.state, State2.MOTION)
 #        self.device._on_command('D1', State2.OFF)
-        self.device.command(Command.OFF, source=self.interface)
+        self.device.command(Command.STILL, source=self.interface)
         self.assertEqual(self.device.state, State2.STILL)
 
     def test_motion_ignore(self):
         self.device = Motion2('D1', devices=(self.interface), ignore={
-                                                                      'command': Command.OFF,
+                                                                      'command': Command.STILL,
                                                                       },
                               )
-        self.device.command(Command.ON, source=self.interface)
+        self.device.command(Command.MOTION, source=self.interface)
 #        self.device._on_command('D1', State2.ON, self.interface)
         self.assertEqual(self.device.state, State2.MOTION)
-        self.device.command(Command.OFF, source=self.interface)
+        self.device.command(Command.MOTION, source=self.interface)
 #        self.device._on_command('D1', State2.OFF, self.interface)
         self.assertEqual(self.device.state, State2.MOTION)
 

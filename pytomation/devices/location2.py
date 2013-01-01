@@ -9,7 +9,7 @@ from ..interfaces import Command
 
 class Location2(State2Device):
     STATES = [State2.LIGHT, State2.DARK]
-    COMMANDS = [Command.ON, Command.OFF, Command.INITIAL]
+    COMMANDS = [Command.LIGHT, Command.DARK, Command.INITIAL, Command.TOGGLE, Command.PREVIOUS]
 
     class MODE():
         STANDARD = '0'
@@ -84,11 +84,11 @@ class Location2(State2Device):
             self._sunrise == time_now:
 #            self.state = State2.LIGHT
 #            self._set_state(State.LIGHT, self.state, self)
-            self.command(Command.ON, source=self)
+            self.command(Command.LIGHT, source=self)
         else:
 #            self.state = State2.DARK
 #            self._set_state(State.DARK, self.state, self)
-            self.command(Command.OFF, source=self)           
+            self.command(Command.DARK, source=self)           
         # Setup trigger for next transition
         sunset_t = self._sunset_timer
 #        sunset_t.stop()

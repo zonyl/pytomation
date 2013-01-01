@@ -3,10 +3,9 @@ from .interface2 import Interface2Device
 from .state2 import State2
 
 class Motion2(Interface2Device):
-    STATES = [State2.UNKNOWN, State2.MOTION, State2.STILL]
-    COMMANDS = [Command.ON, Command.OFF, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
+    STATES = [State2.UNKNOWN, State2.MOTION, State2.STILL, State2.LEVEL]
+    COMMANDS = [Command.MOTION, Command.STILL, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
 
-    
     def _initial_vars(self, *args, **kwargs):
         super(Motion2, self)._initial_vars(*args, **kwargs)
         self._read_only = True

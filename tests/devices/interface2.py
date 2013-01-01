@@ -69,8 +69,8 @@ class Interface2Device_Tests(TestCase):
                                  devices=interface,
                                  initial=State2.ON
                                  )
-#        interface.on.assert_called_with('asdf')
-        interface.initial.assert_called_with('asdf')
+        interface.on.assert_called_with('asdf')
+#        interface.initial.assert_called_with('asdf')
         
         device1 = State2Device()
         device1.on()
@@ -80,7 +80,7 @@ class Interface2Device_Tests(TestCase):
                                  devices=interface2,
                                  initial=State2.ON
                                  )
-        interface2.initial.assert_called_with('asdf')
+        interface2.on.assert_called_with('asdf')
         
 if __name__ == '__main__':
     main() 

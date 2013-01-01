@@ -18,6 +18,7 @@ class State2Tests(TestCase):
                         initial=State2.ON
                         )
         self.assertEqual(device.state, State2.ON)
+        self.assertEqual(device.last_command, Command.ON)
     
     def test_initial_from_device(self):
         d1 = State2Device(

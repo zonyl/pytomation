@@ -14,7 +14,7 @@ class State2(object):
     MOTION = 'motion'
     STILL = 'still'
     OPEN = 'open'
-    CLOSED = "closed"
+    CLOSED = "close"
     LIGHT = "light"
     DARK = "dark"
     
@@ -29,8 +29,9 @@ class State2Device(PytomationObject):
         self._initial_vars(*args, **kwargs)
         self._process_kwargs(kwargs)
         self._initial_from_devices(*args, **kwargs)
-        self.command(Command.INITIAL, source=self)
-        
+        if not self.state or self.state == State2.UNKNOWN:
+            self.command(Command.INITIAL, source=self)
+
     def _initial_vars(self, *args, **kwargs):
         self._state = State2.UNKNOWN
         self._previous_state = self._state
@@ -143,7 +144,10 @@ class State2Device(PytomationObject):
     def _state_to_command(self, state, command):
         try:
 #            return Command['state']
-            return getattr(Command, state)
+            for attribute in dir(Command):
+                if getattr(Command, attribute) == state:
+                    return getattr(Command, attribute)
+            return command
         except Exception, ex:
             self._logger.debug("{name} could not map state {state} to command".format(
                                                                         name=self.name,
@@ -153,11 +157,19 @@ class State2Device(PytomationObject):
     
     def _process_kwargs(self, kwargs):
         # Process each initializing attribute as a method call on this object
-        for k, v in kwargs.iteritems():
+        # devices have priority
+        if kwargs.get('devices', None):
             try:
-                getattr(self, k)(**v)
-            except Exception, ex:
-                getattr(self, k)(v)
+                getattr(self, 'devices')( **kwargs['devices'])
+            except:
+                getattr(self, 'devices')( kwargs['devices'])
+        # run through the rest
+        for k, v in kwargs.iteritems():
+            if k.lower() != 'devices':
+                try:
+                    getattr(self, k)(**v)
+                except Exception, ex:
+                    getattr(self, k)(v)
             
     def _process_maps(self, *args, **kwargs):
         source = kwargs.get('source', None)
@@ -183,10 +195,12 @@ class State2Device(PytomationObject):
     def initial(self, state):
         try: # Check to see if this is a device reference
             last_command = state.last_command
-            (m_state, m_command) = self._command_state_map(last_command)
-            self.state = m_state
+            self.command(last_command, source=state)
+#            (m_state, m_command) = self._command_state_map(last_command)
+#            self.state = m_state
         except: # Just a value
-            self.state = state
+#            self.state = state
+            self.command(self._state_to_command(state, None), source=None)
         
     def time(self, *args, **kwargs):
         # time, command

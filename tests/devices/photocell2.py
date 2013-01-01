@@ -18,9 +18,9 @@ class Photocell2Tests(TestCase):
 
     def test_photocell_state(self):
         self.assertEqual(self.device.state, State2.UNKNOWN)
-        self.device.command(Command.ON)
+        self.device.command(Command.DARK)
         self.assertEqual(self.device.state, State2.DARK)
-        self.device.command(Command.OFF)
+        self.device.command(Command.LIGHT)
         self.assertEqual(self.device.state, State2.LIGHT)
 
 

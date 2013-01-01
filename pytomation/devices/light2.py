@@ -9,6 +9,12 @@ class Light2(Interface2Device):
     def _initial_vars(self, *args, **kwargs):
         super(Light2, self)._initial_vars(*args, **kwargs)
         self._restricted = False
+        self.mapped(command=Command.MOTION, mapped=Command.ON)
+        self.mapped(command=Command.DARK, mapped=Command.ON)
+        self.mapped(command=Command.OPEN, mapped=Command.ON)
+        self.mapped(command=Command.STILL, mapped=Command.OFF)
+        self.mapped(command=Command.LIGHT, mapped=Command.OFF)
+        self.mapped(command=Command.CLOSE, mapped=Command.OFF)
 
     def command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
