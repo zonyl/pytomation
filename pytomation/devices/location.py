@@ -81,10 +81,12 @@ class Location(StateDevice):
         if (self._sunrise > self._sunset and self._sunset != time_now) or \
             self._sunrise == time_now:
 #            self.state = State.LIGHT
-            self._set_state(State.LIGHT, self.state, self)
+            if self._state <> State.LIGHT:
+                self._set_state(State.LIGHT, self.state, self)
         else:
 #            self.state = State.DARK
-            self._set_state(State.DARK, self.state, self)
+            if self._state <> State.DARK:
+                self._set_state(State.DARK, self.state, self)
             
         # Setup trigger for next transition
         sunset_t = self._sunset_timer
