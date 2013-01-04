@@ -37,7 +37,8 @@ Versions and changes:
     2012/11/19 - 1.2 - Added logging, use pylog instead of print
     2012/11/30 - 1.3 - Unify Command and State magic strings across the system
     2012/12/09 - 1.4 - Been a lot of changes.. Bump
-    2012/12/29 - 1.5 - Add support for tunring scenes on and off
+    2012/12/29 - 1.5 - Add support for turning scenes on and off
+    2013/01/04 - 1.6 - Retry orphaned commands and deal with Modem Nak's
     
 '''
 import select
@@ -52,6 +53,7 @@ import hashlib
 from collections import deque
 from .common import *
 from .ha_interface import HAInterface
+from pytomation.devices import State
 
 def _byteIdToStringId(idHigh, idMid, idLow):
     return '%02X.%02X.%02X' % (idHigh, idMid, idLow)
@@ -80,11 +82,13 @@ def simpleMap(value, in_min, in_max, out_min, out_max):
 
 
 class InsteonPLM(HAInterface):
-    VERSION = '1.4'
+    VERSION = '1.6'
     
     #(address:engineVersion) engineVersion 0x00=i1, 0x01=i2, 0x02=i2cs
     deviceList = {};
     currentCommand = ""
+    cmdQueueList = []   # List of orphaned commands that need to be dealt with
+    spinTime = 0.1   # _readInterface loop time
     
     def __init__(self, interface, *args, **kwargs):
         super(InsteonPLM, self).__init__(interface, *args, **kwargs)
@@ -201,6 +205,17 @@ class InsteonPLM(HAInterface):
                                                     #Set button pushed
                                         'callBack' : self._handle_StandardBroadcast_SetButtonPressed
                                     },
+                                    'SBXX12': {
+                                                    #Fast On Command
+                                        'callBack' : self._handle_StandardBroadcast_SetButtonPressed,
+                                        'validResponseCommands' : ['SB12']
+                                    },
+                                    'SBXX14': {
+                                                    #Fast Off Command
+                                        'callBack' : self._handle_StandardBroadcast_SetButtonPressed,
+                                        'validResponseCommands' : ['SB14']
+                                    },
+
                                     #Unknown - Seems to be light level report
                                     'SDFF': {
                                              },
@@ -290,34 +305,34 @@ class InsteonPLM(HAInterface):
                             self._logger.debug("No callBack defined for for modem command %s" % modemCommand)
 
                     self._lastPacketHash = currentPacketHash
-
+                    self.spinTime = 0.1     #reset spin time, there were no naks
                 else:
                     self._logger.debug("No responseSize defined for modem command %s" % modemCommand)
+                    
             elif firstByte[0] == '\x15':
-                self.nakRetries -= 1
-                self._logger.debug("Received a Modem NAK! Retries left %d" % self.nakRetries)
-                if self.nakRetries:
+                self.spinTime += 0.2
+                self._logger.debug("Received a Modem NAK! Resending command, loop time %f" % (self.spinTime))
+                if self.spinTime < 10.0:
                     self._sendInterfaceCommand(self.currentCommand[0], self.currentCommand[1], self.currentCommand[2])
                 else:
                     self._logger.debug("Too many NAK's! Device not responding...")
             else:
                 self._logger.debug("Unknown first byte %s" % binascii.hexlify(firstByte[0]))
         else:
+            self._checkCommandQueue()
             #print "Sleeping"
             #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
             #time.sleep(0.1)
-            time.sleep(0.5)
+            time.sleep(self.spinTime)
 
     def _sendStandardP2PInsteonCommand(self, destinationDevice, commandId1, commandId2):
-        self.nakRetries = 3
         self._logger.debug("Command: %s %s %s" % (destinationDevice, commandId1, commandId2))
         return self._sendInterfaceCommand('62', _stringIdToByteIds(destinationDevice) + _buildFlags() + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2), extraCommandDetails = { 'destinationDevice': destinationDevice, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
 
     def _sendStandardAllLinkInsteonCommand(self, destinationGroup, commandId1, commandId2):
-        self.nakRetries = 3
         self._logger.debug("Command: %s %s %s" % (destinationGroup, commandId1, commandId2))
         return self._sendInterfaceCommand('61', binascii.unhexlify(destinationGroup) + binascii.unhexlify(commandId1) + binascii.unhexlify(commandId2),
-                        extraCommandDetails = { 'destinationDevice': destinationGroup, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
+                extraCommandDetails = { 'destinationDevice': destinationGroup, 'commandId1': 'SD' + commandId1, 'commandId2': commandId2})
 
     def _getX10UnitCommand(self,deviceId):
         "Send just an X10 unit code message"
@@ -390,21 +405,6 @@ class InsteonPLM(HAInterface):
 
     def _process_InboundStandardInsteonMessage(self, responseBytes):
         (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('BBBBBBBBBBB', responseBytes)        
-        #modemCommand = ord(responseBytes[0])
-        #insteonCommand = ord(responseBytes[1])
-        #fromIdHigh = ord(responseBytes[2])
-        #fromIdMid = ord(responseBytes[3])
-        #fromIdLow = ord(responseBytes[4])
-        #toIdHigh = ord(responseBytes[5])
-        #toIdMid = ord(responseBytes[6])
-        #toIdLow = ord(responseBytes[7])
-        #messageFlags = ord(responseBytes[8])
-        #command1 = ord(responseBytes[9])
-                
-        #if len(responseBytes) > 10:
-            #command2 = ord(responseBytes[10])
-        #else:
-        #    command2 = 0
 
         foundCommandHash = None
         waitEvent = None
@@ -456,7 +456,8 @@ class InsteonPLM(HAInterface):
                     continue
 
 
-                #since there could be multiple insteon messages flying out over the wire, check to see if this one is from the device we send this command to
+                #since there could be multiple insteon messages flying out over the wire, check to see if this one is 
+                #from the device we sent this command to
                 destDeviceId = None
                 if commandDetails.has_key('destinationDevice'):
                     destDeviceId = commandDetails['destinationDevice']
@@ -490,7 +491,8 @@ class InsteonPLM(HAInterface):
 
         if foundCommandHash == None:
             self._logger.warning("Unhandled packet (couldn't find any pending command to deal with it)")
-            self._logger.warning("This could be an unsolocicited broadcast message")
+            self._logger.warning("This could be a status message")
+            self._handle_StandardDirect_LightStatusResponse(responseBytes)
 
         if waitEvent and foundCommandHash:
             waitEvent.set()
@@ -551,13 +553,26 @@ class InsteonPLM(HAInterface):
             return (True, {'engineVersion': 'FF'})
 
     def _handle_StandardDirect_LightStatusResponse(self, messageBytes):
+        #This should be a message from the device to the PLM
         #02 50 17 C4 4A 18 BA 62 2B 00 00
-        lightLevelRaw = messageBytes[10]
+        (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('BBBBBBBBBBB', messageBytes)
 
+        # find the device and light level
+        destDeviceId = _byteIdToStringId(fromIdHigh, fromIdMid, fromIdLow).upper()
+        # For now lets just handle on and off until the new state code is ready.
+        for d in self._devices:
+            if d.address == destDeviceId:
+                if command1 == 0x12:
+                    d.state = State.ON
+                elif command1 == 0x14:
+                    d.state = State.OFF
+                
+        # Old stuff, don't use this at the moment
+        #lightLevelRaw = messageBytes[10]
         #map the lightLevelRaw value to a sane value between 0 and 1
-        normalizedLightLevel = simpleMap(ord(lightLevelRaw), 0, 255, 0, 1)
+        #normalizedLightLevel = simpleMap(ord(lightLevelRaw), 0, 255, 0, 1)
 
-        return (True, {'lightStatus': round(normalizedLightLevel, 2) })
+        #return (True, {'lightStatus': round(normalizedLightLevel, 2) })
 
     #public methods
     def getPLMInfo(self, timeout = None):
@@ -612,14 +627,14 @@ class InsteonPLM(HAInterface):
             commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', 'ff')
         else: #X10 device address
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'02')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = 2.5)
 
     def off(self, deviceId, timeout = None):
         if len(deviceId) != 2: #insteon device address
             commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '13', '00')
         else: #X10 device address
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'03')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = 2.5)
     
     def __getattr__(self, name):
         name = name.lower()
@@ -655,11 +670,11 @@ class InsteonPLM(HAInterface):
 
     # Activate scene with the address passed
     def active(self, address, timeout=None):
-        commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '11', 'FF')
+        commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '12', 'FF')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
         
     def inactive(self, address, timeout=None):
-        commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '13', '00')
+        commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '14', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
 
@@ -675,7 +690,7 @@ class InsteonPLM(HAInterface):
 
 #**********************************************************************************************
 #
-#   Experimental Insteon link stuff
+#   Experimental Insteon stuff
 #
 #-----------------------------------------------------------------------------------------------
 
@@ -700,6 +715,35 @@ class InsteonPLM(HAInterface):
     def _process_InboundAllLinkCleanupStatusReport(self, responseBytes):
         if responseBytes[2] == '\x06':
             self._logger.debug("All-Link Cleanup completed...")
+            foundCommandHash = None
+            waitEvent = None
+            for (commandHash, commandDetails) in self._pendingCommandDetails.items():
+                if commandDetails['modemCommand'] == '\x61':
+                    originatingCommandId1 = None
+                
+                    if commandDetails.has_key('commandId1'):  #example SD11
+                        originatingCommandId1 = commandDetails['commandId1']  # = SD11
+
+                    if commandDetails.has_key('commandId2'):  #example FF
+                        originatingCommandId2 = commandDetails['commandId2']
+                
+                    destDeviceId = None
+                    if commandDetails.has_key('destinationDevice'):
+                        destDeviceId = commandDetails['destinationDevice']
+                
+                    waitEvent = commandDetails['waitEvent']
+                    foundCommandHash = commandHash
+                    break
+
+        if foundCommandHash == None:
+            self._logger.warning("Unhandled packet (couldn't find any pending command to deal with it)")
+            self._logger.warning("This could be an unsolocicited broadcast message")
+
+        if waitEvent and foundCommandHash:
+            time.sleep(1.0)  # wait for a bit befor resending the command.
+            waitEvent.set()
+            del self._pendingCommandDetails[foundCommandHash]
+            
         else:
             self._logger.debug("All-Link Cleanup received a NAK...")
 
@@ -711,23 +755,21 @@ class InsteonPLM(HAInterface):
         self._logger.debug("All-Link Cleanup Failure, resending command after 1 second...")
         #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
         foundCommandHash = None
+        waitEvent = None
         for (commandHash, commandDetails) in self._pendingCommandDetails.items():
             if commandDetails['modemCommand'] == '\x61':
                 originatingCommandId1 = None
                 
                 if commandDetails.has_key('commandId1'):  #example SD11
                     originatingCommandId1 = commandDetails['commandId1']  # = SD11
-                print 'originatingCommandId1 ', originatingCommandId1
 
                 if commandDetails.has_key('commandId2'):  #example FF
                     originatingCommandId2 = commandDetails['commandId2']
-                print 'originatingCommandId2 ', originatingCommandId2
                 
                 #since there could be multiple insteon messages flying out over the wire, check to see if this one is from the device we send this command to
                 destDeviceId = None
                 if commandDetails.has_key('destinationDevice'):
                     destDeviceId = commandDetails['destinationDevice']
-                print 'Dest device ', destDeviceId
                 
                 waitEvent = commandDetails['waitEvent']
                 foundCommandHash = commandHash
@@ -769,3 +811,26 @@ class InsteonPLM(HAInterface):
         #print "Sending Command 0x6A..."
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
+   	# _checkCommandQueue is run every iteration of _readInterface. It counts the commands 
+    # to find repeating ones.  If a command is repeated too many times it means it never
+    # recieved a response so we should delete the original command and delete it from the 
+    # queue.  This is a hack and will be dealt with properly in the new driver.
+    def _checkCommandQueue(self):
+        if self._pendingCommandDetails != {}:
+            for (commandHash, commandDetails) in self._pendingCommandDetails.items():
+                self.cmdQueueList.append(commandHash)
+                
+                # If we have an orphaned queue it will show up here, get the details, remove the old command
+                # from the queue and re-issue.
+                if self.cmdQueueList.count(commandHash) > 120:
+                    print "deleting commandhash ", commandHash
+                    print commandDetails
+                    cmd1 = commandDetails['commandId1']
+                    cmd2 = commandDetails['commandId2']
+                    deviceId = commandDetails['destinationDevice']
+                    waitEvent = commandDetails['waitEvent']
+                    waitEvent.set()
+                    del self._pendingCommandDetails[commandHash]
+                    while commandHash in self.cmdQueueList:
+                        self.cmdQueueList.remove(commandHash)
+                    self._sendStandardP2PInsteonCommand(deviceId, cmd1[2:], cmd2)
