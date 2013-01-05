@@ -195,7 +195,10 @@ class HAInterface(AsynchronousInterface, PytomationObject):
     
                 self._lastSendTime = time.time()
 
-        self._commandLock.release()
+        try:
+            self._commandLock.release()
+        except Exception, te:
+            self.logger.debug("Error trying to release unlocked lock %s" % (str(te)))
 
     def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read

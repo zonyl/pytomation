@@ -797,8 +797,8 @@ class InsteonPLM(HAInterface):
         print "------------------------------------------------"
         self.request_first_all_link_record()
         while self.request_next_all_link_record():
-            time.sleep(1.0)
-            pass
+            time.sleep(3.0)
+            
        
     def request_first_all_link_record(self, timeout=None):
         commandExecutionDetails = self._sendInterfaceCommand('69')
@@ -823,14 +823,15 @@ class InsteonPLM(HAInterface):
                 # If we have an orphaned queue it will show up here, get the details, remove the old command
                 # from the queue and re-issue.
                 if self.cmdQueueList.count(commandHash) > 120:
-                    print "deleting commandhash ", commandHash
-                    print commandDetails
-                    cmd1 = commandDetails['commandId1']
-                    cmd2 = commandDetails['commandId2']
-                    deviceId = commandDetails['destinationDevice']
-                    waitEvent = commandDetails['waitEvent']
-                    waitEvent.set()
-                    del self._pendingCommandDetails[commandHash]
-                    while commandHash in self.cmdQueueList:
-                        self.cmdQueueList.remove(commandHash)
-                    self._sendStandardP2PInsteonCommand(deviceId, cmd1[2:], cmd2)
+                    if commandDetails['modemCommand'] in ['\x60','\x61','\x62']:
+                        #print "deleting commandhash ", commandHash
+                        #print commandDetails
+                        cmd1 = commandDetails['commandId1']  # example SD11
+                        cmd2 = commandDetails['commandId2']
+                        deviceId = commandDetails['destinationDevice']
+                        waitEvent = commandDetails['waitEvent']
+                        waitEvent.set()
+                        del self._pendingCommandDetails[commandHash]
+                        while commandHash in self.cmdQueueList:
+                            self.cmdQueueList.remove(commandHash)
+                        self._sendStandardP2PInsteonCommand(deviceId, cmd1[2:], cmd2)
