@@ -155,7 +155,7 @@ l_foyer = Light2(
                 address=(49, 3),
                 devices=(upb, d_foyer,
                          m_foyer,
-                         ph_standard, s_all_indoor_off),
+                         ph_standard2),
                 delay={
                        Attribute.COMMAND: Command.OFF,
                        Attribute.SOURCE: (m_foyer, d_foyer),
