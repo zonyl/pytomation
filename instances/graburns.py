@@ -1,9 +1,12 @@
 import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32, \
-                                    NamedPipe, StateInterface
+                                    NamedPipe, StateInterface, Command
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
                                 Photocell, Generic, GenericInput, StateDevice, State
+from pytomation.devices import Motion2, Door2, Light2, Location2, Interface2Device, \
+                                Photocell2, State2Device, State2, Attribute
+
 from pytomation.common.system import *
 
 ###################### INTERFACE CONFIG #########################
@@ -36,7 +39,7 @@ pipe_front_yard_motion = StateInterface(NamedPipe('/tmp/front_yard_motion'))
 ###################### DEVICE CONFIG #########################
 
 #doors
-d_foyer = Door('D1', sg, name='Foyer Door')
+d_foyer = Door2('D1', sg, name='Foyer Door')
 d_laundry = Door('D2', sg, name='Laundry Door')
 d_garage = Door('D3', sg, name='Garage Door')
 d_garage_overhead = Door((49, 38, 'L'), upb, name='Garage Overhead')
@@ -53,7 +56,7 @@ i_laser_perimeter = GenericInput('D12', sg, name='Laser Perimeter')
 
 #motion
 # Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
-m_family = Motion(address='D8', 
+m_family = Motion2(address='D8', 
                   devices=(sg),
                   delay_still=2*60,
                   name='Family Motion'
@@ -81,37 +84,37 @@ m_front_camera = Motion(address=None,
 m_garage = Motion(address='G1',
                   devices=w800,
                   name='Garage Motion')
-ph_garage = Motion(address='G2',
+ph_garage = Photocell(address='G2',
                   devices=w800)
 
 m_utility = Motion(address='G3',
                   devices=w800,
                   name='Utility Motion')
-ph_utility = Motion(address='G4',
+ph_utility = Photocell(address='G4',
                   devices=w800)
 
 m_breakfast = Motion(address='G5',
                   devices=w800,
                   name='Breakfast Motion')
-ph_breakfast = Motion(address='G6',
+ph_breakfast = Photocell(address='G6',
                   devices=w800)
 
-m_foyer = Motion(address='G7',
+m_foyer = Motion2(address='G7',
                   devices=w800,
                   name='Foyer Motion')
-ph_foyer = Motion(address='G8',
+ph_foyer = Photocell2(address='G8',
                   devices=w800)
 
 m_den = Motion(address='G9',
                   devices=w800,
                   name='Den Motion')
-ph_den = Motion(address='GA',
+ph_den = Photocell(address='GA',
                   devices=w800)
 
 m_kitchen = Motion(address='GB',
                   devices=w800,
                   name='Kitchen Motion')
-ph_kitchen = Motion(address='GC',
+ph_kitchen = Photocell(address='GC',
                   devices=w800)
 
 #keypads
@@ -135,6 +138,11 @@ ph_standard = Location('35.2269', '-80.8433',
                        mode=Location.MODE.STANDARD, 
                        is_dst=True,
                        name='Standard Photocell')
+ph_standard2 = Location2('35.2269', '-80.8433', 
+                       tz='US/Eastern', 
+                       mode=Location.MODE.STANDARD, 
+                       is_dst=True,
+                       name='Standard Photocell')
 ph_civil = Location('35.2269', '-80.8433', 
                     tz='US/Eastern', 
                     mode=Location.MODE.CIVIL, 
@@ -143,21 +151,28 @@ ph_civil = Location('35.2269', '-80.8433',
 
 #lights
 # Turn on the foyer light at night when either the door is opened or family PIR is tripped.
-l_foyer = Light(
+l_foyer = Light2(
                 address=(49, 3),
                 devices=(upb, d_foyer,
                          m_foyer,
                          ph_standard, s_all_indoor_off),
-                delay_off=2*60,
-                time_off='11:59pm',
-                ignore_dark=True,
-		ignore_motion=True,
-                name='Foyer Light'
+                delay={
+                       Attribute.COMMAND: Command.OFF,
+                       Attribute.SOURCE: (m_foyer, d_foyer),
+                       Attribute.TIME: 2*60,
+                       },
+                 ignore={
+                         Attribute.COMMAND: Command.DARK
+                         },
+                 time={
+                       Attribute.TIME: '11:59pm',
+                       Attribute.COMMAND: Command.OFF
+                       }
                 )
 
 l_front_porch = Light(
                       address=(49, 4),
-                      devices=(upb, d_foyer, m_front_porch, m_front_yard, ph_standard, ),
+                      devices=(upb, d_foyer, m_front_porch, m_front_camera, ph_standard, ),
                       initial_state=ph_standard,
                       delay_off=180*60,
                       idle_l40=10*60,
@@ -169,7 +184,7 @@ l_front_porch = Light(
 l_front_flood = Light(
                       address=(49, 5), 
                       devices=(upb, d_garage, d_garage_overhead, 
-                               d_foyer, m_front_garage, m_front_yard, ph_standard),
+                               d_foyer, m_front_garage, m_front_camera, ph_standard),
                       initial_state=ph_standard,
                       delay_off=10*60,
                       idle_l40=5*60,
@@ -193,7 +208,7 @@ l_front_outlet = Light(
 l_front_garage = Light(
                       address=(49, 2), 
                       devices=(upb, d_garage, d_garage_overhead, 
-                               m_front_garage, m_front_yard, ph_standard),
+                               m_front_garage, m_front_camera, ph_standard),
                       initial_state=ph_standard,
                       delay_off=180*60,
                       idle_l40=10*60,
@@ -212,18 +227,18 @@ l_garage = Light(
                       sync=True, #Un-reliable connection this far
                       )
 
-l_family_lamp = Light(
+l_family_lamp = Light2(
                       address=(49, 6), 
-                      devices=(upb, m_family, ph_standard, s_all_indoor_off),
+                      devices=(upb, m_family, ph_standard2),
                       delay_off=30*60,
                       time_off='11:59pm',
                       ignore_dark=True,
                       name='Family Lamp Light',
                       )
 
-l_family = Light(
+l_family = Light2(
                  address='19.05.7b',    
-                 devices=(insteon, s_all_indoor_off),
+                 devices=(insteon, ),
                  name='Family Light',
                  )
 
