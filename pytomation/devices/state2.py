@@ -18,6 +18,14 @@ class State2(object):
     LIGHT = "light"
     DARK = "dark"
     
+class Attribute(object):
+    MAPPED = 'mapped'
+    COMMAND = 'command'
+    TARGET = 'target'
+    TIME = 'time'
+    SECS = 'secs'
+    SOURCE = 'source'
+    
 class State2Device(PytomationObject):
     STATES = [State2.UNKNOWN, State2.ON, State2.OFF, State2.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
