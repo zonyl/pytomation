@@ -174,10 +174,15 @@ class State2Device(PytomationObject):
         # run through the rest
         for k, v in kwargs.iteritems():
             if k.lower() != 'devices':
+                attribute = getattr(self, k)
                 try:
-                    getattr(self, k)(**v)
+                    attribute(**v)
                 except Exception, ex:
-                    getattr(self, k)(v)
+                    if callable(attribute):
+                        attribute(v)
+                    else:
+                        attribute = v
+                
             
     def _process_maps(self, *args, **kwargs):
         source = kwargs.get('source', None)

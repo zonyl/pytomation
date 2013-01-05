@@ -237,3 +237,8 @@ class State2Tests(TestCase):
         time.sleep(3)
         self.assertEqual(s1.state, State2.OFF)
         
+    def test_initial_attribute(self):
+        d = State2Device(
+                         name='pie'
+                         )
+        self.assertEqual(d.name, 'pie')
