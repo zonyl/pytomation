@@ -133,9 +133,13 @@ class State2Tests(TestCase):
         self.assertEqual(d1.state, (State2.LEVEL, 80))
         
     def test_delay_no_retrigger(self):
-        d1 = State2Device(delay={
-                                 'command': Command.OFF,
-                                 'secs': 3}
+        d1 = State2Device(trigger={
+                                 Attribute.COMMAND: Command.ON,
+                                 Attribute.MAPPED: Command.OFF,
+                                 Attribute.SECS: 3},
+                          delay={
+                                 Attribute.COMMAND: Command.OFF,
+                                 Attribute.SECS: 3},
                           )
         d1.on()
         self.assertEqual(d1.state, State2.ON)
