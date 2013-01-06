@@ -58,7 +58,10 @@ i_laser_perimeter = GenericInput('D12', sg, name='Laser Perimeter')
 # Motion sensor is hardwired and immediate OFF.. Want to give it some time to still detect motion right after
 m_family = Motion2(address='D8', 
                   devices=(sg),
-                  delay_still=2*60,
+                  delay={
+                         Attribute.COMMAND: Command.STILL,
+                         Attribute.SECS: 30,
+                         },
                   name='Family Motion'
                   )
 
@@ -164,13 +167,15 @@ l_foyer = Light2(
                  ignore=({
                          Attribute.COMMAND: Command.DARK
                          },
-			 {
-			 Attribute.COMMAND: Command.MOTION,
-			}),
+            			 ),
                  time={
                        Attribute.TIME: '11:59pm',
                        Attribute.COMMAND: Command.OFF
                        },
+                 mapped={
+                         Attribute.COMMAND: Command.MOTION,
+                         Attribute.MAPPED: Command.OFF,
+                         },
 		 name='Foyer Light',
                 )
 
