@@ -263,7 +263,7 @@ class State2Tests(TestCase):
         self.assertEqual(d4.state, State2.ON)
         d1.off()
         self.assertEqual(d4.state, State2.ON)
-        time.sleep(2)
+        time.sleep(3)
         self.assertEqual(d4.state, State2.OFF)
 
         d3.on()
@@ -271,3 +271,12 @@ class State2Tests(TestCase):
         d3.off()
         self.assertEqual(d4.state, State2.OFF)
         
+    def test_override_default_maps(self):
+        d = State2Device(
+                         mapped={
+                                 Attribute.COMMAND: Command.ON,
+                                 Attribute.MAPPED: Command.OFF,
+                                 }
+                         )
+        d.on()
+        self.assertEqual(d.state, State2.OFF)

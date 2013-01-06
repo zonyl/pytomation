@@ -47,7 +47,7 @@ class State2Device(PytomationObject):
         self._last_set = datetime.now()
         self._delegates = []
         self._times = []
-        self._maps = []
+        self._maps = {}
         self._delays = []
         self._triggers = []
         self._ignores = []
@@ -185,13 +185,22 @@ class State2Device(PytomationObject):
                 
             
     def _process_maps(self, *args, **kwargs):
-        source = kwargs.get('source', None)
-        command = kwargs.get('command', None)
-        for mapped in self._maps:
-            if mapped['command'] == command and \
-                (mapped['source'] == source or not mapped['source']):
-                command = mapped['mapped']
+        source = kwargs.get(Attribute.SOURCE, None)
+        command = kwargs.get(Attribute.COMMAND, None)
+        mapped = None
+        try:
+            return self._maps[(command, source)]
+        except Exception, ex:
+            try:
+                return self._maps[(command, None)]
+            except Exception, ex1:
+                pass
+#        for mapped in self._maps:
+#            if mapped['command'] == command and \
+#                (mapped['source'] == source or not mapped['source']):
+#                command = mapped['mapped']
         return command
+
  
     def _is_valid_state(self, state):
         isFound = state in self.STATES
@@ -258,8 +267,9 @@ class State2Device(PytomationObject):
         command = kwargs.get('command', None)
         mapped = kwargs.get('mapped', None)
         source = kwargs.get('source', None)
-        self._maps.append({'command': command, 'mapped': mapped, 'source': source})
-        
+#        self._maps.append({'command': command, 'mapped': mapped, 'source': source})
+        self._maps.update({(command, source): mapped}) 
+      
     def delay(self, *args, **kwargs):
         command = kwargs.get('command', None)
         mapped = kwargs.get('mapped', None)
