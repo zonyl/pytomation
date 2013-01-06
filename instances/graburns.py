@@ -161,13 +161,17 @@ l_foyer = Light2(
                        Attribute.SOURCE: (m_foyer, d_foyer),
                        Attribute.TIME: 2*60,
                        },
-                 ignore={
+                 ignore=({
                          Attribute.COMMAND: Command.DARK
                          },
+			 {
+			 Attribute.COMMAND: Command.MOTION,
+			}),
                  time={
                        Attribute.TIME: '11:59pm',
                        Attribute.COMMAND: Command.OFF
-                       }
+                       },
+		 name='Foyer Light',
                 )
 
 l_front_porch = Light(
@@ -230,9 +234,10 @@ l_garage = Light(
 l_family_lamp = Light2(
                       address=(49, 6), 
                       devices=(upb, m_family, ph_standard2),
-                      delay_off=30*60,
-                      time_off='11:59pm',
-                      ignore_dark=True,
+		      delay={
+				Attribute.COMMAND: Command.OFF,
+				Attribute.SECS: 30*60
+				},
                       name='Family Lamp Light',
                       )
 
