@@ -276,14 +276,14 @@ class State2Device(PytomationObject):
     def _is_delayed(self, command, source):
         for delay in self._delays:
             if delay['command'] == command and \
-                (not delay['source'] or delay['source'] == source):
+                (not delay['source'] or delay['source'] == source or source in delay['source']):
                 return True
 #        return command in [ delay['command'] for delay in self._delays]
         return False
        
     def _delay_start(self, command, source):
         for delay in self._delays:
-            if delay['command'] == command and (delay['source'] == None or delay['source'] == source):
+            if delay['command'] == command and (delay['source'] == None or delay['source'] == source or source in delay['source']):
                 delay['timer'].start()
                 
     @property

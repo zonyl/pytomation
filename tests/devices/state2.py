@@ -3,7 +3,7 @@ import time
 from unittest import TestCase
 from datetime import datetime
 
-from pytomation.devices import State2Device, State2
+from pytomation.devices import State2Device, State2, Attribute
 from pytomation.interfaces import Command
 
 class State2Tests(TestCase):
@@ -242,3 +242,28 @@ class State2Tests(TestCase):
                          name='pie'
                          )
         self.assertEqual(d.name, 'pie')
+        
+    def test_delay_multiple_source(self):
+        d1 = State2Device()
+        d2 = State2Device()
+        d3 = State2Device()
+        d4 = State2Device(
+                          devices=(d1, d2, d3),
+                          delay={
+                                 Attribute.COMMAND: Command.OFF,
+                                 Attribute.SOURCE: (d1, d2),
+                                 Attribute.SECS: 2,
+                                },
+                          )
+        d1.on()
+        self.assertEqual(d4.state, State2.ON)
+        d1.off()
+        self.assertEqual(d4.state, State2.ON)
+        time.sleep(2)
+        self.assertEqual(d4.state, State2.OFF)
+
+        d3.on()
+        self.assertEqual(d4.state, State2.ON)
+        d3.off()
+        self.assertEqual(d4.state, State2.OFF)
+        
