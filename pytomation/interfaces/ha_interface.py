@@ -106,11 +106,17 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                                 )
         for device in self._devices:
             if device.address == address or device.address == None:
-                device._on_command(
+                try:
+                    device._on_command(
+                                       command=command,
+                                       address=address,
+                                       source=self,
+                                       )
+                except Exception, ex:
+                    device.command(
                                    command=command,
-                                   address=address,
                                    source=self,
-                                   )
+                                   address=address)
 
     def _sendInterfaceCommand(self, modemCommand,
                           commandDataString=None,

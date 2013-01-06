@@ -1,11 +1,11 @@
 import time
 from unittest import TestCase, main
-from mock import Mock, PropertyMock
+from mock import Mock, PropertyMock, MagicMock
 from datetime import datetime
 
 from pytomation.utility.timer import Timer as CTimer
 from pytomation.devices import Interface2Device, State2, State2Device
-from pytomation.interfaces import Command
+from pytomation.interfaces import Command, HAInterface
 
 class Interface2Device_Tests(TestCase):
     
@@ -81,6 +81,15 @@ class Interface2Device_Tests(TestCase):
                                  initial=State2.ON
                                  )
         interface2.on.assert_called_with('asdf')
+        
+    def test_incoming(self):
+        i = MagicMock()
+        hi = HAInterface(i)
+        d = Interface2Device(address='asdf',
+                             devices=hi)
+        hi._onCommand(Command.ON, 'asdf')
+        time.sleep(1)
+        self.assertEqual(d.state, State2.ON)
         
 if __name__ == '__main__':
     main() 
