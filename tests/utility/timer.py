@@ -32,6 +32,18 @@ class TimerTests(TestCase):
         time.sleep(4)
         self.assertTrue(callback.test.called)
 
+    def test_double_timer_bug(self):
+        callback = Mock()
+        callback.test.return_value = True
+        rt = CTimer(3)
+        rt.action(callback.test, ())
+        rt.start()
+        rt.start()
+        rt.stop()
+        self.assertFalse(callback.test.called)
+        time.sleep(4)
+        self.assertFalse(callback.test.called)
+
 
 if __name__ == '__main__':
     main()

@@ -40,6 +40,7 @@ class Timer(object):
             self.stop()
 
     def start(self):
+        self.stop()
         self._timer = self._get_timer(self._secs)
         self._timer.start()
             

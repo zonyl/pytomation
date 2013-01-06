@@ -284,7 +284,7 @@ class State2Device(PytomationObject):
     def _delay_start(self, command, source):
         for delay in self._delays:
             if delay['command'] == command and (delay['source'] == None or delay['source'] == source or source in delay['source']):
-                delay['timer'].start()
+                delay['timer'].restart()
                 
     @property
     def idle_time(self):
