@@ -296,3 +296,24 @@ class State2Tests(TestCase):
         time.sleep(2)
         self.assertEqual(d.state, Command.OFF)
         
+    def test_map_sources(self):
+        d1 = State2Device()
+        d2 = State2Device()
+        d3 = State2Device()
+        d4 = State2Device(
+                          devices=(d1, d2, d3),
+                          mapped={
+                                  Attribute.COMMAND: Command.ON,
+                                  Attribute.SOURCE: (d1, d2),
+                                  Attribute.MAPPED: Command.OFF,
+                                  }
+                          )
+        self.assertEqual(d4.state, State2.UNKNOWN)
+        d3.on()
+        self.assertEqual(d4.state, State2.ON)
+        d2.on()
+        self.assertEqual(d4.state, State2.OFF)
+        
+        
+
+        

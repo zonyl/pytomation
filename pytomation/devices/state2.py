@@ -94,7 +94,7 @@ class State2Device(PytomationObject):
                                                                                                                   ))
                     self.state = state
                     self._previous_command = map_command
-                    self._delegate_command(map_command)
+                    self._delegate_command(map_command, source)
                     self._trigger_start(map_command, source)
                 else:
                     self._delay_start(map_command, source)
@@ -188,29 +188,26 @@ class State2Device(PytomationObject):
         source = kwargs.get(Attribute.SOURCE, None)
         command = kwargs.get(Attribute.COMMAND, None)
         mapped = None
-        try:
-            timer = self._maps[(command, source)][1]
-            if timer:
-                timer.start()
-                return None
-            else:
-                return self._maps[(command, source)][0]
-        except Exception, ex:
-            try:
-                timer = self._maps[(command, None)][1]
-                if timer:
-                    timer.start()
-                    return None
-                else:
-                    return self._maps[(command, None)][0]
-            except Exception, ex1:
-                pass
-#        for mapped in self._maps:
-#            if mapped['command'] == command and \
-#                (mapped['source'] == source or not mapped['source']):
-#                command = mapped['mapped']
-        return command
 
+        for (c, s), (target, timer) in self._maps.iteritems():
+            commands = []
+            sources = []
+            if isinstance(s, tuple):
+                sources = s
+            else:
+                sources = (s, )
+            if isinstance(c, tuple):
+                commands = c
+            else:
+                commands = (c, )
+            
+            if command in commands and (None in sources or source in sources):
+                if not timer:
+                    return target
+                else:
+                    timer.restart()
+                    return None
+        return command
  
     def _is_valid_state(self, state):
         isFound = state in self.STATES
@@ -255,7 +252,7 @@ class State2Device(PytomationObject):
     def on_command(self, device=None):
         self._delegates.append(device)
     
-    def _delegate_command(self, command):
+    def _delegate_command(self, command, source):
         for delegate in self._delegates:
             delegate.command(command=command, source=self)
         
