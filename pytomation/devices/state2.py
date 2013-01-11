@@ -179,7 +179,14 @@ class State2Device(PytomationObject):
                     attribute(**v)
                 except Exception, ex:
                     if callable(attribute):
-                        attribute(v)
+                        if isinstance(v, tuple):
+                            for v1 in v:
+                                try:
+                                    attribute(**v1)
+                                except Exception, ex:
+                                    attribute(v1)
+                        else:
+                                attribute(v)
                     else:
                         attribute = v
                 

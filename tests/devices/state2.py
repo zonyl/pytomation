@@ -201,7 +201,27 @@ class State2Tests(TestCase):
         self.assertEqual(s2.state, State2.OFF)
         s1.on()
         self.assertEqual(s2.state, State2.OFF)
-        
+
+    def test_ignore_multiple_state(self):
+        s1 = State2Device()
+        s2 = State2Device(devices = s1,
+                          ignore=({
+                                  Attribute.COMMAND: Command.ON,
+                                  },
+                                  {
+                                   Attribute.COMMAND: Command.OFF,
+                                   }
+                                  ),
+                          )
+        self.assertEqual(s2.state, State2.UNKNOWN)
+        s1.on()
+        self.assertEqual(s2.state, State2.UNKNOWN)
+        s1.off()
+        self.assertEqual(s2.state, State2.UNKNOWN)
+        s1.on()
+        self.assertEqual(s2.state, State2.UNKNOWN)
+
+
     def test_last_command(self):
         s1 = State2Device()
         s1.on()
@@ -293,7 +313,7 @@ class State2Tests(TestCase):
         self.assertEqual(d.state, State2.UNKNOWN)
         d.on()
         self.assertEqual(d.state, State2.UNKNOWN)
-        time.sleep(2)
+        time.sleep(3)
         self.assertEqual(d.state, Command.OFF)
         
     def test_map_sources(self):
