@@ -189,10 +189,20 @@ class State2Device(PytomationObject):
         command = kwargs.get(Attribute.COMMAND, None)
         mapped = None
         try:
-            return self._maps[(command, source)]
+            timer = self._maps[(command, source)][1]
+            if timer:
+                timer.start()
+                return None
+            else:
+                return self._maps[(command, source)][0]
         except Exception, ex:
             try:
-                return self._maps[(command, None)]
+                timer = self._maps[(command, None)][1]
+                if timer:
+                    timer.start()
+                    return None
+                else:
+                    return self._maps[(command, None)][0]
             except Exception, ex1:
                 pass
 #        for mapped in self._maps:
@@ -267,8 +277,14 @@ class State2Device(PytomationObject):
         command = kwargs.get('command', None)
         mapped = kwargs.get('mapped', None)
         source = kwargs.get('source', None)
+        secs = kwargs.get('secs', None)
+        timer = None
+        if secs:
+            timer = CTimer()
+            timer.interval = secs
+            timer.action(self.command, (mapped, ), source=self)
 #        self._maps.append({'command': command, 'mapped': mapped, 'source': source})
-        self._maps.update({(command, source): mapped}) 
+        self._maps.update({(command, source): (mapped, timer)}) 
       
     def delay(self, *args, **kwargs):
         command = kwargs.get('command', None)

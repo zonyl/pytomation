@@ -280,3 +280,19 @@ class State2Tests(TestCase):
                          )
         d.on()
         self.assertEqual(d.state, State2.OFF)
+        
+        
+    def test_map_delay(self):
+        d = State2Device(
+                         mapped={
+                                 Attribute.COMMAND: Command.ON,
+                                 Attribute.MAPPED: Command.OFF,
+                                 Attribute.SECS: 2,
+                                 },
+                         )
+        self.assertEqual(d.state, State2.UNKNOWN)
+        d.on()
+        self.assertEqual(d.state, State2.UNKNOWN)
+        time.sleep(2)
+        self.assertEqual(d.state, Command.OFF)
+        
