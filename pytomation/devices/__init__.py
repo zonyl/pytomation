@@ -15,5 +15,7 @@ from .photocell import *
 from .photocell2 import *
 from .scene import *
 from .state2 import *
+from .attributes import *
+
 
 
