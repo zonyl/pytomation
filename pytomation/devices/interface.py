@@ -38,7 +38,8 @@ class InterfaceDevice(StateDevice):
         result = super(InterfaceDevice, self)._set_state(state, previous_state=previous_state, source=source)
         # Only send if we have interface, we approved of the state change and are not readonly
         # do not send state "unknown"
-        if self.interface and result and not self._read_only and self._state != State.UNKNOWN: 
+        if self.interface and result and not self._read_only and self._state != State.UNKNOWN and \
+            self.interface != source: 
             try:
                 self._logger.info('{device} Sending "{state}" to interface: {interface}, from {source}'.format(
                                                                                      device=self._name,

@@ -34,21 +34,22 @@ class Interface2Device(State2Device):
         except Exception, ex:
             return super(Interface2Device, self)._add_device(device)
 
-    def _delegate_command(self, command):
+    def _delegate_command(self, command, source):
         if not self._read_only:
             for interface in self._interfaces:
-                try:
-                    if isinstance(command, tuple):
-                        getattr(interface, command[0])(self._address, *command[1:])
-                    else:
-                        getattr(interface, command)(self._address)
-                except Exception, ex:
-                    self._logger.error("{name} Could not send command '{command}' to interface '{interface}'".format(
-                                                                                        name=self.name,
-                                                                                        command=command,
-                                                                                        interface=interface.name
-                                                                                                                 ))
-        return super(Interface2Device, self)._delegate_command(command)
+                if source != interface:
+                    try:
+                        if isinstance(command, tuple):
+                            getattr(interface, command[0])(self._address, *command[1:])
+                        else:
+                            getattr(interface, command)(self._address)
+                    except Exception, ex:
+                        self._logger.error("{name} Could not send command '{command}' to interface '{interface}'".format(
+                                                                                            name=self.name,
+                                                                                            command=command,
+                                                                                            interface=interface.name
+                                                                                                                     ))
+        return super(Interface2Device, self)._delegate_command(command, source)
         
     def sync(self, value):
         self._sync = value
