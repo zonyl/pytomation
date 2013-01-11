@@ -159,22 +159,23 @@ l_foyer = Light2(
                 devices=(upb, d_foyer,
                          m_foyer,
                          ph_standard2),
-                delay={
-                       Attribute.COMMAND: Command.OFF,
-                       Attribute.SOURCE: (m_foyer, d_foyer, ph_standard2),
-                       Attribute.TIME: 2*60,
-                       },
                  ignore=({
-                         Attribute.COMMAND: Command.DARK
+                         Attribute.COMMAND: Command.DARK,
                          },
+                         {
+                          Attribute.COMMAND: Command.STILL}
             			 ),
                  time={
                        Attribute.TIME: '11:59pm',
                        Attribute.COMMAND: Command.OFF
                        },
                  mapped={
-                         Attribute.COMMAND: Command.MOTION,
+                         Attribute.COMMAND: (
+                                             Command.MOTION, Command.OPEN,
+                                              Command.CLOSE, Command.LIGHT,
+                                              ),
                          Attribute.MAPPED: Command.OFF,
+                         Attribute.SECS: 2*60,
                          },
 		 name='Foyer Light',
                 )
@@ -237,14 +238,21 @@ l_garage = Light(
                       )
 
 l_family_lamp = Light2(
-                      address=(49, 6), 
-                      devices=(upb, m_family, ph_standard2),
-		      delay={
-				Attribute.COMMAND: Command.OFF,
-				Attribute.SECS: 30*60
-				},
-                      name='Family Lamp Light',
-                      )
+                address=(49, 6), 
+                devices=(upb, m_family, ph_standard2),
+                mapped={
+                        Attribute.COMMAND: Command.MOTION,
+                        Attribute.SECS: 30*60
+                        },
+                ignore=({
+                        Attribute.COMMAND: Command.STILL
+                        },
+                        {
+                        Attribute.COMMAND: Command.DARK
+                        },
+                    ),
+                name='Family Lamp Light',
+                )
 
 l_family = Light2(
                  address='19.05.7b',    
