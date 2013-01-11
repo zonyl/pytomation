@@ -161,7 +161,7 @@ l_foyer = Light2(
                          ph_standard2),
                 delay={
                        Attribute.COMMAND: Command.OFF,
-                       Attribute.SOURCE: (m_foyer, d_foyer),
+                       Attribute.SOURCE: (m_foyer, d_foyer, ph_standard2),
                        Attribute.TIME: 2*60,
                        },
                  ignore=({
