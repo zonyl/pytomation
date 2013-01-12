@@ -342,13 +342,24 @@ class State2Device(PytomationObject):
         command = kwargs.get('command', None)
         source = kwargs.get('source', None)
         self._ignores.append({'command': command,'source': source})
+	self._logger.debug("{name} add ignore for {command} from {source}".format(
+										name=self.name,
+										command=command,
+										source=source.name if source else None,
+										));
         
     def _is_ignored(self, command, source):
+	is_ignored = False
         for ignore in self._ignores:
             if ignore['command'] == command and \
             (ignore['source'] == None or ignore['source'] == source):
-                return True
-        return False
+                is_ignored = True
+	self._logger.debug("{name} check ignore for {command} from {source}".format(
+										name=self.name,
+										command=command,
+										source=source.name if source else None,
+										));
+	return is_ignored
     
     def trigger(self, *args, **kwargs):
         command = kwargs.get('command', None)
@@ -374,6 +385,11 @@ class State2Device(PytomationObject):
                 (state, command) =  self._command_state_map(device.last_command)
         if state:
             self.initial(state)
+	    self._logger.debug("{name} initial for {command} from {state}".format(
+										name=self.name,
+										command=command,
+										state=state,
+										));
         return
     
     @property
