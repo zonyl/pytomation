@@ -203,6 +203,11 @@ class State2Device(PytomationObject):
         command = kwargs.get(Attribute.COMMAND, None)
         mapped = None
 
+        self._logger.debug("{name} MAPS dump: {maps}".format(
+                                                name=self.name,
+                                                maps=str(self._maps),
+                                                            ))
+
         for (c, s), (target, timer) in self._maps.iteritems():
             commands = []
             sources = []
@@ -308,13 +313,21 @@ class State2Device(PytomationObject):
         source = kwargs.get('source', None)
         secs = kwargs.get('secs', None)
         timer = None
-        if secs:
-            timer = CTimer()
-            timer.interval = secs
-            timer.action(self.command, (mapped, ), source=self)
-#        self._maps.append({'command': command, 'mapped': mapped, 'source': source})
-        self._maps.update({(command, source): (mapped, timer)}) 
-      
+        commands = command
+        if not isinstance(command, tuple):
+            commands = (command, )
+        for c in commands:
+            if secs:
+                timer = CTimer()
+                timer.interval = secs
+                timer.action(self.command, (mapped, ), source=self)
+    #        self._maps.append({'command': command, 'mapped': mapped, 'source': source})
+            sources = source
+            if not isinstance(source, tuple):
+                sources = (source ,)
+            for s in sources:
+                self._maps.update({(c, s): (mapped, timer)}) 
+            
     def delay(self, *args, **kwargs):
         command = kwargs.get('command', None)
         mapped = kwargs.get('mapped', None)

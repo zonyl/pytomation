@@ -246,10 +246,10 @@ class Light2Tests(TestCase):
                          },
          name='Foyer Light',
                 )
-        l.on()
-        self.assertEqual(l.state, State2.ON)
+        l.off()
+        self.assertEqual(l.state, State2.OFF)
         m.motion()
-        self.assertEqual(l.state, State2.ON)
+        self.assertEqual(l.state, State2.OFF)
         time.sleep(3)
         self.assertEqual(l.state, State2.OFF)
         
