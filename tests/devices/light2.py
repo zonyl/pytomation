@@ -221,6 +221,38 @@ class Light2Tests(TestCase):
         time.sleep(3)
         self.assertEqual(l.state, State2.OFF)
         
+    def test_light_scenario_2(self):
+        m = Motion2()
+        l = Light2(
+                address=(49, 3),
+                devices=(m),
+                 ignore=({
+                         Attribute.COMMAND: Command.DARK,
+                         },
+                         {
+                          Attribute.COMMAND: Command.STILL}
+                         ),
+                 time={
+                       Attribute.TIME: '11:59pm',
+                       Attribute.COMMAND: Command.OFF
+                       },
+                 mapped={
+                         Attribute.COMMAND: (
+                                             Command.MOTION, Command.OPEN,
+                                              Command.CLOSE, Command.LIGHT,
+                                              ),
+                         Attribute.MAPPED: Command.OFF,
+                         Attribute.SECS: 2,
+                         },
+         name='Foyer Light',
+                )
+        l.on()
+        self.assertEqual(l.state, State2.ON)
+        m.motion()
+        self.assertEqual(l.state, State2.ON)
+        time.sleep(3)
+        self.assertEqual(l.state, State2.OFF)
+        
         
         
 if __name__ == '__main__':

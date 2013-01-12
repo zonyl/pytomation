@@ -96,16 +96,16 @@ m_utility = Motion(address='G3',
 ph_utility = Photocell(address='G4',
                   devices=w800)
 
-m_breakfast = Motion(address='G5',
+m_breakfast = Motion(address='G7',
                   devices=w800,
                   name='Breakfast Motion')
-ph_breakfast = Photocell(address='G6',
+ph_breakfast = Photocell(address='G8',
                   devices=w800)
 
-m_foyer = Motion2(address='G7',
+m_foyer = Motion2(address='G5',
                   devices=w800,
                   name='Foyer Motion')
-ph_foyer = Photocell2(address='G8',
+ph_foyer = Photocell2(address='G6',
                   devices=w800)
 
 m_den = Motion(address='G9',
