@@ -53,7 +53,7 @@ import hashlib
 from collections import deque
 from .common import *
 from .ha_interface import HAInterface
-from pytomation.devices import State
+from pytomation.devices import State, State2
 
 def _byteIdToStringId(idHigh, idMid, idLow):
     return '%02X.%02X.%02X' % (idHigh, idMid, idLow)
@@ -89,6 +89,9 @@ class InsteonPLM(HAInterface):
     currentCommand = ""
     cmdQueueList = []   # List of orphaned commands that need to be dealt with
     spinTime = 0.1   # _readInterface loop time
+    
+    statusRequest = False   # Set to True when we do a status request
+    v1StateLevels = [State.OFF,State.L10,State.L20,State.L30,State.L40,State.L50,State.L60,State.L70,State.L80,State.L90,State.ON]
     
     def __init__(self, interface, *args, **kwargs):
         super(InsteonPLM, self).__init__(interface, *args, **kwargs)
@@ -221,7 +224,6 @@ class InsteonPLM(HAInterface):
                                              },
                                     'SD00': {
                                              },
-
                                 }
 
         self._x10HouseCodes = Lookup(zip((
@@ -388,8 +390,13 @@ class InsteonPLM(HAInterface):
 
     def _process_StandardInsteonMessagePLMEcho(self, responseBytes):
         #print utilities.hex_dump(responseBytes, len(responseBytes))
-        #we don't do anything here.  Just eat the echoed bytes
-        pass
+        #echoed standard message is always 9 bytes with the 6th byte being the command
+        #here we handle a status request as a special case the very next received message from the 
+        #PLM will most likely be the status response.
+        if ord(responseBytes[1]) == 0x62:
+            if len(responseBytes) == 9:  # check for proper length
+                if ord(responseBytes[6]) == 0x19 and ord(responseBytes[8]) == 0x06:  # get a light level status
+                    self.statusRequest = True
 
     def _process_StandardX10MessagePLMEcho(self, responseBytes):
         # Just ack / error echo from sending an X10 command
@@ -423,7 +430,9 @@ class InsteonPLM(HAInterface):
             #standard direct
             insteonCommandCode = 'SD' + insteonCommandCode
 
-        if insteonCommandCode == 'SD00':
+        if self.statusRequest:
+            insteonCommandCode = 'SD19'
+            
             #this is a strange special case...
             #lightStatusRequest returns a standard message and overwrites the cmd1 and cmd2 bytes with "data"
             #cmd1 (that we use here to sort out what kind of incoming message we got) contains an 
@@ -432,7 +441,7 @@ class InsteonPLM(HAInterface):
             #for now my testing has show that its 0 (at least with my dimmer switch - my guess is cause I haven't linked it with anything)
             #so we treat the SD00 message special and pretend its really a SD19 message (and that works fine for now cause we only really
             #care about cmd2 - as it has our light status in it)
-            insteonCommandCode = 'SD19'
+#            insteonCommandCode = 'SD19'
 
         #print insteonCommandCode
 
@@ -455,7 +464,6 @@ class InsteonPLM(HAInterface):
                     self._logger.warning("Unable to find a list of valid response messages for command %s" % originatingCommandId1)
                     continue
 
-
                 #since there could be multiple insteon messages flying out over the wire, check to see if this one is 
                 #from the device we sent this command to
                 destDeviceId = None
@@ -470,8 +478,10 @@ class InsteonPLM(HAInterface):
                         #try and look up a handler for this command code
                         if self._insteonCommands.has_key(insteonCommandCode):
                             if self._insteonCommands[insteonCommandCode].has_key('callBack'):
+                                # Run the callback
                                 (requestCycleDone, extraReturnData) = self._insteonCommands[insteonCommandCode]['callBack'](responseBytes)
-
+                                self.statusRequest = False
+                                
                                 if extraReturnData:
                                     returnData = dict(returnData.items() + extraReturnData.items())
 
@@ -491,7 +501,8 @@ class InsteonPLM(HAInterface):
 
         if foundCommandHash == None:
             self._logger.warning("Unhandled packet (couldn't find any pending command to deal with it)")
-            self._logger.warning("This could be a status message")
+            self._logger.warning("This could be a status message from a broadcast")
+            # very few things cause this certainly a scene on or off will so that what we assume
             self._handle_StandardDirect_LightStatusResponse(responseBytes)
 
         if waitEvent and foundCommandHash:
@@ -553,20 +564,35 @@ class InsteonPLM(HAInterface):
             return (True, {'engineVersion': 'FF'})
 
     def _handle_StandardDirect_LightStatusResponse(self, messageBytes):
-        #This should be a message from the device to the PLM
-        #02 50 17 C4 4A 18 BA 62 2B 00 00
         (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('BBBBBBBBBBB', messageBytes)
 
-        # find the device and light level
         destDeviceId = _byteIdToStringId(fromIdHigh, fromIdMid, fromIdLow).upper()
-        # For now lets just handle on and off until the new state code is ready.
-        for d in self._devices:
-            if d.address == destDeviceId:
-                if command1 == 0x12:
-                    d.state = State.ON
-                elif command1 == 0x14:
-                    d.state = State.OFF
-                
+
+     
+        isGrpCleanupAck = (messageFlags & 0x60) == 0x60
+        isGrpBroadcast = (messageFlags & 0xC0) == 0xC0
+        isGrpCleanupDirect = (messageFlags & 0x40) == 0x40
+        # If we get an ack from a group command fire off a status request or we'll never know the on level
+        if isGrpCleanupAck | isGrpBroadcast | isGrpCleanupDirect:
+            self._logger.debug("running lightstatusrequest..........")
+            self.lightStatusRequest(destDeviceId)
+        else:   # direct command
+            self._logger.debug("Setting status..........")
+            # For now lets just handle on and off until the new state code is ready.
+            for d in self._devices:
+                if d.address == destDeviceId:
+                    if 'Light2' in str(type(d)):
+                        if command2 < 0x02:     # Never seen one not go to zero but...
+                            self._onCommand(address=destDeviceId, command=State2.OFF)
+                        elif command2 > 0xFD:   # some times these don't go to 0xFF
+                            self._onCommand(address=destDeviceId, command=State2.ON)
+                        else:
+                            self._onCommand(address=destDeviceId, command=((State2.LEVEL, command2)))
+                    else:
+                        level = int(simpleMap(command2, 1, 254, 1, 10))
+                        self._onCommand(address=destDeviceId, command=self.v1StateLevels[level]) #ex: State.L80
+                    
+        return (True,None)
         # Old stuff, don't use this at the moment
         #lightLevelRaw = messageBytes[10]
         #map the lightLevelRaw value to a sane value between 0 and 1
@@ -694,12 +720,12 @@ class InsteonPLM(HAInterface):
 #
 #-----------------------------------------------------------------------------------------------
 
-    def scanDeviceVersions(self):
+    def update_status(self):
         for d in self._devices:
-            r = self.getInsteonEngineVersion(d.address)
-            print r
-            time.sleep(1)
-
+            if len(d.address) == 8:  # real address not scene
+                print "Getting status for ", d.address
+                self.lightStatusRequest(d.address)
+        
 
     def bitstring(self, s):
         return str(s) if s<=1 else self.bitstring(s>>1) + str(s&1)
@@ -797,7 +823,7 @@ class InsteonPLM(HAInterface):
         print "------------------------------------------------"
         self.request_first_all_link_record()
         while self.request_next_all_link_record():
-            time.sleep(3.0)
+            time.sleep(1.0)
             
        
     def request_first_all_link_record(self, timeout=None):
