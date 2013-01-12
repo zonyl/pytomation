@@ -9,11 +9,15 @@ class Motion2(Interface2Device):
     def _initial_vars(self, *args, **kwargs):
         super(Motion2, self)._initial_vars(*args, **kwargs)
         self._read_only = True
-        
-    def _command_state_map(self, command, *args, **kwargs):
-        (m_state, m_command) = super(Motion2, self)._command_state_map(command, *args, **kwargs)
-        if m_command == Command.OFF:
-            m_state = State2.STILL
-        elif m_command == Command.ON:
-            m_state = State2.MOTION
-        return (m_state, m_command)
+        self.mapped(command=Command.ON, mapped=Command.MOTION)
+        self.mapped(command=Command.OFF, mapped=Command.STILL)
+                
+#    def _command_state_map(self, command, *args, **kwargs):
+#        (m_state, m_command) = super(Motion2, self)._command_state_map(command, *args, **kwargs)
+#        if m_command == Command.OFF:
+#            m_state = State2.STILL
+#            m_command = Command.STILL
+#        elif m_command == Command.ON:
+#            m_state = State2.MOTION
+#            m_command = Command.MOTION
+#        return (m_state, m_command)

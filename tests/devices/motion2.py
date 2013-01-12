@@ -1,6 +1,6 @@
 
 from unittest import TestCase, main
-from mock import Mock
+from mock import Mock, MagicMock
 
 from pytomation.devices import Motion2, State2
 from pytomation.interfaces import Command
@@ -36,6 +36,11 @@ class MotionTests(TestCase):
         self.device.command(Command.MOTION, source=self.interface)
 #        self.device._on_command('D1', State2.OFF, self.interface)
         self.assertEqual(self.device.state, State2.MOTION)
+        
+    def test_motion_on(self):
+        m = Motion2()
+        m.command(command=Command.ON, source=None)
+        self.assertEqual(m.state, State2.MOTION)        
 
 if __name__ == '__main__':
     main() 
