@@ -202,6 +202,25 @@ class Light2Tests(TestCase):
         self.assertEqual(l.state, State2.UNKNOWN)
         m.command(command=State2.ON, source=None)
         self.assertEqual(l.state, State2.UNKNOWN)
+    
+    def test_light_scenario_g1(self):
+        d = Door2()
+        l =  Light2(address='xx.xx.xx', 
+        devices=(d),
+        mapped={
+           Attribute.COMMAND: (Command.CLOSE),
+           Attribute.MAPPED: Command.OFF,
+           Attribute.SECS: 2,
+        },
+        ignore=({Attribute.COMMAND: Command.DARK}),
+        #initial_state='off',   # Leave the light off when pyto starts
+        name="Hallway Lights",)
+        self.assertEqual(l.state, State2.UNKNOWN)
+        d.close()
+        self.assertEqual(l.state, State2.UNKNOWN)
+        time.sleep(3)
+        self.assertEqual(l.state, State2.OFF)
+        
         
         
 if __name__ == '__main__':
