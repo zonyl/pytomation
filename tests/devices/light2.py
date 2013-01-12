@@ -5,7 +5,7 @@ from unittest import TestCase, main
 from mock import Mock
 
 from pytomation.devices import Light2, Door2, Location2, State2, Motion2, \
-                                Photocell2
+                                Photocell2, Attribute
 from pytomation.interfaces import Command
 
 class Light2Tests(TestCase):
@@ -40,7 +40,7 @@ class Light2Tests(TestCase):
         self.assertIsNotNone(door)
         door.open()
         self.device = Light2('D1', devices=(self.interface, door))
-        self.assertTrue(self.interface.initial.called)
+#        self.assertTrue(self.interface.initial.called)
         self.assertFalse(self.interface.off.called)
         door.close()
         self.assertTrue(self.interface.off.called)
@@ -179,6 +179,30 @@ class Light2Tests(TestCase):
                             'time':(0, 30, range(0,5), 0, 0)
                             })
         self.assertIsNotNone(light)
-
+        
+        
+    def test_light_scenario1(self):
+        m = Motion2()
+        l = Light2(
+                address=(49, 6), 
+                devices=m,
+                mapped={
+                        Attribute.COMMAND: Command.MOTION,
+                        Attribute.SECS: 30*60
+                        },
+                ignore=({
+                        Attribute.COMMAND: Command.STILL
+                        },
+                        {
+                        Attribute.COMMAND: Command.DARK
+                        },
+                    ),
+                name='Lamp',
+                )
+        self.assertEqual(l.state, State2.UNKNOWN)
+        m.command(command=State2.ON, source=None)
+        self.assertEqual(l.state, State2.UNKNOWN)
+        
+        
 if __name__ == '__main__':
     main() 

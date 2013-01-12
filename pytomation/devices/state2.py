@@ -108,8 +108,8 @@ class State2Device(PytomationObject):
     def _command_state_map(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
         state = None
-        m_command = command
         state = self._command_to_state(command, state)
+        m_command = self._state_to_command(state, command)
         if command == Command.LEVEL or (isinstance(command, tuple) and command[0] == Command.LEVEL):
             if isinstance(command, tuple):
                 state = (State2.LEVEL, command[1])
@@ -117,6 +117,7 @@ class State2Device(PytomationObject):
             else:
                 state = (State2.LEVEL, kwargs.get('sub_state', (0,))[0])
 #                m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
+            m_command = self._state_to_command(state, m_command)
         elif command == Command.PREVIOUS:
             state = self._previous_state
             m_command = self._state_to_command(state, m_command)            
@@ -139,8 +140,11 @@ class State2Device(PytomationObject):
         # Try to map the same state ID
         try:
 #            state = getattr(State2, command)
+            primary = command
+            if isinstance(command, tuple):
+                primary = command[0]
             for attribute in dir(State2):
-                if getattr(State2, attribute) == command:
+                if getattr(State2, attribute) == primary:
                     return command
         except Exception, ex:
             self._logger.debug("{name} Could not find command to state for {command}".format(
@@ -152,9 +156,12 @@ class State2Device(PytomationObject):
     def _state_to_command(self, state, command):
         try:
 #            return Command['state']
+            primary = state
+            if isinstance(state, tuple):
+                primary = state[0]
             for attribute in dir(Command):
-                if getattr(Command, attribute) == state:
-                    return getattr(Command, attribute)
+                if getattr(Command, attribute) == primary:
+                    return state
             return command
         except Exception, ex:
             self._logger.debug("{name} could not map state {state} to command".format(
@@ -208,12 +215,23 @@ class State2Device(PytomationObject):
             else:
                 commands = (c, )
             
-            if command in commands and (None in sources or source in sources):
+            # Find specific first
+            if command in commands and source in sources:
                 if not timer:
                     return target
                 else:
                     timer.restart()
                     return None
+
+            # Go for a more general match next
+            if command in commands and None in sources:
+                if not timer:
+                    return target
+                else:
+                    timer.restart()
+                    return None
+
+        
         return command
  
     def _is_valid_state(self, state):
@@ -261,6 +279,13 @@ class State2Device(PytomationObject):
     
     def _delegate_command(self, command, source):
         for delegate in self._delegates:
+            self._logger.debug("{name} delegating command {command} from {source} to object {delegate}".format(
+                                                                               name=self.name,
+                                                                               command=command,
+                                                                               source=source.name if source else None,
+                                                                               delegate=delegate.name,
+                                                                                                               
+                                                                                                               ))
             delegate.command(command=command, source=self)
         
     def devices(self, *args, **kwargs):
@@ -342,24 +367,24 @@ class State2Device(PytomationObject):
         command = kwargs.get('command', None)
         source = kwargs.get('source', None)
         self._ignores.append({'command': command,'source': source})
-	self._logger.debug("{name} add ignore for {command} from {source}".format(
+        self._logger.debug("{name} add ignore for {command} from {source}".format(
 										name=self.name,
 										command=command,
 										source=source.name if source else None,
 										));
         
     def _is_ignored(self, command, source):
-	is_ignored = False
+        is_ignored = False
         for ignore in self._ignores:
             if ignore['command'] == command and \
             (ignore['source'] == None or ignore['source'] == source):
                 is_ignored = True
-	self._logger.debug("{name} check ignore for {command} from {source}".format(
-										name=self.name,
-										command=command,
-										source=source.name if source else None,
-										));
-	return is_ignored
+        self._logger.debug("{name} check ignore for {command} from {source}".format(
+        								name=self.name,
+        								command=command,
+        								source=source.name if source else None,
+        								));
+        return is_ignored
     
     def trigger(self, *args, **kwargs):
         command = kwargs.get('command', None)
@@ -385,7 +410,7 @@ class State2Device(PytomationObject):
                 (state, command) =  self._command_state_map(device.last_command)
         if state:
             self.initial(state)
-	    self._logger.debug("{name} initial for {command} from {state}".format(
+            self._logger.debug("{name} initial for {command} from {state}".format(
 										name=self.name,
 										command=command,
 										state=state,
