@@ -18,6 +18,8 @@ class Light2(Interface2Device):
 
     def command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
+        if command == Command.LIGHT:
+            a = 1
         if source and source.state == State2.DARK:
             self.restricted = False
         elif source and source.state == State2.LIGHT:
@@ -26,6 +28,8 @@ class Light2(Interface2Device):
 
     def _command_state_map(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
+        if command == Command.ON:
+            a = 1
         (m_state, m_command) = super(Light2, self)._command_state_map(command, *args, **kwargs)
         if source and not source == self and m_command == Command.ON and \
             source.state in (State2.OPEN, State2.MOTION, State2.DARK):

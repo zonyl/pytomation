@@ -205,21 +205,26 @@ class Light2Tests(TestCase):
     
     def test_light_scenario_g1(self):
         d = Door2()
+        p = Photocell2()
+        p.light()
         l =  Light2(address='xx.xx.xx', 
-        devices=(d),
-        mapped={
-           Attribute.COMMAND: (Command.CLOSE),
-           Attribute.MAPPED: Command.OFF,
-           Attribute.SECS: 2,
-        },
-        ignore=({Attribute.COMMAND: Command.DARK}),
-        #initial_state='off',   # Leave the light off when pyto starts
-        name="Hallway Lights",)
-        self.assertEqual(l.state, State2.UNKNOWN)
+            devices=(d, p),
+            mapped={
+               Attribute.COMMAND: (Command.CLOSE),
+               Attribute.MAPPED: Command.OFF,
+               Attribute.SECS: 2,
+            },
+            ignore=({Attribute.COMMAND: Command.DARK}),
+            name="Hallway Lights",)
+        l.on()
+        self.assertEqual(l.state, State2.ON)
         d.close()
-        self.assertEqual(l.state, State2.UNKNOWN)
+        self.assertEqual(l.state, State2.ON)
         time.sleep(3)
         self.assertEqual(l.state, State2.OFF)
+        d.open()
+        self.assertEqual(l.state, State2.OFF)
+        
         
     def test_light_scenario_2(self):
         m = Motion2()

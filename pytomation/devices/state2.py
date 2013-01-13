@@ -421,13 +421,13 @@ class State2Device(PytomationObject):
             for device in self._devices:
 #                state = device.state
                 (state, command) =  self._command_state_map(device.last_command)
-        if state:
-            self.initial(state)
-            self._logger.debug("{name} initial for {command} from {state}".format(
-										name=self.name,
-										command=command,
-										state=state,
-										));
+                if state:
+                    self.initial(device)
+                    self._logger.debug("{name} initial for {command} from {state}".format(
+        										name=self.name,
+        										command=command,
+        										state=state,
+        										));
         return
     
     @property
