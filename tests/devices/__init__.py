@@ -3,6 +3,7 @@ from .state2 import *
 from .interface import *
 from .interface2 import *
 from .generic import *
+from .generic2 import *
 from .generic_input import *
 from .door import *
 from .door2 import *
