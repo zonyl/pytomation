@@ -34,10 +34,12 @@ class Interface2Device(State2Device):
         except Exception, ex:
             return super(Interface2Device, self)._add_device(device)
 
-    def _delegate_command(self, command, source):
+    def _delegate_command(self, command, *args, **kwargs):
+        source = kwargs.get('source', None)
+        original = kwargs.get('original', None)
         if not self._read_only:
             for interface in self._interfaces:
-                if source != interface:
+                if source != interface and original != interface:
                     try:
                         if isinstance(command, tuple):
                             getattr(interface, command[0])(self._address, *command[1:])
@@ -49,7 +51,7 @@ class Interface2Device(State2Device):
                                                                                             command=command,
                                                                                             interface=interface.name
                                                                                                                      ))
-        return super(Interface2Device, self)._delegate_command(command, source)
+        return super(Interface2Device, self)._delegate_command(command, *args, **kwargs)
         
     def sync(self, value):
         self._sync = value

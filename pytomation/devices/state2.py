@@ -52,6 +52,7 @@ class State2Device(PytomationObject):
         self._triggers = []
         self._ignores = []
         self._idle_timer = None
+        self._idle_command = None
         self._devices = []
         
     @property
@@ -59,12 +60,14 @@ class State2Device(PytomationObject):
         return self._state
 
     @state.setter
-    def state(self, value):
+    def state(self, value, *args, **kwargs):
+        source = kwargs.get('source', None)
         self._previous_state = self._state
         self._last_set = datetime.now()
         self._state = value
-        if self._idle_timer:
-            self._idle_timer.start()
+#        if self._idle_timer:
+#            self._idle_timer.action(self.command, (self._state_to_command(value, None) ), source=self, original=source)
+#            self._idle_timer.start()
         return self._state
     
     def __getattr__(self, name):
@@ -93,8 +96,9 @@ class State2Device(PytomationObject):
                                                       source=source.name if source else None,
                                                                                                                   ))
                     self.state = state
+                    self._idle_start(*args, **kwargs)
                     self._previous_command = map_command
-                    self._delegate_command(map_command, source)
+                    self._delegate_command(map_command, *args, **kwargs)
                     self._trigger_start(map_command, source)
                 else:
                     self._delay_start(map_command, source)
@@ -225,6 +229,7 @@ class State2Device(PytomationObject):
                 if not timer:
                     return target
                 else:
+                    timer.action(self.command, (target, ), source=self, original=source)
                     timer.restart()
                     return None
 
@@ -233,6 +238,7 @@ class State2Device(PytomationObject):
                 if not timer:
                     return target
                 else:
+                    timer.action(self.command, (target, ), source=self, original=source)
                     timer.restart()
                     return None
 
@@ -282,7 +288,8 @@ class State2Device(PytomationObject):
     def on_command(self, device=None):
         self._delegates.append(device)
     
-    def _delegate_command(self, command, source):
+    def _delegate_command(self, command, *args, **kwargs):
+        source = kwargs.get('source', None)
         for delegate in self._delegates:
             self._logger.debug("{name} delegating command {command} from {source} to object {delegate}".format(
                                                                                name=self.name,
@@ -320,7 +327,7 @@ class State2Device(PytomationObject):
             if secs:
                 timer = CTimer()
                 timer.interval = secs
-                timer.action(self.command, (mapped, ), source=self)
+                timer.action(self.command, (mapped, ), source=self, original=source)
     #        self._maps.append({'command': command, 'mapped': mapped, 'source': source})
             sources = source
             if not isinstance(source, tuple):
@@ -337,7 +344,7 @@ class State2Device(PytomationObject):
         secs = kwargs.get('secs', None)
         timer = CTimer()
         timer.interval=secs
-        timer.action(self.command, (mapped, ), source=self)
+        timer.action(self.command, (mapped, ), source=self, original=source)
 #            timer.action(self.command, (mapped), source=self)
         self._delays.append({'command': command, 'mapped': mapped, 'source': source, 'secs': secs, 'timer': timer})
 
@@ -357,6 +364,7 @@ class State2Device(PytomationObject):
         for delay in self._delays:
             try:
                 if delay['command'] == command and (delay['source'] == None or delay['source'] == source or source in delay['source']):
+                    delay['timer'].action(self.command, (delay['mapped'], ), source=self, original=source)
                     delay['timer'].restart()
             except TypeError, ex:
                 # Not found and source is not iterable
@@ -369,13 +377,22 @@ class State2Device(PytomationObject):
 
     def idle(self, *args, **kwargs):
         command = kwargs.get('command', None)
+        source = kwargs.get('source', None)
         secs = kwargs.get('secs', None)
+        self._idle_command = command
         if secs:
             timer = CTimer()
             timer.interval = secs
-            timer.action(self.command, (command, ), source=self)
+            timer.action(self.command, (self._idle_command, ), source=self, original=source)
             self._idle_timer = timer
             
+    def _idle_start(self, *args, **kwargs):
+        if self._idle_command:
+            source = kwargs.get('source', None)
+            self._idle_timer.action(self.command, (self._idle_command, ), source=self, original=source)
+            self._idle_timer.start()
+        
+        
     def ignore(self, *args, **kwargs):
         command = kwargs.get('command', None)
         source = kwargs.get('source', None)
@@ -406,13 +423,14 @@ class State2Device(PytomationObject):
         secs = kwargs.get('secs', None)
         timer = CTimer()
         timer.interval=secs
-        timer.action(self.command, (mapped, ), source=self)
+        timer.action(self.command, (mapped, ), source=self, original=source)
         self._triggers.append({'command': command, 'mapped': mapped, 'source': source, 'secs': secs, 'timer': timer})
 
     def _trigger_start(self, command, source):
         for trigger in self._triggers:
             if trigger['command'] == command and \
             (not trigger['source'] or trigger['source'] == source):
+                trigger['timer'].action(self.command, (trigger['mapped'], ), source=self, original=source)
                 trigger['timer'].start()
                 
     def _initial_from_devices(self, *args, **kwargs):

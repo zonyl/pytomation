@@ -4,7 +4,7 @@ from mock import Mock, PropertyMock, MagicMock
 from datetime import datetime
 
 from pytomation.utility.timer import Timer as CTimer
-from pytomation.devices import Interface2Device, State2, State2Device
+from pytomation.devices import Interface2Device, State2, State2Device, Attribute
 from pytomation.interfaces import Command, HAInterface
 
 class Interface2Device_Tests(TestCase):
@@ -91,5 +91,17 @@ class Interface2Device_Tests(TestCase):
         time.sleep(1)
         self.assertEqual(d.state, State2.ON)
         
+    def test_loop_prevention(self):
+        d = Interface2Device(
+                             devices=(self.interface),
+                             delay={Attribute.COMMAND: Command.OFF,
+                                    Attribute.SECS: 2}
+                             )
+        d.on();
+        self.interface.on.assert_called_once_with(None)
+        d.command(command=Command.OFF, source=self.interface)
+        time.sleep(3)
+        self.assertFalse(self.interface.off.called)
+
 if __name__ == '__main__':
     main() 
