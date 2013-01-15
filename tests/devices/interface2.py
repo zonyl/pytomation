@@ -103,5 +103,18 @@ class Interface2Device_Tests(TestCase):
         time.sleep(3)
         self.assertFalse(self.interface.off.called)
 
+    def test_no_repeat(self):
+        #if the state is already set then dont send the command again
+        self.device.off()
+        self.assertEqual(self.device.state, State2.OFF)
+        self.device.on()
+        self.assertEqual(self.device.state, State2.ON)
+        self.interface.on.assert_called_once_with('D1')
+        self.interface.on.reset_mock()
+        self.device.on()
+        self.assertEqual(self.device.state, State2.ON)
+        self.assertFalse(self.interface.on.called)
+        
+
 if __name__ == '__main__':
     main() 

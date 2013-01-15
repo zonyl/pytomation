@@ -16,6 +16,7 @@ class Interface2Device(State2Device):
         self._sync = False
         self._sync_timer = None
         self._read_only = False
+        self._send_always = False
     
     @property
     def address(self):
@@ -40,17 +41,24 @@ class Interface2Device(State2Device):
         if not self._read_only:
             for interface in self._interfaces:
                 if source != interface and original != interface:
-                    try:
-                        if isinstance(command, tuple):
-                            getattr(interface, command[0])(self._address, *command[1:])
-                        else:
-                            getattr(interface, command)(self._address)
-                    except Exception, ex:
-                        self._logger.error("{name} Could not send command '{command}' to interface '{interface}'".format(
-                                                                                            name=self.name,
-                                                                                            command=command,
-                                                                                            interface=interface.name
-                                                                                                                     ))
+                    if not self._send_always and self._previous_state != self._command_to_state(command, None):
+                        try:
+                            if isinstance(command, tuple):
+                                getattr(interface, command[0])(self._address, *command[1:])
+                            else:
+                                getattr(interface, command)(self._address)
+                        except Exception, ex:
+                            self._logger.error("{name} Could not send command '{command}' to interface '{interface}'".format(
+                                                                                                name=self.name,
+                                                                                                command=command,
+                                                                                                interface=interface.name
+                                                                                                                         ))
+                else:
+                    self._logger.debug("{name} is already at this state {state} for command {command}, do not send to interface".format(
+                                                                                                name=self.name,
+                                                                                                state=self.state,
+                                                                                                command=command,
+                                                                                                                  ))
         return super(Interface2Device, self)._delegate_command(command, *args, **kwargs)
         
     def sync(self, value):
@@ -80,3 +88,8 @@ class Interface2Device(State2Device):
         if value:
             self._read_only=value
         return self._read_only
+    
+    def send_always(self, value=False):
+        if value:
+            self._send_always = value
+        return self._send_always
