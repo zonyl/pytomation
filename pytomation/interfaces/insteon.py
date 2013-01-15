@@ -657,7 +657,7 @@ class InsteonPLM(HAInterface):
                         level = int(simpleMap(command2, 1, 254, 1, 10))
                         self._onCommand(address=destDeviceId, command=self.v1StateLevels[level]) #ex: State.L80
         
-        self.statusRequest = False            
+        #self.statusRequest = False            
         return (True,None)
         # Old stuff, don't use this at the moment
         #lightLevelRaw = messageBytes[10]
