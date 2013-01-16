@@ -36,7 +36,6 @@ import binascii
 import serial
 import hashlib
 import sys
-from ..config import *
 
 from ..common.pytomation_object import PytomationObject
 

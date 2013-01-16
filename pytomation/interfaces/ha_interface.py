@@ -30,7 +30,6 @@ import sys
 from collections import deque
 
 from .common import *
-from ..config import *
 from ..common.pytomation_object import PytomationObject
 
 class HAInterface(AsynchronousInterface, PytomationObject):
