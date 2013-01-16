@@ -170,7 +170,7 @@ class Light2Tests(TestCase):
     
     def test_level(self):
         self.device.command((Command.LEVEL, 40))
-        self.assertTrue(self.interface.level.called)
+        self.interface.level.assert_called_with('D1', 40)
 
     def test_time_cron(self):
         light = Light2('a2',

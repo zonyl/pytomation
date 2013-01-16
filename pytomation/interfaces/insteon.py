@@ -744,12 +744,16 @@ class InsteonPLM(HAInterface):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '14', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
-    def level(self, deviceId, level, timeout=None):
-
-        #organize what dim level we are heading to (figgure out the byte we need to send)
-        lightLevelByte = simpleMap(level, 0, 1, 0, 255)
-
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', '%02x' % lightLevelByte)
+    def level(self, deviceId, level, timeout=None, percent=True):
+        if percent and level > 100 or level <0:
+            self._logger.error("{name} cannot set light level {level} beyond 0-100%".format(
+                                                                                    name=self.name,
+                                                                                    level=level,
+                                                                                    ))
+        if percent:
+            level = int((int(level) / 100.0) * int(0xFF))
+        
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', '%02x' % level)
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def level_up(self, deviceId, timeout=None):

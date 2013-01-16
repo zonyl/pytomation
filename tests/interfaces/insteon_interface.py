@@ -1,7 +1,9 @@
 import select
 import time
 
+from binascii import unhexlify
 from unittest import TestCase, main
+from mock import Mock
 
 from tests.common import MockInterface
 from pytomation.interfaces import InsteonPLM, Serial, HACommand, \
@@ -67,6 +69,12 @@ class InsteonInterfaceTests(TestCase):
     def test_insteon_level(self):
         response = self.insteon.l40('19.05.7b')
         self.assertEqual(response, False)
+        
+    def test_insteon_level2(self):
+        m = Mock()
+        i = InsteonPLM(m)
+        i.level('12.20.B0', 50)
+        m.write.assert_called_with(unhexlify('02621220b00f117f'))
 
 if __name__ == '__main__':
     main()
