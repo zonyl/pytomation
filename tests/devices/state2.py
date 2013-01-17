@@ -3,7 +3,7 @@ import time
 from unittest import TestCase
 from datetime import datetime
 
-from pytomation.devices import State2Device, State2, Attribute
+from pytomation.devices import State2Device, State2, Attribute, Attributes
 from pytomation.interfaces import Command
 
 class State2Tests(TestCase):
@@ -68,7 +68,12 @@ class State2Tests(TestCase):
                                                  )
         print 'Trigger Time' + trigger_time2
         device = State2Device(
+#                              time=Attributes(command=Command.OFF,
+#                                              time=(trigger_time1, trigger_time2)
+#                                              )
+#                              )
                               time={
+                                    
                                     'command': Command.OFF,
                                     'time': (trigger_time1, trigger_time2),
                                     }
