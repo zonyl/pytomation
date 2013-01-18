@@ -16,6 +16,5 @@ from .motion2 import *
 from .photocell import *
 from .photocell2 import *
 from .scene import *
+from .scene2 import *
 from .attributes import *
-
-
