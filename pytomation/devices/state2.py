@@ -17,7 +17,9 @@ class State2(object):
     CLOSED = "close"
     LIGHT = "light"
     DARK = "dark"
-    
+    ACTIVE = 'activate'
+    INACTIVE = 'deactivate'
+
 class Attribute(object):
     MAPPED = 'mapped'
     COMMAND = 'command'
@@ -180,7 +182,7 @@ class State2Device(PytomationObject):
         if kwargs.get('devices', None):
             try:
                 getattr(self, 'devices')( **kwargs['devices'])
-            except:
+            except Exception, ex:
                 getattr(self, 'devices')( kwargs['devices'])
         # run through the rest
         for k, v in kwargs.iteritems():
@@ -311,8 +313,10 @@ class State2Device(PytomationObject):
                 self._add_device(device)
 
     def _add_device(self, device):
-        self._devices.append(device)
-        return device.on_command(device=self)
+        if not isinstance(device, dict):
+            self._devices.append(device)
+            return device.on_command(device=self)
+        return True
 
     def mapped(self, *args, **kwargs):
         command = kwargs.get('command', None)
