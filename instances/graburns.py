@@ -139,7 +139,7 @@ ph_standard = Location2('35.2269', '-80.8433',
                        mode=Location2.MODE.STANDARD, 
                        is_dst=True,
                        name='Standard Photocell')
-ph_civil = Location('35.2269', '-80.8433', 
+ph_civil = Location2('35.2269', '-80.8433', 
                     tz='US/Eastern', 
                     mode=Location2.MODE.CIVIL, 
                     is_dst=True,
@@ -173,66 +173,96 @@ l_foyer = Light2(
 		 name='Foyer Light',
                 )
 
-l_front_porch = Light(
+l_front_porch = Light2(
                       address=(49, 4),
                       devices=(upb, d_foyer, m_front_porch, m_front_camera, ph_standard, ),
-                      initial_state=ph_standard,
-                      delay_off=180*60,
-                      idle_l40=10*60,
-                      time_off='11:59pm',
+                      initial=ph_standard,
+                      delay={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.SECS: 180*60,
+                             },
+                       idle={
+                             Attribute.COMMAND:(Command.LEVEL, 40),
+                             Attribute.SECS: 10*60,
+                             },
+                       time={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.TIME: '11:59pm',
+                             },
                       name='Front Porch Light'
                       )
 
 
-l_front_flood = Light(
+l_front_flood = Light2(
                       address=(49, 5), 
                       devices=(upb, d_garage, d_garage_overhead, 
                                d_foyer, m_front_garage, m_front_camera, ph_standard),
-                      initial_state=ph_standard,
-                      delay_off=10*60,
-                      idle_l40=5*60,
-                      time_off='11:59pm',
+                      delay={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.SECS: 180*60,
+                             },
+                       idle={
+                             Attribute.COMMAND:(Command.LEVEL, 40),
+                             Attribute.SECS: 5*60,
+                             },
+                       time={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.TIME: '11:59pm',
+                             },
                       name='Front Flood Light'
                       )
 
 # Cron Format
 #  secs=allMatch, min=allMatch, hour=allMatch, day=allMatch, month=allMatch, dow=allMatch
-l_front_outlet = Light(
+l_front_outlet = Light2(
                       address=(49, 21), 
                       devices=(upb, ph_civil),
-                      initial_state=ph_civil,
+                      initial=ph_civil,
 #                      time_off='10:30pm',
 # Im usually working on the code at this time of night, so lets send multiple off signals
 # just in case I am not running pyto during its designated time.
-                      time_off=(0, 30, [22,23,0,01]),
+#                      time_off=(0, 30, [22,23,0,01]),
                       name='Front Outlet Light'
                       )
 
-l_front_garage = Light(
+l_front_garage = Light2(
                       address=(49, 2), 
                       devices=(upb, d_garage, d_garage_overhead, 
                                m_front_garage, m_front_camera, ph_standard),
-                      initial_state=ph_standard,
-                      delay_off=180*60,
-                      idle_l40=10*60,
-                      time_off='11:59pm',
+                      delay={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.SECS: 180*60,
+                             },
+                       idle={
+                             Attribute.COMMAND:(Command.LEVEL, 40),
+                             Attribute.SECS: 10*60,
+                             },
+                       time={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.TIME: '11:59pm',
+                             },
                       name='Front Garage Light',
                       )
 
-l_garage = Light(
+l_garage = Light2(
                       address=(49, 18), 
                       devices=(upb, m_garage, d_garage, d_garage_overhead, 
                                ph_standard, s_all_indoor_off),
-                      delay_off=10*60,
-                      time_off='11:59pm',
-                      ignore_dark=True,
+                      delay={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.SECS: 5*60,
+                             },
+                       time={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.TIME: '11:59pm',
+                             },
                       name='Garage Light',
                       sync=True, #Un-reliable connection this far
                       )
 
 l_family_lamp = Light2(
                 address=(49, 6), 
-                devices=(upb, m_family, ph_standard2),
+                devices=(upb, m_family, ph_standard),
                 mapped={
                         Attribute.COMMAND: Command.MOTION,
                         Attribute.SECS: 30*60
