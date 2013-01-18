@@ -94,6 +94,8 @@ class InsteonPLM(HAInterface):
     statusRequest = False   # Set to True when we do a status request
     v1StateLevels = [State.OFF,State.L10,State.L20,State.L30,State.L40,State.L50,State.L60,State.L70,State.L80,State.L90,State.ON]
     
+    plmAddress = ""
+    
     def __init__(self, interface, *args, **kwargs):
         super(InsteonPLM, self).__init__(interface, *args, **kwargs)
         
@@ -309,14 +311,14 @@ class InsteonPLM(HAInterface):
                             self._logger.debug("No callBack defined for for modem command %s" % modemCommand)
 
                     self._lastPacketHash = currentPacketHash
-                    self.spinTime = 0.1     #reset spin time, there were no naks
+                    self.spinTime = 0.2     #reset spin time, there were no naks, Don't set this lower
                 else:
                     self._logger.debug("No responseSize defined for modem command %s" % modemCommand)
                     
             elif firstByte[0] == '\x15':
                 self.spinTime += 0.2
                 self._logger.debug("Received a Modem NAK! Resending command, loop time %f" % (self.spinTime))
-                if self.spinTime < 10.0:
+                if self.spinTime < 12.0:
                     self._sendInterfaceCommand(self.currentCommand[0], self.currentCommand[1], self.currentCommand[2])
                 else:
                     self._logger.debug("Too many NAK's! Device not responding...")
@@ -360,24 +362,17 @@ class InsteonPLM(HAInterface):
 
     #low level processing methods
     def _process_PLMInfo(self, responseBytes):
-        (modemCommand, idHigh, idMid, idLow, deviceCat, deviceSubCat, firmwareVer, acknak) = struct.unpack('xBBBBBBBB', responseBytes)
-        #modemCommand = responseBytes[0]
-        #idHigh = responseBytes[1] 
-        #idMid = responseBytes[2] 
-        #idLow = responseBytes[3] 
-        #deviceCat = responseBytes[4] 
-        #deviceSubCat = responseBytes[5] 
-        #firmwareVer = responseBytes[6] 
-        #acknak = responseBytes[7]
+        (modemCommand, InsteonCommand, idHigh, idMid, idLow, deviceCat, deviceSubCat, firmwareVer, acknak) = struct.unpack('BBBBBBBBB', responseBytes)
         
         foundCommandHash = None
         #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
         for (commandHash, commandDetails) in self._pendingCommandDetails.items():
 #            if binascii.unhexlify(commandDetails['modemCommand']) == chr(modemCommand):
-            if commandDetails['modemCommand'] == chr(modemCommand):
+            if commandDetails['modemCommand'] == '\x60':
                 #Looks like this is our command.  Lets deal with it
-                self._commandReturnData[commandHash] = { 'id': _byteIdToStringId(idHigh,idMid,idLow), 'deviceCategory': '%02X' % deviceCat, 'deviceSubCategory': '%02X' % deviceSubCat, 'firmwareVersion': '%02X' % firmwareVer }    
-
+                #self._commandReturnData[commandHash] = { 'id': _byteIdToStringId(idHigh,idMid,idLow), 'deviceCategory': '%02X' % deviceCat, 'deviceSubCategory': '%02X' % deviceSubCat, 'firmwareVersion': '%02X' % firmwareVer }    
+                self.plmAddress = _byteIdToStringId(idHigh,idMid,idLow).upper()
+                
                 waitEvent = commandDetails['waitEvent']
                 waitEvent.set()
 
@@ -633,19 +628,19 @@ class InsteonPLM(HAInterface):
 
         destDeviceId = _byteIdToStringId(fromIdHigh, fromIdMid, fromIdLow).upper()
 
-     
         isGrpCleanupAck = (messageFlags & 0x60) == 0x60
         isGrpBroadcast = (messageFlags & 0xC0) == 0xC0
         isGrpCleanupDirect = (messageFlags & 0x40) == 0x40
         # If we get an ack from a group command fire off a status request or we'll never know the on level
         if isGrpCleanupAck | isGrpBroadcast | isGrpCleanupDirect:
-            self._logger.debug("running lightstatusrequest..........")
+            self._logger.debug("Running status request..........")
+            time.sleep(0.1)
             self.lightStatusRequest(destDeviceId)
         else:   # direct command
             self._logger.debug("Setting status..........")
             # For now lets just handle on and off until the new state code is ready.
             for d in self._devices:
-                if d.address == destDeviceId:
+                if d.address.upper() == destDeviceId:
                     if 'Light2' in str(type(d)):
                         if command2 < 0x02:     # Never seen one not go to zero but...
                             self._onCommand(address=destDeviceId, command=State2.OFF)
@@ -672,6 +667,8 @@ class InsteonPLM(HAInterface):
 
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
+    # This doesn't work and ping in Insteon seems broken as far as I can tell.
+    # The ping command 0x0D seems to return an ack from non-existant devices.
     def pingDevice(self, deviceId, timeout = None):
         startTime = time.time()
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '0F', '00')
@@ -921,7 +918,7 @@ class InsteonPLM(HAInterface):
                 
                 # If we have an orphaned queue it will show up here, get the details, remove the old command
                 # from the queue and re-issue.
-                if self.cmdQueueList.count(commandHash) > 120:
+                if self.cmdQueueList.count(commandHash) > 50:
                     if commandDetails['modemCommand'] in ['\x60','\x61','\x62']:
                         #print "deleting commandhash ", commandHash
                         #print commandDetails
@@ -933,4 +930,5 @@ class InsteonPLM(HAInterface):
                         del self._pendingCommandDetails[commandHash]
                         while commandHash in self.cmdQueueList:
                             self.cmdQueueList.remove(commandHash)
+                        # Retry the command..Do we really want this?
                         self._sendStandardP2PInsteonCommand(deviceId, cmd1[2:], cmd2)
