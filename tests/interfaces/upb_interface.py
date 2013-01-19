@@ -101,7 +101,11 @@ class UPBInterfaceTests(TestCase):
         m_interface.read.return_value = ''
         
     def test_level(self):
-        response = self.upb.l40((39,4))
+        response = self.upb.l40((39, 4))
+        self.assertTrue(True)
+        
+    def test_level2(self):
+        response = self.upb.level((39, 4), 40)
         self.assertTrue(True)
 
 if __name__ == '__main__':
