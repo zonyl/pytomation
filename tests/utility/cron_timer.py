@@ -1,6 +1,7 @@
 import time
 
 from unittest import TestCase, main
+from mock import Mock
 from datetime import datetime, timedelta
 
 from pytomation.utility import CronTimer, AllMatch
@@ -12,15 +13,17 @@ class CronTimerTests(TestCase):
         self.ct = CronTimer()
 
     def test_2_sec_callback(self):
-        self.called = False
+        m = Mock()
+        
         t = datetime.now().timetuple()[5]
         t += 2
         self.ct.interval(secs=t)
-        self.ct.action(self.callback, ())
+        self.ct.action(m.action, ())
         self.ct.start()
         time.sleep(4)
         self.ct.stop()
-        self.assertEqual(self.called, True, "Callback was not called")
+
+        self.assertEqual(m.action.called, True, "Callback was not called")
 
     def test_2_sec_intervals(self):
         self.called = False
