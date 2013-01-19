@@ -28,8 +28,8 @@ class Location2Tests(TestCase):
         
     def test_delegate(self):
         self.loc = Location2('35.2269', '-80.8433')
-        l = Light2(devices=self.loc)
-        self.assertEqual(l.state, State2.ON)
+        l = Light2(devices=self.loc, initial=State2.OFF)
+        self.assertEqual(l.state, State2.OFF)
         self.loc.local_time = datetime(2012,6,1,0,0,0)
 #        MockDateTime.now = classmethod(lambda x: datetime(2012,6,1,0,0,0))
         self.assertEqual(self.loc.state, State2.DARK)
