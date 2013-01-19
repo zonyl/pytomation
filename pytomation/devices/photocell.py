@@ -1,9 +1,9 @@
 from .interface import Interface2Device
-from .state import State2
+from .state import State
 from ..interfaces import Command
 
 class Photocell2(Interface2Device):
-    STATES = [State2.UNKNOWN, State2.DARK, State2.LIGHT, State2.LEVEL]
+    STATES = [State.UNKNOWN, State.DARK, State.LIGHT, State.LEVEL]
     COMMANDS = [Command.DARK, Command.LIGHT, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
 
     def _initial_vars(self, *args, **kwargs):

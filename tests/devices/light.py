@@ -4,7 +4,7 @@ from datetime import datetime
 from unittest import TestCase, main
 from mock import Mock
 
-from pytomation.devices import Light2, Door2, Location2, State2, Motion2, \
+from pytomation.devices import Light2, Door2, Location2, State, Motion2, \
                                 Photocell2, Attribute
 from pytomation.interfaces import Command
 
@@ -12,7 +12,7 @@ class Light2Tests(TestCase):
 
     def setUp(self):
         self.interface = Mock()
-        self.interface.state = State2.UNKNOWN
+        self.interface.state = State.UNKNOWN
         self.device = Light2('D1', self.interface)
 
     def test_instantiation(self):
@@ -20,9 +20,9 @@ class Light2Tests(TestCase):
                              'Light Device could not be instantiated')
 
     def test_on(self):
-        self.assertEqual(self.device.state, State2.UNKNOWN)
+        self.assertEqual(self.device.state, State.UNKNOWN)
         self.device.on()
-        self.assertEqual(self.device.state, State2.ON)
+        self.assertEqual(self.device.state, State.ON)
         self.assertTrue(self.interface.on.called)
 
     def test_on_time(self):
@@ -52,42 +52,42 @@ class Light2Tests(TestCase):
         home = Location2('35.2269', '-80.8433')
         home.local_time = datetime(2012,6,1,12,0,0)
         light = Light2('D1', home)
-        self.assertEqual(light.state, State2.OFF)
+        self.assertEqual(light.state, State.OFF)
         home.local_time = datetime(2012,6,1,0,0,0)
-        self.assertEqual(home.state, State2.DARK)
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(home.state, State.DARK)
+        self.assertEqual(light.state, State.ON)
         
     def test_motion_triggered(self):
-        motion = Motion2('D1', initial=State2.STILL)
-        self.assertEqual(motion.state, State2.STILL)
+        motion = Motion2('D1', initial=State.STILL)
+        self.assertEqual(motion.state, State.STILL)
         light = Light2('D1', devices=motion)
-        self.assertEqual(light.state, State2.OFF)
+        self.assertEqual(light.state, State.OFF)
         motion.motion()
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
 
     def test_photocell_triggered(self):
-        photo = Photocell2('D1', initial=State2.LIGHT)
+        photo = Photocell2('D1', initial=State.LIGHT)
         light = Light2('D1', devices=photo)
-        self.assertEquals(light.state, State2.OFF)
+        self.assertEquals(light.state, State.OFF)
         photo.dark()
-        self.assertEquals(light.state, State2.ON)
+        self.assertEquals(light.state, State.ON)
         
         
     def test_light_restricted(self):
-        photo = Photocell2('D1', initial=State2.LIGHT)
-        self.assertEqual(photo.state, State2.LIGHT)
-        motion = Motion2('D1', initial=State2.STILL)
+        photo = Photocell2('D1', initial=State.LIGHT)
+        self.assertEqual(photo.state, State.LIGHT)
+        motion = Motion2('D1', initial=State.STILL)
         light = Light2('D2', devices=(motion, photo),
                        initial=photo)
-        self.assertEqual(light.state, State2.OFF)
+        self.assertEqual(light.state, State.OFF)
         motion.motion()
-        self.assertEqual(light.state, State2.OFF)
+        self.assertEqual(light.state, State.OFF)
         photo.dark()
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
         light.off()
-        self.assertEqual(light.state, State2.OFF)
+        self.assertEqual(light.state, State.OFF)
         motion.motion()
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
 
     def test_delay_normal(self):
         # Door Open events retrigger delay
@@ -102,20 +102,20 @@ class Light2Tests(TestCase):
                              'source': door}
                        )
         door.open()
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
         door.close()
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
         time.sleep(2)
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
         time.sleep(2)
-        self.assertEqual(light.state, State2.OFF)
+        self.assertEqual(light.state, State.OFF)
 
         # Check to see if we can immediately and directly still turn off
         light.off()
         door.open()
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
         light.off()
-        self.assertEqual(light.state, State2.OFF)
+        self.assertEqual(light.state, State.OFF)
 
     def test_delay_light_specific(self):
         # motion.off and Photocell.Light events do not retrigger
@@ -133,12 +133,12 @@ class Light2Tests(TestCase):
                                }
                        )
         motion.motion()
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
         time.sleep(2)
         motion.still()
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
         time.sleep(1)
-        self.assertEqual(light.state, State2.OFF)
+        self.assertEqual(light.state, State.OFF)
 
     def test_light_photocell_intial(self):
         motion = Motion2()
@@ -149,7 +149,7 @@ class Light2Tests(TestCase):
                       devices=(photo, motion),
                       initial=photo,
                       )
-        self.assertEqual(light.state, State2.ON)
+        self.assertEqual(light.state, State.ON)
         
     def test_light_photocell_delay(self):
         ## Dont like this behavior anymore
@@ -163,9 +163,9 @@ class Light2Tests(TestCase):
 #                             'command': Command.OFF,
 #                             'secs': 3
 #                             })
-#        self.assertEqual(light.state, State2.ON)
+#        self.assertEqual(light.state, State.ON)
 #        photo.light()
-#        self.assertEqual(light.state, State2.OFF)
+#        self.assertEqual(light.state, State.OFF)
         pass
     
     def test_level(self):
@@ -199,9 +199,9 @@ class Light2Tests(TestCase):
                     ),
                 name='Lamp',
                 )
-        self.assertEqual(l.state, State2.UNKNOWN)
-        m.command(command=State2.ON, source=None)
-        self.assertEqual(l.state, State2.UNKNOWN)
+        self.assertEqual(l.state, State.UNKNOWN)
+        m.command(command=State.ON, source=None)
+        self.assertEqual(l.state, State.UNKNOWN)
     
     def test_light_scenario_g1(self):
         d = Door2()
@@ -217,13 +217,13 @@ class Light2Tests(TestCase):
             ignore=({Attribute.COMMAND: Command.DARK}),
             name="Hallway Lights",)
         l.on()
-        self.assertEqual(l.state, State2.ON)
+        self.assertEqual(l.state, State.ON)
         d.close()
-        self.assertEqual(l.state, State2.ON)
+        self.assertEqual(l.state, State.ON)
         time.sleep(3)
-        self.assertEqual(l.state, State2.OFF)
+        self.assertEqual(l.state, State.OFF)
         d.open()
-        self.assertEqual(l.state, State2.OFF)
+        self.assertEqual(l.state, State.OFF)
         
         
     def test_light_scenario_2(self):
@@ -252,11 +252,11 @@ class Light2Tests(TestCase):
          name='Foyer Light',
                 )
         l.off()
-        self.assertEqual(l.state, State2.OFF)
+        self.assertEqual(l.state, State.OFF)
         m.motion()
-        self.assertEqual(l.state, State2.OFF)
+        self.assertEqual(l.state, State.OFF)
         time.sleep(3)
-        self.assertEqual(l.state, State2.OFF)
+        self.assertEqual(l.state, State.OFF)
         
         
         

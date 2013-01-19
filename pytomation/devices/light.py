@@ -1,9 +1,9 @@
 from .interface import Interface2Device
-from .state import State2
+from .state import State
 from ..interfaces import Command
 
 class Light2(Interface2Device):
-    STATES = [State2.UNKNOWN, State2.ON, State2.OFF, State2.LEVEL]
+    STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
 
     def _initial_vars(self, *args, **kwargs):
@@ -20,9 +20,9 @@ class Light2(Interface2Device):
         source = kwargs.get('source', None)
         if command == Command.LIGHT:
             a = 1
-        if source and source.state == State2.DARK:
+        if source and source.state == State.DARK:
             self.restricted = False
-        elif source and source.state == State2.LIGHT:
+        elif source and source.state == State.LIGHT:
             self.restricted = True
         super(Light2, self).command(command, *args, **kwargs)
 
@@ -32,7 +32,7 @@ class Light2(Interface2Device):
             a = 1
         (m_state, m_command) = super(Light2, self)._command_state_map(command, *args, **kwargs)
         if source and not source == self and m_command == Command.ON and \
-            source.state in (State2.OPEN, State2.MOTION, State2.DARK):
+            source.state in (State.OPEN, State.MOTION, State.DARK):
             if self.restricted:
                 m_command = None
                 m_state = None 

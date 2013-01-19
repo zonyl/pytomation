@@ -3,7 +3,7 @@ from datetime import datetime
 from unittest import TestCase, main
 from mock import Mock, patch
 
-from pytomation.devices import Location2, State2, Light2
+from pytomation.devices import Location2, State, Light2
 
 
 class Location2Tests(TestCase):
@@ -13,10 +13,10 @@ class Location2Tests(TestCase):
     def test_sunset(self):
         self.loc.local_time = datetime(2012,6,1,0,0,0)
 #        MockDateTime.now = classmethod(lambda x: datetime(2012,6,1,0,0,0))
-        self.assertEqual(self.loc.state, State2.DARK)
+        self.assertEqual(self.loc.state, State.DARK)
 #        MockDateTime.now = classmethod(lambda x: datetime(2012,6,1,12,0,0))
         self.loc.local_time = datetime(2012,6,1,12,0,0)
-        self.assertEqual(self.loc.state, State2.LIGHT)
+        self.assertEqual(self.loc.state, State.LIGHT)
         
     def test_civil(self):
         ph_standard = Location2('35.2269', '-80.8433', 
@@ -28,13 +28,13 @@ class Location2Tests(TestCase):
         
     def test_delegate(self):
         self.loc = Location2('35.2269', '-80.8433')
-        l = Light2(devices=self.loc, initial=State2.OFF)
-        self.assertEqual(l.state, State2.OFF)
+        l = Light2(devices=self.loc, initial=State.OFF)
+        self.assertEqual(l.state, State.OFF)
         self.loc.local_time = datetime(2012,6,1,0,0,0)
 #        MockDateTime.now = classmethod(lambda x: datetime(2012,6,1,0,0,0))
-        self.assertEqual(self.loc.state, State2.DARK)
-        self.assertEqual(l.state, State2.ON)
+        self.assertEqual(self.loc.state, State.DARK)
+        self.assertEqual(l.state, State.ON)
 #        MockDateTime.now = classmethod(lambda x: datetime(2012,6,1,12,0,0))
         self.loc.local_time = datetime(2012,6,1,12,0,0)
-        self.assertEqual(self.loc.state, State2.LIGHT)
-        self.assertEqual(l.state, State2.OFF)
+        self.assertEqual(self.loc.state, State.LIGHT)
+        self.assertEqual(l.state, State.OFF)

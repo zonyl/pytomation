@@ -1,9 +1,9 @@
 from .interface import Interface2Device
 from ..interfaces import Command
-from .state import State2
+from .state import State
 
 class Scene2(Interface2Device):
-    STATES = [State2.UNKNOWN, State2.ACTIVE, State2.INACTIVE]
+    STATES = [State.UNKNOWN, State.ACTIVE, State.INACTIVE]
     COMMANDS = [Command.ACTIVATE, Command.DEACTIVATE, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
 
     def __init__(self, address=None, *args, **kwargs):

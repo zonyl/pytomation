@@ -1,7 +1,7 @@
 from mock import Mock
 from unittest import TestCase
 
-from pytomation.devices import Scene2, Interface2Device, State2Device, State2
+from pytomation.devices import Scene2, Interface2Device, StateDevice, State
 
 class SceneDeviceTests(TestCase):
     def test_instantiation(self):
@@ -19,11 +19,11 @@ class SceneDeviceTests(TestCase):
                       address='s1',
                       devices= (interface,
                                 {d1: {
-                                     'state': State2.ON,
+                                     'state': State.ON,
                                      'rate': 10,
                                      },
                                 d2: {
-                                     'state': (State2.LEVEL, 30),
+                                     'state': (State.LEVEL, 30),
                                      'rate': 10,
                                      },
                                 }),
@@ -38,11 +38,11 @@ class SceneDeviceTests(TestCase):
         interface.update_scene.assert_called_with(
                                                            's1',
                                                           devices= {d1: {
-                                                                         'state': State2.ON,
+                                                                         'state': State.ON,
                                                                          'rate': 10,
                                                                          },
                                                                     d2: {
-                                                                         'state': (State2.LEVEL, 30),
+                                                                         'state': (State.LEVEL, 30),
                                                                          'rate': 10,
                                                                          },
                                                                     },

@@ -4,7 +4,7 @@ from mock import Mock, PropertyMock, MagicMock
 from datetime import datetime
 
 from pytomation.utility.timer import Timer as CTimer
-from pytomation.devices import Interface2Device, State2, State2Device, Attribute
+from pytomation.devices import Interface2Device, State, StateDevice, Attribute
 from pytomation.interfaces import Command, HAInterface
 
 class Interface2Device_Tests(TestCase):
@@ -28,7 +28,7 @@ class Interface2Device_Tests(TestCase):
         self.interface.on.assert_called_with('D1')
         
     def test_substate(self):    
-        self.device.command((State2.LEVEL, 80))
+        self.device.command((State.LEVEL, 80))
         self.interface.level.assert_called_with('D1', 80)
     
     def test_read_only(self):
@@ -67,18 +67,18 @@ class Interface2Device_Tests(TestCase):
         type(interface).state = p
         device = Interface2Device(address='asdf',
                                  devices=interface,
-                                 initial=State2.ON
+                                 initial=State.ON
                                  )
         interface.on.assert_called_with('asdf')
 #        interface.initial.assert_called_with('asdf')
         
-        device1 = State2Device()
+        device1 = StateDevice()
         device1.on()
         interface2 = Mock()
         type(interface2).state = p
         device = Interface2Device(address='asdf',
                                  devices=interface2,
-                                 initial=State2.ON
+                                 initial=State.ON
                                  )
         interface2.on.assert_called_with('asdf')
         
@@ -89,7 +89,7 @@ class Interface2Device_Tests(TestCase):
                              devices=hi)
         hi._onCommand(Command.ON, 'asdf')
         time.sleep(1)
-        self.assertEqual(d.state, State2.ON)
+        self.assertEqual(d.state, State.ON)
         
     def test_loop_prevention(self):
         d = Interface2Device(
@@ -106,13 +106,13 @@ class Interface2Device_Tests(TestCase):
     def test_no_repeat(self):
         #if the state is already set then dont send the command again
         self.device.off()
-        self.assertEqual(self.device.state, State2.OFF)
+        self.assertEqual(self.device.state, State.OFF)
         self.device.on()
-        self.assertEqual(self.device.state, State2.ON)
+        self.assertEqual(self.device.state, State.ON)
         self.interface.on.assert_called_once_with('D1')
         self.interface.on.reset_mock()
         self.device.on()
-        self.assertEqual(self.device.state, State2.ON)
+        self.assertEqual(self.device.state, State.ON)
         self.assertFalse(self.interface.on.called)
         
 

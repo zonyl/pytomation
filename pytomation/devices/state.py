@@ -5,7 +5,7 @@ from ..interfaces import Command
 from ..utility import CronTimer
 from ..utility.timer import Timer as CTimer
 
-class State2(object):
+class State(object):
     ALL = 'all'
     UNKNOWN = 'unknown'
     ON = 'on'
@@ -28,22 +28,22 @@ class Attribute(object):
     SECS = 'secs'
     SOURCE = 'source'
     
-class State2Device(PytomationObject):
-    STATES = [State2.UNKNOWN, State2.ON, State2.OFF, State2.LEVEL]
+class StateDevice(PytomationObject):
+    STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
     
     def __init__(self, *args, **kwargs):
-        super(State2Device, self).__init__(*args, **kwargs)
+        super(StateDevice, self).__init__(*args, **kwargs)
         if not kwargs.get('devices', None) and len(args)>0:
             kwargs.update({'devices': args[0]})
         self._initial_vars(*args, **kwargs)
         self._process_kwargs(kwargs)
         self._initial_from_devices(*args, **kwargs)
-        if not self.state or self.state == State2.UNKNOWN:
+        if not self.state or self.state == State.UNKNOWN:
             self.command(Command.INITIAL, source=self)
 
     def _initial_vars(self, *args, **kwargs):
-        self._state = State2.UNKNOWN
+        self._state = State.UNKNOWN
         self._previous_state = self._state
         self._previous_command = None
         self._last_set = datetime.now()
@@ -118,10 +118,10 @@ class State2Device(PytomationObject):
         m_command = self._state_to_command(state, command)
         if command == Command.LEVEL or (isinstance(command, tuple) and command[0] == Command.LEVEL):
             if isinstance(command, tuple):
-                state = (State2.LEVEL, command[1])
+                state = (State.LEVEL, command[1])
 #                m_command = command
             else:
-                state = (State2.LEVEL, kwargs.get('sub_state', (0,))[0])
+                state = (State.LEVEL, kwargs.get('sub_state', (0,))[0])
 #                m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
             m_command = self._state_to_command(state, m_command)
         elif command == Command.PREVIOUS:
@@ -136,21 +136,21 @@ class State2Device(PytomationObject):
         return (state, m_command)
 
     def toggle_state(self):
-        if self.state == State2.ON:
-            state = State2.OFF
+        if self.state == State.ON:
+            state = State.OFF
         else:
-            state = State2.ON
+            state = State.ON
         return state
     
     def _command_to_state(self, command, state):
         # Try to map the same state ID
         try:
-#            state = getattr(State2, command)
+#            state = getattr(State, command)
             primary = command
             if isinstance(command, tuple):
                 primary = command[0]
-            for attribute in dir(State2):
-                if getattr(State2, attribute) == primary:
+            for attribute in dir(State):
+                if getattr(State, attribute) == primary:
                     return command
         except Exception, ex:
             self._logger.debug("{name} Could not find command to state for {command}".format(
@@ -272,7 +272,7 @@ class State2Device(PytomationObject):
     def time(self, *args, **kwargs):
         # time, command
         times = kwargs.get('time', None)
-        command = kwargs.get('command', State2.UNKNOWN)
+        command = kwargs.get('command', State.UNKNOWN)
         
         if times:
             if not isinstance( times, tuple):
@@ -457,7 +457,7 @@ class State2Device(PytomationObject):
                 
     def _initial_from_devices(self, *args, **kwargs):
         state = None
-        if self.state == State2.UNKNOWN:
+        if self.state == State.UNKNOWN:
             for device in self._devices:
 #                state = device.state
                 (state, command) =  self._command_state_map(device.last_command)

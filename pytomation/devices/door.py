@@ -1,9 +1,9 @@
 from ..interfaces import Command
 from .interface import Interface2Device
-from .state import State2
+from .state import State
 
 class Door2(Interface2Device):
-    STATES = [State2.UNKNOWN, State2.OPEN, State2.CLOSED]
+    STATES = [State.UNKNOWN, State.OPEN, State.CLOSED]
     COMMANDS = [Command.OPEN, Command.CLOSE, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
 
     

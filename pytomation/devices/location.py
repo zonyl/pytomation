@@ -3,12 +3,12 @@ import pytz
 
 from datetime import datetime
 from time import strftime
-from .state import State2Device, State2
+from .state import StateDevice, State
 from pytomation.utility import CronTimer
 from ..interfaces import Command
 
-class Location2(State2Device):
-    STATES = [State2.LIGHT, State2.DARK]
+class Location2(StateDevice):
+    STATES = [State.LIGHT, State.DARK]
     COMMANDS = [Command.LIGHT, Command.DARK, Command.INITIAL, Command.TOGGLE, Command.PREVIOUS]
 
     class MODE():
@@ -82,13 +82,13 @@ class Location2(State2Device):
         time_now = self.local_time.replace(second=0, microsecond=0)
         if (self._sunrise > self._sunset and self._sunset != time_now) or \
             self._sunrise == time_now:
-#            self.state = State2.LIGHT
+#            self.state = State.LIGHT
 #            self._set_state(State.LIGHT, self.state, self)
             if self.state <> Command.LIGHT:
 #                self.command(Command.LIGHT, source=self)
                 self.light()
         else:
-#            self.state = State2.DARK
+#            self.state = State.DARK
 #            self._set_state(State.DARK, self.state, self)
             if self.state <> Command.DARK:
 #                self.command(Command.DARK, source=self)
@@ -132,7 +132,7 @@ class Location2(State2Device):
     def _command_state_map(self, command, *args, **kwargs):
         (m_state, m_command) = super(Location2, self)._command_state_map(command, *args, **kwargs)
         if m_command == Command.OFF:
-            m_state = State2.DARK
+            m_state = State.DARK
         elif m_command == Command.ON:
-            m_state = State2.LIGHT
+            m_state = State.LIGHT
         return (m_state, m_command)

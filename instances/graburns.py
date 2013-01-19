@@ -3,7 +3,7 @@ import select
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32, \
                                     NamedPipe, StateInterface, Command
 from pytomation.devices import Motion2, Door2, Light2, Location2, Interface2Device, \
-                                Photocell2, Generic2, State2Device, State2, Attribute
+                                Photocell2, Generic2, StateDevice, State, Attribute
 
 from pytomation.common.system import *
 
@@ -131,7 +131,7 @@ k_master = Generic2(
 #                 devices=(upb,),
 #                 )
 
-s_all_indoor_off = State2Device()
+s_all_indoor_off = StateDevice()
 
 #photocell
 ph_standard = Location2('35.2269', '-80.8433', 

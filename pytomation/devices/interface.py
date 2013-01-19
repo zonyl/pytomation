@@ -1,9 +1,9 @@
 import random
 
 from pytomation.utility.timer import Timer as CTimer
-from .state import State2Device, State2
+from .state import StateDevice, State
 
-class Interface2Device(State2Device):
+class Interface2Device(StateDevice):
     
     def __init__(self, address=None, *args, **kwargs):
         self._address = address

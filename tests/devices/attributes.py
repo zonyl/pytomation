@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from pytomation.interfaces import Command
-from pytomation.devices import Attributes, State2
+from pytomation.devices import Attributes, State
 
 class AttributesTest(TestCase):
     def test_instance(self):

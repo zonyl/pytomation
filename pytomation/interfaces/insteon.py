@@ -54,7 +54,7 @@ import hashlib
 from collections import deque
 from .common import *
 from .ha_interface import HAInterface
-from pytomation.devices import State2
+from pytomation.devices import State
 
 def _byteIdToStringId(idHigh, idMid, idLow):
     return '%02X.%02X.%02X' % (idHigh, idMid, idLow)
@@ -642,12 +642,12 @@ class InsteonPLM(HAInterface):
             for d in self._devices:
                 if d.address.upper() == destDeviceId:
                     # only run the command if the state is different than current
-                    if command2 < 0x02 and d.state != State2.OFF:     # Never seen one not go to zero but...
-                        self._onCommand(address=destDeviceId, command=State2.OFF)
-                    elif command2 > 0xFD and d.state != State2.ON:   # some times these don't go to 0xFF
-                        self._onCommand(address=destDeviceId, command=State2.ON)
-                    elif d.state != (State2.LEVEL, command2):
-                        self._onCommand(address=destDeviceId, command=((State2.LEVEL, command2)))
+                    if command2 < 0x02 and d.state != State.OFF:     # Never seen one not go to zero but...
+                        self._onCommand(address=destDeviceId, command=State.OFF)
+                    elif command2 > 0xFD and d.state != State.ON:   # some times these don't go to 0xFF
+                        self._onCommand(address=destDeviceId, command=State.ON)
+                    elif d.state != (State.LEVEL, command2):
+                        self._onCommand(address=destDeviceId, command=((State.LEVEL, command2)))
         
         self.statusRequest = False            
         return (True,None)

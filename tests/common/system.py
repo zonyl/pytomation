@@ -3,7 +3,7 @@ from mock import Mock
 
 from pytomation.common.system import *
 from pytomation.interfaces import HAInterface
-from pytomation.devices import State2Device
+from pytomation.devices import StateDevice
 
 
 class SystemTests(TestCase):
@@ -12,7 +12,7 @@ class SystemTests(TestCase):
         mint.read.return_value = ''
         before = get_instances()
         int = HAInterface(mint, name='Int1')
-        dev = State2Device(name='Dev1')
+        dev = StateDevice(name='Dev1')
         a = get_instances()
         self.assertIsNotNone(a)
         self.assertEqual(len(a), len(before))
@@ -22,7 +22,7 @@ class SystemTests(TestCase):
         mint = Mock()
         mint.read.return_value = ''
         int = HAInterface(mint, name='Int1')
-        dev = State2Device(name='Dev1')
+        dev = StateDevice(name='Dev1')
         a = get_instances_detail()
         self.assertIsNotNone(a)
         self.assertEqual(len(a), l+2)
