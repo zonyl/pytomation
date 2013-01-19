@@ -85,12 +85,14 @@ class Location2(State2Device):
 #            self.state = State2.LIGHT
 #            self._set_state(State.LIGHT, self.state, self)
             if self.state <> Command.LIGHT:
-                self.command(Command.LIGHT, source=self)
+#                self.command(Command.LIGHT, source=self)
+                self.light()
         else:
 #            self.state = State2.DARK
 #            self._set_state(State.DARK, self.state, self)
             if self.state <> Command.DARK:
-                self.command(Command.DARK, source=self)           
+#                self.command(Command.DARK, source=self)
+                self.dark()           
         # Setup trigger for next transition
         sunset_t = self._sunset_timer
 #        sunset_t.stop()
