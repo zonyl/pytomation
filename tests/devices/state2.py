@@ -170,7 +170,42 @@ class State2Tests(TestCase):
         time.sleep(3)
 #        time.sleep(20000)
         self.assertEqual(d1.state, State2.OFF)
+
+    def test_delay_multiple(self):
+        d1 = State2Device()
+        d2 = State2Device()
+        d3 = State2Device(
+                          devices=(d1, d2),
+                          delay=(
+                                     {Attribute.COMMAND: (Command.OFF),
+                                     Attribute.SOURCE: (d1),
+                                     Attribute.SECS: 2,
+                                     },
+                                     {Attribute.COMMAND: Command.OFF,
+                                     Attribute.SOURCE: d2,
+                                     Attribute.SECS: 4,
+                                     },
+                                 )
+                          )
+        self.assertEqual(d3.state, State2.UNKNOWN)
+        d3.on()
+        self.assertEqual(d3.state, State2.ON)
+        d1.off()
+        self.assertEqual(d3.state, State2.ON)
+        time.sleep(3)
+        self.assertEqual(d3.state, State2.OFF)
         
+        #d2
+        d3.on()
+        self.assertEqual(d3.state, State2.ON)
+        d2.off()
+        self.assertEqual(d3.state, State2.ON)
+        time.sleep(3)
+        self.assertEqual(d3.state, State2.ON)
+        time.sleep(1)
+        self.assertEqual(d3.state, State2.OFF)
+        
+
     def test_idle_time_property(self):
         d = State2Device()
         d.on()

@@ -315,6 +315,10 @@ class State2Device(PytomationObject):
     def _add_device(self, device):
         if not isinstance(device, dict):
             self._devices.append(device)
+            self._logger.debug("{name} added new device {device}".format(
+                                                                         name=self.name,
+                                                                         device=device.name,
+                                                                         ))
             return device.on_command(device=self)
         return True
 
@@ -364,11 +368,18 @@ class State2Device(PytomationObject):
 #        return command in [ delay['command'] for delay in self._delays]
         return False
        
-    def _delay_start(self, command, source):
+    def _delay_start(self, command, source, *args, **kwargs):
         for delay in self._delays:
             try:
                 if delay['command'] == command and (delay['source'] == None or delay['source'] == source or source in delay['source']):
                     delay['timer'].action(self.command, (delay['mapped'], ), source=self, original=source)
+                    self._logger.info('{name} command "{command}" from source "{source}" delayed mapped to "{mapped}" waiting {secs} secs. '.format(
+                                                                                          name=self.name,
+                                                                                          source=source.name,
+                                                                                          command=command,
+                                                                                          mapped=delay['mapped'],
+                                                                                          secs=delay['secs'],
+                                                                                    ))
                     delay['timer'].restart()
             except TypeError, ex:
                 # Not found and source is not iterable
@@ -391,8 +402,8 @@ class State2Device(PytomationObject):
             self._idle_timer = timer
             
     def _idle_start(self, *args, **kwargs):
-        if self._idle_command:
-            source = kwargs.get('source', None)
+        source = kwargs.get('source', None)
+        if self._idle_command and source != self:
             self._idle_timer.action(self.command, (self._idle_command, ), source=self, original=source)
             self._idle_timer.start()
         
