@@ -3,13 +3,11 @@ import pytz
 
 from datetime import datetime
 from time import strftime
-from .state2 import State2Device, State2
+from .state import StateDevice, State
 from pytomation.utility import CronTimer
-from ..interfaces import Command
 
-class Location2(State2Device):
-    STATES = [State2.LIGHT, State2.DARK]
-    COMMANDS = [Command.LIGHT, Command.DARK, Command.INITIAL, Command.TOGGLE, Command.PREVIOUS]
+class Location(StateDevice):
+    STATES = [State.LIGHT, State.DARK]
 
     class MODE():
         STANDARD = '0'
@@ -18,7 +16,7 @@ class Location2(State2Device):
         ASTRONOMICAL = '-18'
     
     def __init__(self, latitude, longitude, tz='US/Eastern', mode=MODE.STANDARD, is_dst=True, *args, **kwargs):
-        super(Location2, self).__init__(*args, **kwargs)
+        super(Location, self).__init__(*args, **kwargs)
         self.obs = ephem.Observer()
         self.obs.lat = latitude
         self.obs.long = longitude
@@ -82,17 +80,14 @@ class Location2(State2Device):
         time_now = self.local_time.replace(second=0, microsecond=0)
         if (self._sunrise > self._sunset and self._sunset != time_now) or \
             self._sunrise == time_now:
-#            self.state = State2.LIGHT
-#            self._set_state(State.LIGHT, self.state, self)
-            if self.state <> Command.LIGHT:
-#                self.command(Command.LIGHT, source=self)
-                self.light()
+#            self.state = State.LIGHT
+            if self._state <> State.LIGHT:
+                self._set_state(State.LIGHT, self.state, self)
         else:
-#            self.state = State2.DARK
-#            self._set_state(State.DARK, self.state, self)
-            if self.state <> Command.DARK:
-#                self.command(Command.DARK, source=self)
-                self.dark()           
+#            self.state = State.DARK
+            if self._state <> State.DARK:
+                self._set_state(State.DARK, self.state, self)
+            
         # Setup trigger for next transition
         sunset_t = self._sunset_timer
 #        sunset_t.stop()
@@ -128,11 +123,4 @@ class Location2(State2Device):
 
     def _utc2tz(self, value):
         return pytz.utc.localize(value, is_dst=self.is_dst).astimezone(self.tz)
-
-    def _command_state_map(self, command, *args, **kwargs):
-        (m_state, m_command) = super(Location2, self)._command_state_map(command, *args, **kwargs)
-        if m_command == Command.OFF:
-            m_state = State2.DARK
-        elif m_command == Command.ON:
-            m_state = State2.LIGHT
-        return (m_state, m_command)
+        

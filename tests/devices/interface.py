@@ -1,27 +1,42 @@
 import time
 from unittest import TestCase, main
-from mock import Mock, PropertyMock
+from mock import Mock, PropertyMock, MagicMock
 from datetime import datetime
 
 from pytomation.utility.timer import Timer as CTimer
-from pytomation.devices import InterfaceDevice, State, StateDevice
+from pytomation.devices import Interface2Device, State2, State2Device, Attribute
+from pytomation.interfaces import Command, HAInterface
 
-class InterfaceDevice_Tests(TestCase):
+class Interface2Device_Tests(TestCase):
     
     def setUp(self):
         self.interface = Mock()
         p = PropertyMock(side_effect=ValueError)
         type(self.interface).state = p
-        self.device = InterfaceDevice('D1', self.interface)
+        self.device = Interface2Device('D1', self.interface)
         
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
                              'HADevice could not be instantiated')
+        
+    def test_no_param_init(self):
+        d = Interface2Device()
+        self.assertIsNotNone(d)
 
     def test_on(self):
         self.device.on()
-        self.interface.on.called_with('D1')
-                
+        self.interface.on.assert_called_with('D1')
+        
+    def test_substate(self):    
+        self.device.command((State2.LEVEL, 80))
+        self.interface.level.assert_called_with('D1', 80)
+    
+    def test_read_only(self):
+        self.device.read_only(True)
+        self.device.on()
+        self.assertFalse(self.interface.on.called)
+        
+        
     def test_time_on(self):
         now = datetime.now()
         hours, mins, secs = now.timetuple()[3:6]
@@ -32,7 +47,7 @@ class InterfaceDevice_Tests(TestCase):
                                              m=mins,
                                              s=secs,
                                                  )
-        self.device.time_on(trigger_time)
+        self.device.time(time=trigger_time, command=Command.ON)
         time.sleep(3)
         self.assertTrue( self.interface.on.called)
 
@@ -41,7 +56,7 @@ class InterfaceDevice_Tests(TestCase):
         # Usually for X10 devices that do not have an acknowledgement
         self.device.sync = True
         
-        device = InterfaceDevice(address='asdf', 
+        device = Interface2Device(address='asdf', 
                                  sync=True)
         self.assertIsNotNone(device)
         self.assertTrue(device.sync)
@@ -50,28 +65,56 @@ class InterfaceDevice_Tests(TestCase):
         interface = Mock()
         p = PropertyMock(side_effect=ValueError)
         type(interface).state = p
-        device = InterfaceDevice(address='asdf',
+        device = Interface2Device(address='asdf',
                                  devices=interface,
-                                 initial_state=State.ON
+                                 initial=State2.ON
                                  )
         interface.on.assert_called_with('asdf')
+#        interface.initial.assert_called_with('asdf')
         
-        device1 = StateDevice()
+        device1 = State2Device()
         device1.on()
         interface2 = Mock()
         type(interface2).state = p
-        device = InterfaceDevice(address='asdf',
+        device = Interface2Device(address='asdf',
                                  devices=interface2,
-                                 initial_state=State.ON
+                                 initial=State2.ON
                                  )
         interface2.on.assert_called_with('asdf')
         
-    def test_interface_unknown_state(self):
-        # Should ignore unknown states
-        interface = Mock()
-        device = InterfaceDevice('asdf', devices=interface)
-        device._set_state('notknown')
-        self.assertFalse(interface.notknown.called)
+    def test_incoming(self):
+        i = MagicMock()
+        hi = HAInterface(i)
+        d = Interface2Device(address='asdf',
+                             devices=hi)
+        hi._onCommand(Command.ON, 'asdf')
+        time.sleep(1)
+        self.assertEqual(d.state, State2.ON)
+        
+    def test_loop_prevention(self):
+        d = Interface2Device(
+                             devices=(self.interface),
+                             delay={Attribute.COMMAND: Command.OFF,
+                                    Attribute.SECS: 2}
+                             )
+        d.on();
+        self.interface.on.assert_called_once_with(None)
+        d.command(command=Command.OFF, source=self.interface)
+        time.sleep(3)
+        self.assertFalse(self.interface.off.called)
+
+    def test_no_repeat(self):
+        #if the state is already set then dont send the command again
+        self.device.off()
+        self.assertEqual(self.device.state, State2.OFF)
+        self.device.on()
+        self.assertEqual(self.device.state, State2.ON)
+        self.interface.on.assert_called_once_with('D1')
+        self.interface.on.reset_mock()
+        self.device.on()
+        self.assertEqual(self.device.state, State2.ON)
+        self.assertFalse(self.interface.on.called)
+        
 
 if __name__ == '__main__':
     main() 

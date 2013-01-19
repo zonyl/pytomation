@@ -1,18 +1,14 @@
-from .interface import InterfaceDevice
-from .state import State
+from ..interfaces import Command
+from .interface import Interface2Device
+from .state import State2
 
-class Door(InterfaceDevice):
-    STATES = [State.UNKNOWN, State.OPEN, State.CLOSED]
+class Door2(Interface2Device):
+    STATES = [State2.UNKNOWN, State2.OPEN, State2.CLOSED]
+    COMMANDS = [Command.OPEN, Command.CLOSE, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
 
-    def _init(self, *args, **kwargs):
-        super(Door, self)._init(*args, **kwargs)
+    
+    def _initial_vars(self, *args, **kwargs):
+        super(Door2, self)._initial_vars(*args, **kwargs)
         self._read_only = True
-
-    def _state_map(self, state, previous_state=None, source=None):
-        if state == State.ON:
-            mapped_state = State.OPEN
-        elif state == State.OFF:
-            mapped_state = State.CLOSED
-        else:
-            mapped_state = super(Door, self)._state_map(state, previous_state, source)
-        return mapped_state
+        self.mapped(command=Command.ON, mapped=Command.OPEN)
+        self.mapped(command=Command.OFF, mapped=Command.CLOSE)

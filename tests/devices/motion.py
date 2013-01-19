@@ -1,38 +1,46 @@
 
 from unittest import TestCase, main
-from mock import Mock
+from mock import Mock, MagicMock
 
-from pytomation.devices import Motion, State
+from pytomation.devices import Motion2, State2
+from pytomation.interfaces import Command
 
 class MotionTests(TestCase):
     
     def setUp(self):
         self.interface = Mock()
-        self.interface.state = State.UNKNOWN
-        self.device = Motion('D1', self.interface)
+        self.interface.state = State2.UNKNOWN
+        self.device = Motion2('D1', self.interface)
 
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
                              'Motion Device could not be instantiated')
 
     def test_motion_motion(self):
-        self.assertEqual(self.device.state, State.UNKNOWN)
-        self.device._on_command('D1', State.ON)
-        self.assertEqual(self.device.state, State.MOTION)
-        self.device._on_command('D1', State.OFF)
-        self.assertEqual(self.device.state, State.STILL)
+        self.assertEqual(self.device.state, State2.UNKNOWN)
+        self.device.command(Command.MOTION, source=self.interface)
+#        self.device._on_command('D1', State2.ON)
+        self.assertEqual(self.device.state, State2.MOTION)
+#        self.device._on_command('D1', State2.OFF)
+        self.device.command(Command.STILL, source=self.interface)
+        self.assertEqual(self.device.state, State2.STILL)
 
     def test_motion_ignore(self):
-        self.device = Motion('D1', devices=(self.interface), ignore_off=True)
-        self.device._on_command('D1', State.ON, self.interface)
-        self.assertEqual(self.device.state, State.MOTION)
-        self.device._on_command('D1', State.OFF, self.interface)
-        self.assertEqual(self.device.state, State.MOTION)
-
-        # Make sure we can turn ignore off
-        self.device.ignore_off(False)
-        self.device._on_command('D1', State.OFF, self.interface)
-        self.assertEqual(self.device.state, State.STILL)        
+        self.device = Motion2('D1', devices=(self.interface), ignore={
+                                                                      'command': Command.STILL,
+                                                                      },
+                              )
+        self.device.command(Command.MOTION, source=self.interface)
+#        self.device._on_command('D1', State2.ON, self.interface)
+        self.assertEqual(self.device.state, State2.MOTION)
+        self.device.command(Command.MOTION, source=self.interface)
+#        self.device._on_command('D1', State2.OFF, self.interface)
+        self.assertEqual(self.device.state, State2.MOTION)
+        
+    def test_motion_on(self):
+        m = Motion2()
+        m.command(command=Command.ON, source=None)
+        self.assertEqual(m.state, State2.MOTION)        
 
 if __name__ == '__main__':
     main() 

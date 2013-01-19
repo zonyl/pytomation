@@ -37,7 +37,6 @@ from Queue import Queue
 from binascii import unhexlify
 
 from .common import *
-from ..devices import State
 from .ha_interface import HAInterface
 
 class Stargate(HAInterface):

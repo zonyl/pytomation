@@ -1,4 +1,4 @@
-from pytomation.devices import InterfaceDevice
+from pytomation.devices import Interface2Device
 
-class Generic(InterfaceDevice):
+class Generic2(Interface2Device):
         pass

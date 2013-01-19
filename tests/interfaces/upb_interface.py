@@ -5,7 +5,7 @@ from unittest import TestCase, main
 from mock import Mock
 from tests.common import MockInterface
 from pytomation.interfaces import UPB, Serial, HACommand
-from pytomation.devices import State
+from pytomation.devices import State2
 
 class UPBInterfaceTests(TestCase):
     useMock = True
@@ -81,7 +81,7 @@ class UPBInterfaceTests(TestCase):
         m_interface.read.return_value = 'PU0805310006860036'
 #        time.sleep(4000)
         time.sleep(2)
-        m_interface.callback.assert_called_with(address=(49,6), command=State.OFF, source=upb)  
+        m_interface.callback.assert_called_with(address=(49,6), command=State2.OFF, source=upb)  
         m_interface.read.return_value = ''
 
     def test_incoming_link(self):
@@ -97,7 +97,7 @@ class UPBInterfaceTests(TestCase):
         m_interface.read.return_value = 'PU8A0431260F20FFFFFFEF'
 #        time.sleep(4000)
         time.sleep(2)
-        m_interface.callback.assert_called_with(address=(49,38,'L'), command=State.ON, source=upb)  
+        m_interface.callback.assert_called_with(address=(49,38,'L'), command=State2.ON, source=upb)  
         m_interface.read.return_value = ''
         
     def test_level(self):

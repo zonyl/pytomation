@@ -4,7 +4,7 @@ from unittest import TestCase
 from mock import Mock
 
 from pytomation.interfaces import StateInterface
-from pytomation.devices import InterfaceDevice, State
+from pytomation.devices import Interface2Device, State2
 
 class StateIntefaceTests(TestCase):
     def setUp(self):
@@ -14,13 +14,13 @@ class StateIntefaceTests(TestCase):
         mi = Mock()
         mi.read = self.response
         interface = StateInterface(mi)
-        device = InterfaceDevice(address=None,
+        device = Interface2Device(address=None,
                                  devices=interface, 
-                                 initial_state=State.UNKNOWN)
-        self.assertEqual(device.state, State.UNKNOWN)
-        self._response = State.ON
+                                 initial_state=State2.UNKNOWN)
+        self.assertEqual(device.state, State2.UNKNOWN)
+        self._response = State2.ON
         time.sleep(2)
-        self.assertEqual(device.state, State.ON)
+        self.assertEqual(device.state, State2.ON)
         
         
     def response(self, *args, **kwargs):

@@ -54,7 +54,7 @@ import hashlib
 from collections import deque
 from .common import *
 from .ha_interface import HAInterface
-from pytomation.devices import State, State2
+from pytomation.devices import State2
 
 def _byteIdToStringId(idHigh, idMid, idLow):
     return '%02X.%02X.%02X' % (idHigh, idMid, idLow)
@@ -92,7 +92,7 @@ class InsteonPLM(HAInterface):
     spinTime = 0.1   # _readInterface loop time
     
     statusRequest = False   # Set to True when we do a status request
-    v1StateLevels = [State.OFF,State.L10,State.L20,State.L30,State.L40,State.L50,State.L60,State.L70,State.L80,State.L90,State.ON]
+#    v1StateLevels = [State.OFF,State.L10,State.L20,State.L30,State.L40,State.L50,State.L60,State.L70,State.L80,State.L90,State.ON]
     
     plmAddress = ""
     
@@ -641,17 +641,13 @@ class InsteonPLM(HAInterface):
             # For now lets just handle on and off until the new state code is ready.
             for d in self._devices:
                 if d.address.upper() == destDeviceId:
-                    if 'Light2' in str(type(d)):
-                        # only run the command if the state is different than current
-                        if command2 < 0x02 and d.state != State2.OFF:     # Never seen one not go to zero but...
-                            self._onCommand(address=destDeviceId, command=State2.OFF)
-                        elif command2 > 0xFD and d.state != State2.ON:   # some times these don't go to 0xFF
-                            self._onCommand(address=destDeviceId, command=State2.ON)
-                        elif d.state != (State2.LEVEL, command2):
-                            self._onCommand(address=destDeviceId, command=((State2.LEVEL, command2)))
-                    else:
-                        level = int(simpleMap(command2, 1, 254, 1, 10))
-                        self._onCommand(address=destDeviceId, command=self.v1StateLevels[level]) #ex: State.L80
+                    # only run the command if the state is different than current
+                    if command2 < 0x02 and d.state != State2.OFF:     # Never seen one not go to zero but...
+                        self._onCommand(address=destDeviceId, command=State2.OFF)
+                    elif command2 > 0xFD and d.state != State2.ON:   # some times these don't go to 0xFF
+                        self._onCommand(address=destDeviceId, command=State2.ON)
+                    elif d.state != (State2.LEVEL, command2):
+                        self._onCommand(address=destDeviceId, command=((State2.LEVEL, command2)))
         
         self.statusRequest = False            
         return (True,None)

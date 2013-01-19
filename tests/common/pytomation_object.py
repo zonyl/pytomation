@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 from mock import Mock
 
-from pytomation.devices import StateDevice
+from pytomation.devices import State2Device
 from pytomation.interfaces import UPB
 
 class PytomationObjectTests(TestCase):

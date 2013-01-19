@@ -1,60 +1,54 @@
-from .interface import InterfaceDevice
-from .state import State
+from .interface import Interface2Device
+from .state import State2
+from ..interfaces import Command
 
-class Light(InterfaceDevice):
-    STATES = [State.UNKNOWN,
-              State.ON,
-              State.OFF,
-              State.L10,
-              State.L20,
-              State.L30,
-              State.L40,
-              State.L50,
-              State.L60,
-              State.L70,
-              State.L80,
-              State.L90,
-              ]
+class Light2(Interface2Device):
+    STATES = [State2.UNKNOWN, State2.ON, State2.OFF, State2.LEVEL]
+    COMMANDS = [Command.ON, Command.OFF, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
 
-    def _initial_vars(self):
-        super(Light, self)._initial_vars()
+    def _initial_vars(self, *args, **kwargs):
+        super(Light2, self)._initial_vars(*args, **kwargs)
         self._restricted = False
+        self.mapped(command=Command.MOTION, mapped=Command.ON)
+        self.mapped(command=Command.DARK, mapped=Command.ON)
+        self.mapped(command=Command.OPEN, mapped=Command.ON)
+        self.mapped(command=Command.STILL, mapped=Command.OFF)
+        self.mapped(command=Command.LIGHT, mapped=Command.OFF)
+        self.mapped(command=Command.CLOSE, mapped=Command.OFF)
 
-    def _set_state(self, state, previous_state=None, source=None):
-        if state == State.DARK:
-            self._restricted = False
-        super(Light, self)._set_state(state, previous_state, source)
+    def command(self, command, *args, **kwargs):
+        source = kwargs.get('source', None)
+        if command == Command.LIGHT:
+            a = 1
+        if source and source.state == State2.DARK:
+            self.restricted = False
+        elif source and source.state == State2.LIGHT:
+            self.restricted = True
+        super(Light2, self).command(command, *args, **kwargs)
 
-    def _state_map(self, state, previous_state=None, source=None):
-        mapped_state = state
-        if state in (State.OPEN, State.DARK, State.MOTION):
-            if not self._restricted:
-                mapped_state = State.ON
-            else:
-                self._logger.info('{name} is currently restricted'.format(
-                                                                          name=self._name,
-                                                                          ))
-                mapped_state = None
-        elif state in (State.CLOSED, State.LIGHT, State.STILL):
-            mapped_state = State.OFF
-        else:
-            mapped_state = super(Light, self)._state_map(state, previous_state, source)
+    def _command_state_map(self, command, *args, **kwargs):
+        source = kwargs.get('source', None)
+        if command == Command.ON:
+            a = 1
+        (m_state, m_command) = super(Light2, self)._command_state_map(command, *args, **kwargs)
+        if source and not source == self and m_command == Command.ON and \
+            source.state in (State2.OPEN, State2.MOTION, State2.DARK):
+            if self.restricted:
+                m_command = None
+                m_state = None 
+                self._logger.info("{name} is restricted. Ignoring command {command} from {source}".format(
+                                                                                     name=self.name,
+                                                                                     command=command,
+                                                                                     source=source.name,
+                                                                                                           ))
 
-        # Restrict On/Off based on an attached device sending in LIGHT/DARK
-        if state == State.LIGHT:
-            self._restricted = True
-        elif state == State.DARK:
-            self._restricted = False
-            
-        #check for delay:
-        if state != mapped_state and self._delays.get(mapped_state, None) and \
-            state not in (State.LIGHT, State.DARK):
-            #ignore the mapped request for the state and let the timer take care of it
-            #if someone sends us the direct state then we will assume it is manual and needed immediately
-            #Allow photocells to skip delay
-            self._logger.info('{name} we have a delay for this state = "{state}" mapped to "{mapped}"'.format(
-                                                                                                              name=self.name,
-                                                                                                              state=state,
-                                                                                                              mapped=mapped_state))
-            mapped_state = None
-        return mapped_state
+        return (m_state, m_command)
+        
+    @property
+    def restricted(self):
+        return self._restricted
+    
+    @restricted.setter
+    def restricted(self, value):
+        self._restricted = value
+        return self._restricted
