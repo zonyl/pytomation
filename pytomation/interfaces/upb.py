@@ -298,14 +298,17 @@ class UPB(HAInterface):
 
     def off(self, address, timeout=None, rate=None):
         return self._device_goto(address, 0x00, timeout=timeout)
-
+    
+    def level(self, address, level, timeout=None, rate=None):
+        self._device_goto(address, level, timeout, rate)
+        
     def __getattr__(self, name):
         name = name.lower()
         # Support levels of lighting
         if name[0] == 'l' and len(name) == 3:
             level = name[1:3]
-	    self._logger.debug("Level->{level}".format(level=level))
-	    level = int(level)
+            self._logger.debug("Level->{level}".format(level=level))
+            level = int(level)
             return lambda x, y=None: self._device_goto(x, level, timeout=y ) 
         
         
