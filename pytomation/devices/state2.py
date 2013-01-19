@@ -375,7 +375,7 @@ class State2Device(PytomationObject):
                     delay['timer'].action(self.command, (delay['mapped'], ), source=self, original=source)
                     self._logger.info('{name} command "{command}" from source "{source}" delayed mapped to "{mapped}" waiting {secs} secs. '.format(
                                                                                           name=self.name,
-                                                                                          source=source.name,
+                                                                                          source=source.name if source else None,
                                                                                           command=command,
                                                                                           mapped=delay['mapped'],
                                                                                           secs=delay['secs'],
@@ -409,14 +409,21 @@ class State2Device(PytomationObject):
         
         
     def ignore(self, *args, **kwargs):
-        command = kwargs.get('command', None)
-        source = kwargs.get('source', None)
-        self._ignores.append({'command': command,'source': source})
-        self._logger.debug("{name} add ignore for {command} from {source}".format(
-										name=self.name,
-										command=command,
-										source=source.name if source else None,
-										));
+        commands = kwargs.get('command', None)
+        sources = kwargs.get('source', None)
+        if not isinstance(commands, tuple):
+            commands = (commands, )
+        if not isinstance(sources, tuple):
+            sources = (sources, )
+
+        for command in commands:
+            for source in sources:
+                self._ignores.append({'command': command,'source': source})
+                self._logger.debug("{name} add ignore for {command} from {source}".format(
+        										name=self.name,
+        										command=command,
+        										source=source.name if source else None,
+        										));
         
     def _is_ignored(self, command, source):
         is_ignored = False

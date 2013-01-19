@@ -261,6 +261,21 @@ class State2Tests(TestCase):
         s1.on()
         self.assertEqual(s2.state, State2.UNKNOWN)
 
+    def test_ignore_multiples_state(self):
+        s1 = State2Device()
+        s2 = State2Device(devices = s1,
+                          ignore={
+                                  Attribute.COMMAND: (Command.ON, Command.OFF)
+                                  },
+                          )
+        self.assertEqual(s2.state, State2.UNKNOWN)
+        s1.on()
+        self.assertEqual(s2.state, State2.UNKNOWN)
+        s1.off()
+        self.assertEqual(s2.state, State2.UNKNOWN)
+        s1.on()
+        self.assertEqual(s2.state, State2.UNKNOWN)
+
 
     def test_last_command(self):
         s1 = State2Device()
