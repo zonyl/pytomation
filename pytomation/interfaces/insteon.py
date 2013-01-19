@@ -642,17 +642,18 @@ class InsteonPLM(HAInterface):
             for d in self._devices:
                 if d.address.upper() == destDeviceId:
                     if 'Light2' in str(type(d)):
-                        if command2 < 0x02:     # Never seen one not go to zero but...
+                        # only run the command if the state is different than current
+                        if command2 < 0x02 and d.state != State2.OFF:     # Never seen one not go to zero but...
                             self._onCommand(address=destDeviceId, command=State2.OFF)
-                        elif command2 > 0xFD:   # some times these don't go to 0xFF
+                        elif command2 > 0xFD and d.state != State2.ON:   # some times these don't go to 0xFF
                             self._onCommand(address=destDeviceId, command=State2.ON)
-                        else:
+                        elif d.state != (State2.LEVEL, command2):
                             self._onCommand(address=destDeviceId, command=((State2.LEVEL, command2)))
                     else:
                         level = int(simpleMap(command2, 1, 254, 1, 10))
                         self._onCommand(address=destDeviceId, command=self.v1StateLevels[level]) #ex: State.L80
         
-        #self.statusRequest = False            
+        self.statusRequest = False            
         return (True,None)
         # Old stuff, don't use this at the moment
         #lightLevelRaw = messageBytes[10]
