@@ -179,7 +179,7 @@ l_front_porch = Light2(
                       initial=ph_standard,
                       delay={
                              Attribute.COMMAND: Command.OFF,
-                             Attribute.SECS: 180*60,
+                             Attribute.SECS: 3*60,
                              },
                        idle={
                              Attribute.COMMAND:(Command.LEVEL, 40),
@@ -199,7 +199,7 @@ l_front_flood = Light2(
                                d_foyer, m_front_garage, m_front_camera, ph_standard),
                       delay={
                              Attribute.COMMAND: Command.OFF,
-                             Attribute.SECS: 180*60,
+                             Attribute.SECS: 3*60,
                              },
                        idle={
                              Attribute.COMMAND:(Command.LEVEL, 40),
@@ -231,7 +231,7 @@ l_front_garage = Light2(
                                m_front_garage, m_front_camera, ph_standard),
                       delay={
                              Attribute.COMMAND: Command.OFF,
-                             Attribute.SECS: 180*60,
+                             Attribute.SECS: 3*60,
                              },
                        idle={
                              Attribute.COMMAND:(Command.LEVEL, 40),
@@ -264,23 +264,28 @@ l_family_lamp = Light2(
                 address=(49, 6), 
                 devices=(upb, m_family, ph_standard),
                 mapped={
-                        Attribute.COMMAND: Command.MOTION,
+                        Attribute.COMMAND: (Command.MOTION, Command.LIGHT),
+                        Attribute.TARGET: Command.OFF,
                         Attribute.SECS: 30*60
                         },
-                ignore=({
-                        Attribute.COMMAND: Command.STILL
+                ignore={
+                        Attribute.COMMAND: (Command.STILL, Command.DARK),
                         },
-                        {
-                        Attribute.COMMAND: Command.DARK
-                        },
-                    ),
                 name='Family Lamp Light',
                 )
 
 l_family = Light2(
                  address='19.05.7b',    
-                 devices=(insteon, ),
+                 devices=(insteon, m_family, ph_standard),
                  name='Family Light',
+                mapped={
+                        Attribute.COMMAND: (Command.MOTION, Command.LIGHT),
+                        Attribute.TARGET: Command.OFF,
+                        Attribute.SECS: 30*60
+                        },
+                ignore={
+                        Attribute.COMMAND: (Command.STILL, Command.DARK),
+                        },
                  )
 
 
