@@ -5,7 +5,7 @@ from unittest import TestCase, main
 from mock import Mock
 
 from pytomation.devices import Light, Door, Location, State, Motion, \
-                                Photocell, Attribute
+                                Photocell, Attribute, StateDevice
 from pytomation.interfaces import Command
 
 class LightTests(TestCase):
@@ -258,7 +258,22 @@ class LightTests(TestCase):
         time.sleep(3)
         self.assertEqual(l.state, State.OFF)
         
+    def test_scenario_g2(self):
+        d = StateDevice()
+        l = Light(address='1E.39.5C', 
+               devices=(d),
+               delay={
+                   Attribute.COMMAND: Command.OFF,
+                   Attribute.SECS: 2
+                   },
+               name='Stair Lights up')
+        self.assertEqual(l.state, State.UNKNOWN)
+        d.off()
+        time.sleep(3)
+        self.assertEqual(l.state, State.OFF)
+        d.on()
+        self.assertEqual(l.state, State.ON)
         
-        
+    
 if __name__ == '__main__':
     main() 
