@@ -1,21 +1,21 @@
 from mock import Mock
 from unittest import TestCase
 
-from pytomation.devices import Scene2, Interface2Device, StateDevice, State
+from pytomation.devices import Scene, InterfaceDevice, StateDevice, State
 
 class SceneDeviceTests(TestCase):
     def test_instantiation(self):
-        scene = Scene2()
+        scene = Scene()
         self.assertIsNotNone(scene)
         
     def test_scene_activate(self):
         interface = Mock()
         interface.onCommand.return_value = True
         
-        d1 = Interface2Device('d1', interface)
-        d2 = Interface2Device('d2', interface)
+        d1 = InterfaceDevice('d1', interface)
+        d2 = InterfaceDevice('d2', interface)
 
-        scene = Scene2(
+        scene = Scene(
                       address='s1',
                       devices= (interface,
                                 {d1: {

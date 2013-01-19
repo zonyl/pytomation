@@ -4,23 +4,23 @@ from mock import Mock, PropertyMock, MagicMock
 from datetime import datetime
 
 from pytomation.utility.timer import Timer as CTimer
-from pytomation.devices import Interface2Device, State, StateDevice, Attribute
+from pytomation.devices import InterfaceDevice, State, StateDevice, Attribute
 from pytomation.interfaces import Command, HAInterface
 
-class Interface2Device_Tests(TestCase):
+class InterfaceDevice_Tests(TestCase):
     
     def setUp(self):
         self.interface = Mock()
         p = PropertyMock(side_effect=ValueError)
         type(self.interface).state = p
-        self.device = Interface2Device('D1', self.interface)
+        self.device = InterfaceDevice('D1', self.interface)
         
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
                              'HADevice could not be instantiated')
         
     def test_no_param_init(self):
-        d = Interface2Device()
+        d = InterfaceDevice()
         self.assertIsNotNone(d)
 
     def test_on(self):
@@ -56,7 +56,7 @@ class Interface2Device_Tests(TestCase):
         # Usually for X10 devices that do not have an acknowledgement
         self.device.sync = True
         
-        device = Interface2Device(address='asdf', 
+        device = InterfaceDevice(address='asdf', 
                                  sync=True)
         self.assertIsNotNone(device)
         self.assertTrue(device.sync)
@@ -65,7 +65,7 @@ class Interface2Device_Tests(TestCase):
         interface = Mock()
         p = PropertyMock(side_effect=ValueError)
         type(interface).state = p
-        device = Interface2Device(address='asdf',
+        device = InterfaceDevice(address='asdf',
                                  devices=interface,
                                  initial=State.ON
                                  )
@@ -76,7 +76,7 @@ class Interface2Device_Tests(TestCase):
         device1.on()
         interface2 = Mock()
         type(interface2).state = p
-        device = Interface2Device(address='asdf',
+        device = InterfaceDevice(address='asdf',
                                  devices=interface2,
                                  initial=State.ON
                                  )
@@ -85,14 +85,14 @@ class Interface2Device_Tests(TestCase):
     def test_incoming(self):
         i = MagicMock()
         hi = HAInterface(i)
-        d = Interface2Device(address='asdf',
+        d = InterfaceDevice(address='asdf',
                              devices=hi)
         hi._onCommand(Command.ON, 'asdf')
         time.sleep(1)
         self.assertEqual(d.state, State.ON)
         
     def test_loop_prevention(self):
-        d = Interface2Device(
+        d = InterfaceDevice(
                              devices=(self.interface),
                              delay={Attribute.COMMAND: Command.OFF,
                                     Attribute.SECS: 2}

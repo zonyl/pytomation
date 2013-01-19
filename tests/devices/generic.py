@@ -1,11 +1,11 @@
 from unittest import TestCase
 
-from pytomation.devices import Generic2, State
+from pytomation.devices import Generic, State
 
 
-class Generic2Tests(TestCase):
+class GenericTests(TestCase):
     def setUp(self):
-        self.device = Generic2('asd')
+        self.device = Generic('asd')
 
     def test_instantiation(self):
         self.assertIsNotNone(self.device)

@@ -2,7 +2,7 @@
 from unittest import TestCase, main
 from mock import Mock, MagicMock
 
-from pytomation.devices import Motion2, State
+from pytomation.devices import Motion, State
 from pytomation.interfaces import Command
 
 class MotionTests(TestCase):
@@ -10,7 +10,7 @@ class MotionTests(TestCase):
     def setUp(self):
         self.interface = Mock()
         self.interface.state = State.UNKNOWN
-        self.device = Motion2('D1', self.interface)
+        self.device = Motion('D1', self.interface)
 
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
@@ -26,7 +26,7 @@ class MotionTests(TestCase):
         self.assertEqual(self.device.state, State.STILL)
 
     def test_motion_ignore(self):
-        self.device = Motion2('D1', devices=(self.interface), ignore={
+        self.device = Motion('D1', devices=(self.interface), ignore={
                                                                       'command': Command.STILL,
                                                                       },
                               )
@@ -38,7 +38,7 @@ class MotionTests(TestCase):
         self.assertEqual(self.device.state, State.MOTION)
         
     def test_motion_on(self):
-        m = Motion2()
+        m = Motion()
         m.command(command=Command.ON, source=None)
         self.assertEqual(m.state, State.MOTION)        
 

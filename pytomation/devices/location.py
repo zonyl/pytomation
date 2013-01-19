@@ -7,7 +7,7 @@ from .state import StateDevice, State
 from pytomation.utility import CronTimer
 from ..interfaces import Command
 
-class Location2(StateDevice):
+class Location(StateDevice):
     STATES = [State.LIGHT, State.DARK]
     COMMANDS = [Command.LIGHT, Command.DARK, Command.INITIAL, Command.TOGGLE, Command.PREVIOUS]
 
@@ -18,7 +18,7 @@ class Location2(StateDevice):
         ASTRONOMICAL = '-18'
     
     def __init__(self, latitude, longitude, tz='US/Eastern', mode=MODE.STANDARD, is_dst=True, *args, **kwargs):
-        super(Location2, self).__init__(*args, **kwargs)
+        super(Location, self).__init__(*args, **kwargs)
         self.obs = ephem.Observer()
         self.obs.lat = latitude
         self.obs.long = longitude
@@ -130,7 +130,7 @@ class Location2(StateDevice):
         return pytz.utc.localize(value, is_dst=self.is_dst).astimezone(self.tz)
 
     def _command_state_map(self, command, *args, **kwargs):
-        (m_state, m_command) = super(Location2, self)._command_state_map(command, *args, **kwargs)
+        (m_state, m_command) = super(Location, self)._command_state_map(command, *args, **kwargs)
         if m_command == Command.OFF:
             m_state = State.DARK
         elif m_command == Command.ON:

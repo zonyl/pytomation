@@ -1,19 +1,19 @@
-from .interface import Interface2Device
+from .interface import InterfaceDevice
 from ..interfaces import Command
 from .state import State
 
-class Scene2(Interface2Device):
+class Scene(InterfaceDevice):
     STATES = [State.UNKNOWN, State.ACTIVE, State.INACTIVE]
     COMMANDS = [Command.ACTIVATE, Command.DEACTIVATE, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
 
     def __init__(self, address=None, *args, **kwargs):
         devices = kwargs.get('devices', [])
-        super(Scene2, self).__init__(address=address, *args, **kwargs)
+        super(Scene, self).__init__(address=address, *args, **kwargs)
         
         self._get_controlled_devices(devices)
 
     def _initial_vars(self, *args, **kwargs):
-        super(Scene2, self)._initial_vars(*args, **kwargs)
+        super(Scene, self)._initial_vars(*args, **kwargs)
         self._can_update = kwargs.get('update', False)
         self._controlled_devices={}
         self.mapped(command=Command.ON, mapped=Command.ACTIVATE)

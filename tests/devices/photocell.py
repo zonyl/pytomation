@@ -2,15 +2,15 @@
 from unittest import TestCase, main
 from mock import Mock
 
-from pytomation.devices import Photocell2, State
+from pytomation.devices import Photocell, State
 from pytomation.interfaces import Command
 
-class Photocell2Tests(TestCase):
+class PhotocellTests(TestCase):
     
     def setUp(self):
         self.interface = Mock()
         self.interface.state = State.UNKNOWN
-        self.device = Photocell2('D1', self.interface)
+        self.device = Photocell('D1', self.interface)
 
     def test_instantiation(self):
         self.assertIsNotNone(self.device,

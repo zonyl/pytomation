@@ -3,15 +3,15 @@ import random
 from pytomation.utility.timer import Timer as CTimer
 from .state import StateDevice, State
 
-class Interface2Device(StateDevice):
+class InterfaceDevice(StateDevice):
     
     def __init__(self, address=None, *args, **kwargs):
         self._address = address
-        super(Interface2Device, self).__init__(*args, **kwargs)
+        super(InterfaceDevice, self).__init__(*args, **kwargs)
         
         
     def _initial_vars(self, *args, **kwargs):
-        super(Interface2Device, self)._initial_vars(*args, **kwargs)
+        super(InterfaceDevice, self)._initial_vars(*args, **kwargs)
         self._interfaces=[]
         self._sync = False
         self._sync_timer = None
@@ -37,7 +37,7 @@ class Interface2Device(StateDevice):
                                                                                ))
             return True
         except Exception, ex:
-            return super(Interface2Device, self)._add_device(device)
+            return super(InterfaceDevice, self)._add_device(device)
 
     def _delegate_command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
@@ -63,7 +63,7 @@ class Interface2Device(StateDevice):
                                                                                                 state=self.state,
                                                                                                 command=command,
                                                                                                                   ))
-        return super(Interface2Device, self)._delegate_command(command, *args, **kwargs)
+        return super(InterfaceDevice, self)._delegate_command(command, *args, **kwargs)
         
     def sync(self, value):
         self._sync = value

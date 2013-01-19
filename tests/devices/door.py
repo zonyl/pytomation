@@ -2,15 +2,15 @@
 from unittest import TestCase, main
 from mock import Mock
 
-from pytomation.devices import Door2, State
+from pytomation.devices import Door, State
 from pytomation.interfaces import Command
 
-class Door2Tests(TestCase):
+class DoorTests(TestCase):
     
     def setUp(self):
         self.interface = Mock()
         self.interface.state = State.UNKNOWN
-        self.device = Door2('D1', self.interface)
+        self.device = Door('D1', self.interface)
 
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
@@ -22,7 +22,7 @@ class Door2Tests(TestCase):
         self.assertEqual(self.device.state, State.OPEN)
         
     def test_door_closed(self):
-        door = Door2('D1', devices=(self.interface))
+        door = Door('D1', devices=(self.interface))
 #        self.device._on_command('D1', State.ON, self.interface)
         self.device.command(Command.ON)
         self.assertEqual(self.device.state, State.OPEN)

@@ -4,16 +4,16 @@ from datetime import datetime
 from unittest import TestCase, main
 from mock import Mock
 
-from pytomation.devices import Light2, Door2, Location2, State, Motion2, \
-                                Photocell2, Attribute
+from pytomation.devices import Light, Door, Location, State, Motion, \
+                                Photocell, Attribute
 from pytomation.interfaces import Command
 
-class Light2Tests(TestCase):
+class LightTests(TestCase):
 
     def setUp(self):
         self.interface = Mock()
         self.interface.state = State.UNKNOWN
-        self.device = Light2('D1', self.interface)
+        self.device = Light('D1', self.interface)
 
     def test_instantiation(self):
         self.assertIsNotNone(self.device,
@@ -29,17 +29,17 @@ class Light2Tests(TestCase):
         pass
     
     def test_door_triggered(self):
-        door = Door2()
+        door = Door()
         self.assertIsNotNone(door)
-        self.device = Light2('D1', devices=(self.interface, door))
+        self.device = Light('D1', devices=(self.interface, door))
         door.open()
         self.assertTrue(self.interface.on.called)
         
     def test_door_closed(self):
-        door = Door2()
+        door = Door()
         self.assertIsNotNone(door)
         door.open()
-        self.device = Light2('D1', devices=(self.interface, door))
+        self.device = Light('D1', devices=(self.interface, door))
 #        self.assertTrue(self.interface.initial.called)
         self.assertFalse(self.interface.off.called)
         door.close()
@@ -49,35 +49,35 @@ class Light2Tests(TestCase):
         self.assertTrue(self.interface.on.called)
         
     def test_location_triggered(self):
-        home = Location2('35.2269', '-80.8433')
+        home = Location('35.2269', '-80.8433')
         home.local_time = datetime(2012,6,1,12,0,0)
-        light = Light2('D1', home)
+        light = Light('D1', home)
         self.assertEqual(light.state, State.OFF)
         home.local_time = datetime(2012,6,1,0,0,0)
         self.assertEqual(home.state, State.DARK)
         self.assertEqual(light.state, State.ON)
         
     def test_motion_triggered(self):
-        motion = Motion2('D1', initial=State.STILL)
+        motion = Motion('D1', initial=State.STILL)
         self.assertEqual(motion.state, State.STILL)
-        light = Light2('D1', devices=motion)
+        light = Light('D1', devices=motion)
         self.assertEqual(light.state, State.OFF)
         motion.motion()
         self.assertEqual(light.state, State.ON)
 
     def test_photocell_triggered(self):
-        photo = Photocell2('D1', initial=State.LIGHT)
-        light = Light2('D1', devices=photo)
+        photo = Photocell('D1', initial=State.LIGHT)
+        light = Light('D1', devices=photo)
         self.assertEquals(light.state, State.OFF)
         photo.dark()
         self.assertEquals(light.state, State.ON)
         
         
     def test_light_restricted(self):
-        photo = Photocell2('D1', initial=State.LIGHT)
+        photo = Photocell('D1', initial=State.LIGHT)
         self.assertEqual(photo.state, State.LIGHT)
-        motion = Motion2('D1', initial=State.STILL)
-        light = Light2('D2', devices=(motion, photo),
+        motion = Motion('D1', initial=State.STILL)
+        light = Light('D2', devices=(motion, photo),
                        initial=photo)
         self.assertEqual(light.state, State.OFF)
         motion.motion()
@@ -92,9 +92,9 @@ class Light2Tests(TestCase):
     def test_delay_normal(self):
         # Door Open events retrigger delay
         # Instead of turning off in 2 secs should be 4
-        door = Door2()
+        door = Door()
         self.assertIsNotNone(door)
-        light = Light2(address='D1', 
+        light = Light(address='D1', 
                       devices=(self.interface, door),
                       delay={
                              'command': Command.OFF,
@@ -119,8 +119,8 @@ class Light2Tests(TestCase):
 
     def test_delay_light_specific(self):
         # motion.off and Photocell.Light events do not retrigger
-        motion = Motion2()
-        light = Light2(address='D1', 
+        motion = Motion()
+        light = Light(address='D1', 
                       devices=(self.interface, motion),
                       trigger={
                              'command': Command.ON,
@@ -141,11 +141,11 @@ class Light2Tests(TestCase):
         self.assertEqual(light.state, State.OFF)
 
     def test_light_photocell_intial(self):
-        motion = Motion2()
+        motion = Motion()
         motion.still()
-        photo = Photocell2(address='asdf')
+        photo = Photocell(address='asdf')
         photo.dark()
-        light = Light2(address='e3',
+        light = Light(address='e3',
                       devices=(photo, motion),
                       initial=photo,
                       )
@@ -155,9 +155,9 @@ class Light2Tests(TestCase):
         ## Dont like this behavior anymore
         # Delay off should not trigger when photocell tells us to go dark.
         # Do it immediately
-#        photo = Photocell2()
+#        photo = Photocell()
 #        photo.dark()
-#        light = Light2(address='e3',
+#        light = Light(address='e3',
 #                      devices=photo,
 #                      delay={
 #                             'command': Command.OFF,
@@ -173,7 +173,7 @@ class Light2Tests(TestCase):
         self.interface.level.assert_called_with('D1', 40)
 
     def test_time_cron(self):
-        light = Light2('a2',
+        light = Light('a2',
                       time={
                             'command': Command.OFF,
                             'time':(0, 30, range(0,5), 0, 0)
@@ -182,8 +182,8 @@ class Light2Tests(TestCase):
         
         
     def test_light_scenario1(self):
-        m = Motion2()
-        l = Light2(
+        m = Motion()
+        l = Light(
                 address=(49, 6), 
                 devices=m,
                 mapped={
@@ -204,10 +204,10 @@ class Light2Tests(TestCase):
         self.assertEqual(l.state, State.UNKNOWN)
     
     def test_light_scenario_g1(self):
-        d = Door2()
-        p = Photocell2()
+        d = Door()
+        p = Photocell()
         p.light()
-        l =  Light2(address='xx.xx.xx', 
+        l =  Light(address='xx.xx.xx', 
             devices=(d, p),
             mapped={
                Attribute.COMMAND: (Command.CLOSE),
@@ -227,8 +227,8 @@ class Light2Tests(TestCase):
         
         
     def test_light_scenario_2(self):
-        m = Motion2()
-        l = Light2(
+        m = Motion()
+        l = Light(
                 address=(49, 3),
                 devices=(m),
                  ignore=({
