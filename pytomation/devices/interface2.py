@@ -31,6 +31,10 @@ class Interface2Device(State2Device):
         try:
             device.onCommand(device=self) # Register with the interface to receive events
             self._interfaces.append(device)
+            self._logger.debug("{name} added new interface {interface}".format(
+                                                                               name=self.name,
+                                                                               interface=device.name,
+                                                                               ))
             return True
         except Exception, ex:
             return super(Interface2Device, self)._add_device(device)
