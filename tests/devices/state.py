@@ -205,7 +205,32 @@ class StateTests(TestCase):
         time.sleep(1)
         self.assertEqual(d3.state, State.OFF)
         
-
+    def test_delay_priority(self):
+        d1 = StateDevice()
+        d2 = StateDevice()
+        d3 = StateDevice(
+                         devices=(d1,d2),
+                         delay=({
+                                Attribute.COMMAND: Command.OFF,
+                                Attribute.SOURCE: d1,
+                                Attribute.SECS: 4,
+                                },
+                                {
+                                 Attribute.COMMAND: Command.OFF,
+                                 Attribute.SECS: 2
+                                 },
+                                ),
+                         initial=State.ON,
+                         )
+        self.assertEqual(d3.state, State.ON)
+        d1.off()
+        self.assertEqual(d3.state, State.ON)
+        time.sleep(2)
+        self.assertEqual(d3.state, State.ON)
+        time.sleep(2)
+        self.assertEqual(d3.state, State.OFF)
+        
+        
     def test_idle_time_property(self):
         d = StateDevice()
         d.on()

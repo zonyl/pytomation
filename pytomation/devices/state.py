@@ -51,6 +51,7 @@ class StateDevice(PytomationObject):
         self._times = []
         self._maps = {}
         self._delays = []
+        self._delay_timers = {}
         self._triggers = []
         self._ignores = []
         self._idle_timer = None
@@ -370,11 +371,19 @@ class StateDevice(PytomationObject):
        
     def _delay_start(self, command, source, *args, **kwargs):
         original_command = kwargs.get('original', None)
-        for delay in self._delays:
-            try:
-                if (delay['command'] == command or delay['command'] == original_command) and \
-                    (delay['source'] == None or delay['source'] == source or source in delay['source']):
-                    delay['timer'].action(self.command, (delay['mapped'], ), source=self, original=source)
+        #specific matching first
+        for delay in [d for d in self._delays if d['source'] != None]:
+            if (delay['command'] == command or delay['command'] == original_command) and \
+                (delay['source'] == source or (isinstance(delay['source'], tuple) and source in delay['source'])):
+                    timer = self._delay_timers.get(delay['mapped'], None)
+                    if not timer:
+                        timer = CTimer()
+                    timer.stop()
+                    timer.action(self.command, (delay['mapped'], ), source=self, original=source)
+                    timer.interval = delay['secs']
+                    timer.start()
+                    self._delay_timers.update({delay['mapped']: timer} )
+                    
                     self._logger.info('{name} command "{command}" from source "{source}" delayed mapped to "{mapped}" waiting {secs} secs. '.format(
                                                                                           name=self.name,
                                                                                           source=source.name if source else None,
@@ -382,7 +391,31 @@ class StateDevice(PytomationObject):
                                                                                           mapped=delay['mapped'],
                                                                                           secs=delay['secs'],
                                                                                     ))
-                    delay['timer'].restart()
+                    return
+
+        #generic match without source
+        for delay in self._delays:
+            try:
+                if (delay['command'] == command or delay['command'] == original_command) and \
+                    (delay['source'] == None or delay['source'] == source):
+                    timer = self._delay_timers.get(delay['mapped'], None)
+                    if not timer:
+                        timer = CTimer()
+                    timer.stop()
+                    timer.action(self.command, (delay['mapped'], ), source=self, original=source)
+                    timer.interval = delay['secs']
+                    timer.start()
+                    self._delay_timers.update({delay['mapped']: timer} )
+
+                    self._logger.info('{name} command "{command}" from source "{source}" delayed mapped to "{mapped}" waiting {secs} secs. '.format(
+                                                                      name=self.name,
+                                                                      source=source.name if source else None,
+                                                                      command=command,
+                                                                      mapped=delay['mapped'],
+                                                                      secs=delay['secs'],
+                                                                ))
+                    return
+
             except TypeError, ex:
                 # Not found and source is not iterable
                 pass
