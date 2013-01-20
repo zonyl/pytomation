@@ -19,8 +19,8 @@ if __name__ == "__main__":
 
     # Start the whole system.  pytomation.common.system.start()
     start(
-    loop_action=scripts[0].MainLoop if scripts[0].MainLoop else None,
-    loop_time=config_loop_time, # Loop every 1 sec
-    admin_user=config_admin_user,
-    admin_password=config_admin_password
+        loop_action=scripts[0].MainLoop if scripts[0].MainLoop else None,
+        loop_time=config_loop_time, # Loop every 1 sec
+        admin_user=config_admin_user,
+        admin_password=config_admin_password
     )
