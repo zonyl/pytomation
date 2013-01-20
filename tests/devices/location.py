@@ -27,14 +27,12 @@ class LocationTests(TestCase):
         self.assertIsNotNone(ph_standard)
         
     def test_delegate(self):
-        self.loc = Location('35.2269', '-80.8433')
-        l = Light(devices=self.loc, initial=State.OFF)
-        self.assertEqual(l.state, State.OFF)
-        self.loc.local_time = datetime(2012,6,1,0,0,0)
-#        MockDateTime.now = classmethod(lambda x: datetime(2012,6,1,0,0,0))
+        self.loc.local_time = datetime(2012,6,1,1,0,0)
         self.assertEqual(self.loc.state, State.DARK)
+        l = Light(devices=self.loc)
         self.assertEqual(l.state, State.ON)
-#        MockDateTime.now = classmethod(lambda x: datetime(2012,6,1,12,0,0))
+        self.assertEqual(self.loc.state, State.DARK)
+
         self.loc.local_time = datetime(2012,6,1,12,0,0)
         self.assertEqual(self.loc.state, State.LIGHT)
         self.assertEqual(l.state, State.OFF)
