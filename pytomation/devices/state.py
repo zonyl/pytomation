@@ -90,7 +90,7 @@ class StateDevice(PytomationObject):
             (state, map_command) = self._command_state_map(m_command, *args, **kwargs)
     
             if state and map_command and self._is_valid_state(state):
-                if source == self or not self._is_delayed(map_command, source):
+                if source == self or not self._is_delayed(map_command, source, original=command):
                     self._logger.info('{name} changed state to state "{state}" by command {command} from {source}'.format(
                                                       name=self.name,
                                                       state=state,
@@ -103,7 +103,7 @@ class StateDevice(PytomationObject):
                     self._delegate_command(map_command, *args, **kwargs)
                     self._trigger_start(map_command, source)
                 else:
-                    self._delay_start(map_command, source)
+                    self._delay_start(map_command, source, original=command)
             else:
                 self._logger.debug("{name} ignored command {command} from {source}".format(
                                                                                            name=self.name,
@@ -356,10 +356,10 @@ class StateDevice(PytomationObject):
 #            timer.action(self.command, (mapped), source=self)
         self._delays.append({'command': command, 'mapped': mapped, 'source': source, 'secs': secs, 'timer': timer})
 
-    def _is_delayed(self, command, source):
+    def _is_delayed(self, command, source, original=None):
         for delay in self._delays:
             try:
-                if delay['command'] == command and \
+                if (delay['command'] == command or delay['command'] == original) and \
                     (not delay['source'] or delay['source'] == source or source in delay['source']):
                     return True
             except TypeError, ex:
@@ -369,9 +369,11 @@ class StateDevice(PytomationObject):
         return False
        
     def _delay_start(self, command, source, *args, **kwargs):
+        original_command = kwargs.get('original', None)
         for delay in self._delays:
             try:
-                if delay['command'] == command and (delay['source'] == None or delay['source'] == source or source in delay['source']):
+                if (delay['command'] == command or delay['command'] == original_command) and \
+                    (delay['source'] == None or delay['source'] == source or source in delay['source']):
                     delay['timer'].action(self.command, (delay['mapped'], ), source=self, original=source)
                     self._logger.info('{name} command "{command}" from source "{source}" delayed mapped to "{mapped}" waiting {secs} secs. '.format(
                                                                                           name=self.name,

@@ -268,12 +268,29 @@ class LightTests(TestCase):
                    },
                name='Stair Lights up')
         self.assertEqual(l.state, State.UNKNOWN)
-        d.off()
+        l.off()
         time.sleep(3)
         self.assertEqual(l.state, State.OFF)
-        d.on()
+        l.on()
         self.assertEqual(l.state, State.ON)
-        
     
+    def test_delay_non_native_command(self):
+        m = Motion()
+        l = Light(
+                  devices=m,
+                  delay={
+                         Attribute.COMMAND: Command.STILL,
+                         Attribute.SECS: 2,
+                         },
+                  initial=State.ON
+                  )
+        self.assertEqual(l.state, State.ON)
+        m.still()
+        self.assertEqual(l.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(l.state, State.OFF)
+        
+        
+        
 if __name__ == '__main__':
     main() 
