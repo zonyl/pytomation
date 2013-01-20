@@ -27,10 +27,13 @@ import sys
 #
 #********************* SYSYTEM CONFIGURATION ONLY ********************
 #
-config_admin_user = 'pyto'
-config_admin_password = 'mation'
-config_telnet_port = 2000
-config_loop_time = 1
+admin_user = 'pyto'
+admin_password = 'mation'
+http_address = "127.0.0.1"
+http_port = 8080
+http_path = "./pytomation_web"
+telnet_port = 2000
+loop_time = 1
 
 
 # ********************* USER CONFIGURATION ****************************
