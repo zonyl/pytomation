@@ -27,7 +27,10 @@ import sys
 #
 #********************* SYSYTEM CONFIGURATION ONLY ********************
 #
-
+config_admin_user = 'pyto'
+config_admin_password = 'mation'
+config_telnet_port = 2000
+config_loop_time = 1
 
 
 # ********************* USER CONFIGURATION ****************************

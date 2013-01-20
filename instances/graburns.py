@@ -306,13 +306,7 @@ def MainLoop(*args, **kwargs):
     pass
         
 
-# Start the whole system.  pytomation.common.system.start()
-start(
-      loop_action=MainLoop,
-      loop_time=1, # Loop every 1 sec
-      admin_user='pyto',
-      admin_password='mation'
-      )
+
 
 
 
