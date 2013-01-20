@@ -12,10 +12,12 @@ if __name__ == "__main__":
     for script_name in script_names:
         if script_name.lower()[-3:]==".py" and script_name.lower() != "__init__.py":
             try:
-                scripts.append( __import__("instances.%s" % script_name))
-                print "Found Instance Script: " + script_name
-            except ImportError:
-                pass
+		module = "instances.%s" % script_name[0:len(script_name)-3]
+                print "Found Instance Script: " + module
+                scripts.append( __import__(module, fromlist=['instances']))
+            except ImportError, ex:
+		print 'Error' + str(ex)
+    print "Total Scripts: " + str(len(scripts))
 
     # Start the whole system.  pytomation.common.system.start()
     start(

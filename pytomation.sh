@@ -1,2 +1,5 @@
 #!/bin/sh
-python ./pytomation.py
+PROGRAM='python ./pytomation.py'
+$PROGRAM &
+PID=$!
+echo $PID > /var/run/pytomation.pid
