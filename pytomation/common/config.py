@@ -32,7 +32,7 @@ admin_password = 'mation'
 http_address = "127.0.0.1"
 http_port = 8080
 http_path = "./pytomation_web"
-telnet_port = 2000
+telnet_port = None
 loop_time = 1
 
 
