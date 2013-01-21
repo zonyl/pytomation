@@ -121,21 +121,49 @@ class StateTests(TestCase):
         self.assertEqual(d3.state, State.OFF)
         
     def test_delay(self):
-        d2 = StateDevice()
-        d1 = StateDevice(devices=d2,
+        d1 = StateDevice()
+        d2 = StateDevice(devices=d1,
                           delay={'command': Command.OFF,
                                  'mapped': (Command.LEVEL, 80),
-                                 'source': d2,
+                                 'source': d1,
                                  'secs': 2,
                                  })
-        self.assertEqual(d1.state, State.UNKNOWN)
-        d2.on()
-        self.assertEqual(d1.state, State.ON)
-        d2.off()
-        self.assertEqual(d1.state, State.ON)
+        self.assertEqual(d2.state, State.UNKNOWN)
+        d1.on()
+        self.assertEqual(d2.state, State.ON)
+        d1.off()
+        self.assertEqual(d2.state, State.ON)
         time.sleep(3)
 #        time.sleep(2000)
-        self.assertEqual(d1.state, (State.LEVEL, 80))
+        self.assertEqual(d2.state, (State.LEVEL, 80))
+        
+    def test_delay_zero_secs(self):
+        d1 = StateDevice()
+        d2 = StateDevice()
+        d3 = StateDevice(
+                         devices=(d1, d2),
+                         delay=({
+                                Attribute.COMMAND: Command.OFF,
+                                Attribute.SECS: 2
+                                },
+                                {
+                                 Attribute.COMMAND: Command.OFF,
+                                 Attribute.SECS: 0,
+                                 Attribute.SOURCE: d2,
+                                 }
+                                ),
+                         initial=State.ON,
+                         )    
+        self.assertEqual(d3.state, State.ON)
+        d1.off()
+        self.assertEqual(d3.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(d3.state, State.OFF)
+        d3.on()
+        self.assertEqual(d3.state, State.ON)
+        d2.off()
+        self.assertEqual(d3.state, State.OFF)
+        
         
     def test_delay_no_retrigger(self):
         d1 = StateDevice(trigger={
