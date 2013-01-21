@@ -177,10 +177,16 @@ l_front_porch = Light(
                       address=(49, 4),
                       devices=(upb, d_foyer, m_front_porch, m_front_camera, ph_standard, ),
                       initial=ph_standard,
-                      delay={
+                      delay=({
                              Attribute.COMMAND: Command.OFF,
-                             Attribute.SECS: 3*60,
+                             Attribute.SECS: 10*60*60,
                              },
+                             {
+                              Attribute.COMMAND: Command.OFF,
+                              Attribute.SECS: 0,
+                              Attribute.SOURCE: ph_standard,
+                              }
+                             ),
                        idle={
                              Attribute.COMMAND:(Command.LEVEL, 40),
                              Attribute.SECS: 10*60,
@@ -197,10 +203,16 @@ l_front_flood = Light(
                       address=(49, 5), 
                       devices=(upb, d_garage, d_garage_overhead, 
                                d_foyer, m_front_garage, m_front_camera, ph_standard),
-                      delay={
+                      delay=({
                              Attribute.COMMAND: Command.OFF,
-                             Attribute.SECS: 3*60,
+                             Attribute.SECS: 10*60*60,
                              },
+                             {
+                              Attribute.COMMAND: Command.OFF,
+                              Attribute.SECS: 0,
+                              Attribute.SOURCE: ph_standard,
+                              }
+                             ),
                        idle={
                              Attribute.COMMAND:(Command.LEVEL, 40),
                              Attribute.SECS: 5*60,
@@ -229,10 +241,16 @@ l_front_garage = Light(
                       address=(49, 2), 
                       devices=(upb, d_garage, d_garage_overhead, 
                                m_front_garage, m_front_camera, ph_standard),
-                      delay={
+                      delay=({
                              Attribute.COMMAND: Command.OFF,
-                             Attribute.SECS: 3*60,
+                             Attribute.SECS: 10*60*60,
                              },
+                             {
+                              Attribute.COMMAND: Command.OFF,
+                              Attribute.SECS: 0,
+                              Attribute.SOURCE: ph_standard,
+                              }
+                             ),
                        idle={
                              Attribute.COMMAND:(Command.LEVEL, 40),
                              Attribute.SECS: 10*60,
