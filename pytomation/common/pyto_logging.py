@@ -23,17 +23,17 @@ class PytoLogging(object):
             if module_level_name:
                 module_level = getattr(logging, module_level_name)
                 th.setLevel(module_level)
-            th.setFormatter(logging.Formatter(config.logging_format))
+            th.setFormatter(logging.Formatter(fmt=config.logging_format, datefmt=config.logging_datefmt))
             self._logger.addHandler(th)
         else:
             try:
                 self._basic_config(self._log_file)
             except:
                 self._basic_config(default_log_file)
-            #get module specifics
-            if module_level_name:
-                module_level = getattr(logging, module_level_name)
-                self._logger.setLevel(module_level)
+        #get module specifics
+        if module_level_name:
+            module_level = getattr(logging, module_level_name)
+            self._logger.setLevel(module_level)
 
 
     def _basic_config(self, filename):
