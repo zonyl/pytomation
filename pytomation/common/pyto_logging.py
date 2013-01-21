@@ -5,7 +5,8 @@ from ..common import config
 
 
 class PytoLogging(object):
-    
+    loaded_handlers = []
+
     def __init__(self, *args, **kwargs):
         self._name = args[0]
         self._log_file = config.logging_file
@@ -22,9 +23,11 @@ class PytoLogging(object):
                                                              backupCount=config.logging_rotate_backup )
             if module_level_name:
                 module_level = getattr(logging, module_level_name)
-                th.setLevel(module_level)
+#                th.setLevel(module_level)
             th.setFormatter(logging.Formatter(fmt=config.logging_format, datefmt=config.logging_datefmt))
-            self._logger.addHandler(th)
+            if not self._name in self.loaded_handlers:
+            	self._logger.addHandler(th)
+		self.loaded_handlers.append(self._name)
         else:
             try:
                 self._basic_config(self._log_file)
