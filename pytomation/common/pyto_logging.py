@@ -12,22 +12,28 @@ class PytoLogging(object):
         default_log_file = 'pytomation.log'
         if not self._log_file:
             self._log_file = default_log_file
-        try:
-            self._basic_config(self._log_file)
-        except:
-            self._basic_config(default_log_file)
             
         self._logger = logging.getLogger(self._name)
+        module_level_name = config.logging_modules.get(self._name, config.logging_default_level)
         if config.logging_rotate_when:
-            self._logger.addHandler(TimedRotatingFileHandler(filename=config.logging_file,
+            th = TimedRotatingFileHandler(filename=config.logging_file,
                                                              when=config.logging_rotate_when,
                                                              interval=config.logging_rotate_interval,
-                                                             backupCount=config.logging_rotate_backup ))
-        #get module specifics
-        module_level_name = config.logging_modules.get(self._name, config.logging_default_level)
-        if module_level_name:
-            module_level = getattr(logging, module_level_name)
-            self._logger.setLevel(module_level)
+                                                             backupCount=config.logging_rotate_backup )
+            if module_level_name:
+                module_level = getattr(logging, module_level_name)
+                th.setLevel(module_level)
+            th.setFormatter(logging.Formatter(config.logging_format))
+            self._logger.addHandler(th)
+        else:
+            try:
+                self._basic_config(self._log_file)
+            except:
+                self._basic_config(default_log_file)
+            #get module specifics
+            if module_level_name:
+                module_level = getattr(logging, module_level_name)
+                self._logger.setLevel(module_level)
 
 
     def _basic_config(self, filename):
