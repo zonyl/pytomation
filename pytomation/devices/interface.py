@@ -2,6 +2,7 @@ import random
 
 from pytomation.utility.timer import Timer as CTimer
 from .state import StateDevice, State
+from ..interfaces import Command
 
 class InterfaceDevice(StateDevice):
     
@@ -31,6 +32,8 @@ class InterfaceDevice(StateDevice):
         try:
             device.onCommand(device=self) # Register with the interface to receive events
             self._interfaces.append(device)
+            self.delay(command=Command.ON, source=device, secs=0)
+            self.delay(command=Command.OFF, source=device, secs=0)
             self._logger.debug("{name} added new interface {interface}".format(
                                                                                name=self.name,
                                                                                interface=device.name,

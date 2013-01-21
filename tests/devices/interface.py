@@ -35,8 +35,23 @@ class InterfaceDevice_Tests(TestCase):
         self.device.read_only(True)
         self.device.on()
         self.assertFalse(self.interface.on.called)
-        
-        
+
+    def test_controlled_devices_no_delay_default(self):
+        i = Mock()
+        d1 = StateDevice()
+        d2 = InterfaceDevice(
+                             devices=(i,d1),
+                             delay={
+                                    Attribute.COMMAND: Command.OFF,
+                                    Attribute.SECS: 3
+                                    },
+                             initial=State.ON,
+                             )
+        d1.off()
+        self.assertEqual(d2.state, State.ON)
+        d2.command(command=Command.OFF, source=i)
+        self.assertEqual(d2.state, State.OFF)
+
     def test_time_on(self):
         now = datetime.now()
         hours, mins, secs = now.timetuple()[3:6]
