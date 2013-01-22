@@ -52,7 +52,8 @@ class StateDevice(PytomationObject):
         self._maps = {}
         self._delays = {}
         self._delay_timers = {}
-        self._triggers = []
+        self._triggers = {}
+        self._trigger_timers = {}
         self._ignores = []
         self._idle_timer = None
         self._idle_command = None
@@ -102,7 +103,7 @@ class StateDevice(PytomationObject):
                     self._idle_start(*args, **kwargs)
                     self._previous_command = map_command
                     self._delegate_command(map_command, *args, **kwargs)
-                    self._trigger_start(map_command, source)
+                    self._trigger_start(map_command, source, original=command)
                 else:
                     self._delay_start(map_command, source, original=command)
             else:
@@ -459,21 +460,64 @@ class StateDevice(PytomationObject):
         return is_ignored
     
     def trigger(self, *args, **kwargs):
-        command = kwargs.get('command', None)
-        source = kwargs.get('source', None)
-        mapped = kwargs.get('mapped', command)
+        commands = kwargs.get('command', None)
+        sources = kwargs.get('source', None)
+        mapped = kwargs.get('mapped', None)
         secs = kwargs.get('secs', None)
-        timer = CTimer()
-        timer.interval=secs
-        timer.action(self.command, (mapped, ), source=self, original=source)
-        self._triggers.append({'command': command, 'mapped': mapped, 'source': source, 'secs': secs, 'timer': timer})
 
-    def _trigger_start(self, command, source):
-        for trigger in self._triggers:
-            if trigger['command'] == command and \
-            (not trigger['source'] or trigger['source'] == source):
-                trigger['timer'].action(self.command, (trigger['mapped'], ), source=self, original=source)
-                trigger['timer'].start()
+        if not isinstance(commands, tuple):
+            commands = (commands, )
+        if not isinstance(sources, tuple):
+            sources = (sources, )
+        
+        for command in commands:
+            for source in sources:
+                m = None
+                if not mapped:
+                    m = command
+                else:
+                    m = mapped
+                self._triggers.update({(command, source): {'secs': secs, 'mapped': m}})
+        
+#        timer = CTimer()
+#        timer.interval=secs
+#        timer.action(self.command, (mapped, ), source=self, original=source)
+#        self._triggers.append({'command': command, 'mapped': mapped, 'source': source, 'secs': secs, 'timer': timer})
+
+    def _trigger_start(self, command, source, *args, **kwargs):
+        original_command = kwargs.get('original', None)
+        trigger = self._triggers.get((command, source), None)
+        if not trigger and original_command:
+            trigger = self._triggers.get((original_command, source), None)
+        if not trigger:
+            trigger = self._triggers.get((command, None), None)
+        if not trigger:
+            trigger = self._triggers.get((original_command, None), None)
+            
+        if trigger:
+            timer = self._trigger_timers.get(trigger['mapped'], None)
+            if not timer:
+                timer = CTimer()
+            timer.stop()
+            if trigger['secs'] > 0:
+                timer.action(self.command, (trigger['mapped'], ), source=self, original=source)
+                timer.interval = trigger['secs']
+                self._trigger_timers.update({trigger['mapped']: timer} )
+                timer.start()
+                self._logger.debug('{name} command "{command}" from source "{source}" trigger started, mapped to "{mapped}" waiting {secs} secs. '.format(
+                                                                                      name=self.name,
+                                                                                      source=source.name if source else None,
+                                                                                      command=command,
+                                                                                      mapped=trigger['mapped'],
+                                                                                      secs=trigger['secs'],
+                                                                                ))  
+            
+        
+#        for trigger in self._triggers:
+#            if trigger['command'] == command and \
+#            (not trigger['source'] or trigger['source'] == source):
+#                trigger['timer'].action(self.command, (trigger['mapped'], ), source=self, original=source)
+#                trigger['timer'].start()
                 
     def _initial_from_devices(self, *args, **kwargs):
         state = None
