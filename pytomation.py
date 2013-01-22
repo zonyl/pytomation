@@ -1,5 +1,5 @@
 import os
-from pytomation.common import config, system
+from pytomation.common import config, pytomation_system
 
 INSTANCES_DIR = './instances'
 
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     print "Total Scripts: " + str(len(scripts))
 
     # Start the whole system.  pytomation.common.system.start()
-    system.start(
+    pytomation_system.start(
         loop_action=scripts[0].MainLoop if scripts[0].MainLoop else None,
         loop_time=config.loop_time, # Loop every 1 sec
         admin_user=config.admin_user,

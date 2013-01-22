@@ -3,7 +3,7 @@ import re
 from twisted.internet import reactor
 from twisted.manhole import telnet
 
-from pytomation.common.system import *
+from pytomation.common.pytomation_system import *
 
 class Manhole(object):
     """

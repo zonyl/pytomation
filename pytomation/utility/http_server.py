@@ -2,16 +2,18 @@ import BaseHTTPServer
 
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from pytomation.common import config
-
+from ..common.pyto_logging import PytoLogging
+from ..common.pytomation_api import PytomationAPI
 
 file_path = "/tmp"
 
 class PytomationHandlerClass(SimpleHTTPRequestHandler):
     def __init__(self,req, client_addr, server):
-        self._request = req
-        self._address = client_addr,
-        self._server = server
-        
+#        self._request = req
+#        self._address = client_addr
+#        self._server = server
+        self._logger = PytoLogging(self.__class__.__name__)
+
         SimpleHTTPRequestHandler.__init__(self, req, client_addr, server)
     
     def translate_path(self, path):
@@ -20,8 +22,13 @@ class PytomationHandlerClass(SimpleHTTPRequestHandler):
         return path
 
     def do_GET(self):
+        
         return SimpleHTTPRequestHandler.do_GET(self)
 
+    def route(self, path, ):
+        pass
+        
+        
 #        response_html = "test"
 #        self.send_response(200)
 #        self.send_header("Content-type", "text/html")

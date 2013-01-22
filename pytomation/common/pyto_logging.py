@@ -17,10 +17,17 @@ class PytoLogging(object):
         self._logger = logging.getLogger(self._name)
         module_level_name = config.logging_modules.get(self._name, config.logging_default_level)
         if config.logging_rotate_when:
-            th = TimedRotatingFileHandler(filename=config.logging_file,
-                                                             when=config.logging_rotate_when,
-                                                             interval=config.logging_rotate_interval,
-                                                             backupCount=config.logging_rotate_backup )
+            try:
+                th = TimedRotatingFileHandler(filename=config.logging_file,
+                                                                 when=config.logging_rotate_when,
+                                                                 interval=config.logging_rotate_interval,
+                                                                 backupCount=config.logging_rotate_backup )
+            except Exception, ex:
+                th = TimedRotatingFileHandler(filename=default_log_file,
+                                                                 when=config.logging_rotate_when,
+                                                                 interval=config.logging_rotate_interval,
+                                                                 backupCount=config.logging_rotate_backup )
+                
             if module_level_name:
                 module_level = getattr(logging, module_level_name)
 #                th.setLevel(module_level)
