@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 from mock import Mock
 
-from pytomation.common.system import *
+from pytomation.common.pytomation_system import *
 from pytomation.interfaces import HAInterface
 from pytomation.devices import StateDevice
 
