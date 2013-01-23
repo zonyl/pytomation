@@ -317,14 +317,21 @@ class LightTests(TestCase):
         self.assertEqual(l.state, State.OFF)
         m1.motion()
         self.assertEqual(l.state, State.ON)
+        # call still just to add some noise. Should be ignored
+        m1.still()
+        self.assertEqual(l.state, State.ON)
         time.sleep(2)
         # Light should still be on < 10 secs
         self.assertEqual(l.state, State.ON)
         
         m2.motion()
         self.assertEqual(l.state, State.ON)
-        time.sleep(2)
-        # total of 4 secs have elapsed since m1 and 2 since m2
+        # more noise to try and force an issue. Should be ignored
+        m2.still()
+        m1.still()
+        self.assertEqual(l.state, State.ON)
+        time.sleep(3)
+        # total of 5 secs have elapsed since m1 and 3 since m2
         # Light should be off as m2 set the new time to only 2 secs
         self.assertEqual(l.state, State.OFF)
         
