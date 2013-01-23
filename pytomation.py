@@ -18,14 +18,17 @@ if __name__ == "__main__":
                 print 'Error' + str(ex)
     print "Total Scripts: " + str(len(scripts))
 
-    # Start the whole system.  pytomation.common.system.start()
-    pytomation_system.start(
-        loop_action=scripts[0].MainLoop if scripts[0].MainLoop else None,
-        loop_time=config.loop_time, # Loop every 1 sec
-        admin_user=config.admin_user,
-        admin_password=config.admin_password,
-        telnet_port=config.telnet_port,
-        http_address=config.http_address,
-        http_port=config.http_port,
-        http_path=config.http_path,
-    )
+    if len(scripts) > 0:
+        # Start the whole system.  pytomation.common.system.start()
+        pytomation_system.start(
+            loop_action=scripts[0].MainLoop if scripts[0].MainLoop else None,
+            loop_time=config.loop_time, # Loop every 1 sec
+            admin_user=config.admin_user,
+            admin_password=config.admin_password,
+            telnet_port=config.telnet_port,
+            http_address=config.http_address,
+            http_port=config.http_port,
+            http_path=config.http_path,
+        )
+    else:
+        print "No Scripts found. Exiting"
