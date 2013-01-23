@@ -5,7 +5,7 @@ from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
                                 Photocell, Generic, StateDevice, State, Attribute
 
-from pytomation.common.system import *
+#from pytomation.common.system import *
 
 ###################### INTERFACE CONFIG #########################
 upb = UPB(Serial('/dev/ttyMI0', 4800))
