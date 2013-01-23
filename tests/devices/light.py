@@ -293,30 +293,33 @@ class LightTests(TestCase):
     def test_light_scenario_g3(self):
         m1 = Motion()
         m2 = Motion()
+        interface = Mock()
         l = Light(
-                devices=(m1, m2),
+                devices=(interface, m1, m2),
                     ignore={
                           Attribute.COMMAND: Command.STILL,
                           },
                     trigger=(
+                           {
+                           Attribute.COMMAND: Command.ON,
+                           Attribute.MAPPED: Command.OFF,
+                           Attribute.SOURCE: m2,
+                           Attribute.SECS: 2
+                            },
                          {
-                           Attribute.COMMAND: Command.MOTION,
+                           Attribute.COMMAND: Command.ON,
                            Attribute.MAPPED: Command.OFF,
                            Attribute.SOURCE: m1,
                            Attribute.SECS: 10
                            },
-                           {
-                           Attribute.COMMAND: Command.MOTION,
-                           Attribute.MAPPED: Command.OFF,
-                           Attribute.SOURCE: m2,
-                           Attribute.SECS: 2
-                            }
                          ),
                   initial=State.OFF,
                   )
         self.assertEqual(l.state, State.OFF)
         m1.motion()
         self.assertEqual(l.state, State.ON)
+        # Interface updates us on the status
+        l.command(command=Command.ON, source=interface)
         # call still just to add some noise. Should be ignored
         m1.still()
         self.assertEqual(l.state, State.ON)
