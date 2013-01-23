@@ -290,6 +290,43 @@ class LightTests(TestCase):
         time.sleep(3)
         self.assertEqual(l.state, State.OFF)
         
+    def test_light_scenario_g3(self):
+        m1 = Motion()
+        m2 = Motion()
+        l = Light(
+                devices=(m1, m2),
+                    ignore={
+                          Attribute.COMMAND: Command.STILL,
+                          },
+                    trigger=(
+                         {
+                           Attribute.COMMAND: Command.MOTION,
+                           Attribute.MAPPED: Command.OFF,
+                           Attribute.SOURCE: m1,
+                           Attribute.SECS: 10
+                           },
+                           {
+                           Attribute.COMMAND: Command.MOTION,
+                           Attribute.MAPPED: Command.OFF,
+                           Attribute.SOURCE: m2,
+                           Attribute.SECS: 2
+                            }
+                         ),
+                  initial=State.OFF,
+                  )
+        self.assertEqual(l.state, State.OFF)
+        m1.motion()
+        self.assertEqual(l.state, State.ON)
+        time.sleep(2)
+        # Light should still be on < 10 secs
+        self.assertEqual(l.state, State.ON)
+        
+        m2.motion()
+        self.assertEqual(l.state, State.ON)
+        time.sleep(2)
+        # total of 4 secs have elapsed since m1 and 2 since m2
+        # Light should be off as m2 set the new time to only 2 secs
+        self.assertEqual(l.state, State.OFF)
         
         
 if __name__ == '__main__':
