@@ -80,7 +80,8 @@ logging_format = '[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s'
 # Logging entry date format
 logging_datefmt = "%Y/%m/%d %H:%M:%S"
 
-logging_rotate_when = 'midnight' # s, m, h, d, w (interval 0=Monday), midnight, None
+#logging_rotate_when = 'midnight' # s, m, h, d, w (interval 0=Monday), midnight, None
+logging_rotate_when = None # s, m, h, d, w (interval 0=Monday), midnight, None
 logging_rotate_interval = 1
 logging_rotate_backup = 4
 
