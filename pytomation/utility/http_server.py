@@ -1,7 +1,7 @@
 import BaseHTTPServer
 
 from SimpleHTTPServer import SimpleHTTPRequestHandler
-from pytomation.common import config
+import pytomation.common.config 
 from ..common.pyto_logging import PytoLogging
 from ..common.pytomation_api import PytomationAPI
 
