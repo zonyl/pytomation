@@ -69,6 +69,7 @@ logging_modules = {
                    #'W800rf32': 'DEBUG',
                    #'Wtdio': 'DEBUG',
                    #'UPB': 'DEBUG',
+"Light": "DEBUG",
                    }
 
 # Logging file path
