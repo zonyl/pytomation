@@ -14,7 +14,9 @@ DAEMON=/usr/bin/pytomation.sh
 start()
 {
     echo "Starting Pytomation"
-    start-stop-daemon --start --background --quiet --chuid pyto --exec $DAEMON && success=1
+    start-stop-daemon --start --background --quiet --exec $DAEMON && success=1
+# --chuid doesn't work with scripts
+#    start-stop-daemon --start --background --quiet --chuid pyto --exec $DAEMON && success=1
     echo ""
 }
  
