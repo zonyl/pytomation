@@ -9,7 +9,12 @@ class PytomationAPITests(TestCase):
     def test_instantiation(self):
         self.assertIsNotNone(self.api)
         
+    def test_device_invalid(self):
+        response = self.api.get_response(method='GET', path="junk/test")
+        self.assertEqual(response, 'null')
+        
     def test_device_list(self):
-        response = self.api.get_response(method='GET', path="/api/devices")
-        self.assertIsNotNone(response)
-        self.assertTrue(response.contains("Content-type"))
+        response = self.api.get_response(method='GET', path="devices")
+        self.assertTrue('"PytomationAPI1"' in response)
+        
+        
