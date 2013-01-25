@@ -1,4 +1,4 @@
-﻿Pytomation                                              December 06,2012
+﻿Pytomation                                               January 24,2013
 ========================================================================
 If you find corrections or additions you would like to see incorporated
 into this document please get in touch with us.  The best way is to join 
@@ -22,31 +22,48 @@ Future:
 SECTIONS
 
 1) Downloading
+
 2) Installation
+2.1)  Dependencies
+2.2)  Install
 3) Interfaces
-      Insteon
-      UPB
-      W800RF32
-      WTDIO
-        Inputs
+3.1)  Insteon
+3.2)  UPB
+3.3)  W800RF32
+3.4)  WTDIO
+3.4.1)  Inputs
             Inverting an input
-        Outputs
+3.4.2)  Outputs
             Set output normally high
-4) Attributes
+3.5)  Stargate
+3.6)  NamedPipe
+
+4) Devices
+4.1)  Door
+4.2)  Generic
+4.3)  Light
+4.4)  Location
+4.5)  Motion
+4.6)  Photocell
+4.7)  StateInterface
+
+5) Attributes
+      address
       delay
+      devices
+      idle
       ignore
+      initial
+      mapped
       name
+      sync
       time
-5) Devices
-      Door
-      Generic
-      Light
-      Location
-      Motion
-      Photocell
-6) Configuring
-7) Creating an Instance
-    
+      trigger
+
+6) Mainloop
+7) Configuring
+8) Creating an Instance
+9) FAQ    
 
 
 
@@ -69,6 +86,8 @@ Once git is installed you can clone the repository with this command:
     
 2) INSTALLATION
 
+2.1) DEPENDENCIES
+
 Before you can create an instance and run Pytomation automation 
 software you must satisfy a few dependencies.  Pytomation is written in
 Python and currently has been tested under versions 2.6.x and 2.7.x.
@@ -79,6 +98,7 @@ Pyserial - Support for RS232 serial interfaces.
 Pyephem  - High-precision astronomy computations for sunrise/sunset.
 Pytz     - World timezone definitions.
 Mock     - Python testing library.
+Git      - Version control software.
 
 Debian packages are available for Pyserial and can be installed with
 
@@ -98,16 +118,28 @@ package:
 Once pip is installed it is easy to install the rest of the dependencies
 with the following commands.
 
-    sudo pip install pytz pyephem mock
+    sudo pip install pytz pyephem mock git
     
+
+2.2) INSTALL
+
+You are now ready to install pytomation.  Change into the directory that
+Pytomation resides in from the git clone command above and run 
+"./install.sh".  You may have to make it executable with the command 
+chmod +x ./install.sh first.  Install.sh can take an optional argument 
+which points to an alternate installation directory:
+Ex: ./install.sh /some/other/folder/pytomation
+
+The install.sh command does the following:
+
+- Confirms where you are installing Pytomation to.
+- Makes a "pyto" user and creates the home directory.
+- Copies all the necessary files into Pytomations HOME.
+- Creates a /usr/bin/pytomation.sh command to start Pytomation.
+- Creates an /etc/init.d/pyto script for starting Pytomation on boot.
+
 You are now ready to configure pytomation and create an instance to run
 your devices.  
-
-Pytomation supports declared objects that provide certain functionality,
-with each object supporting a set of states.  It is this support that 
-provides Pytomation intelligence about these objects and allows it to
-manipulate them.
-
 
 
 3) INTERFACES
@@ -116,8 +148,8 @@ As mentioned above, Pytomation supports a range of device drivers or
 “Interfaces”, that allow Pytomation to talk and listen to the real 
 world.  There are more being developed all the time and by the time.
 
-Insteon
--------
+3.1) INSTEON
+------------
 Insteon is a power line control product that transmits and receives 
 data across the 120VAC house wiring. Insteon supports a wide range of 
 devices from wall switches and lamp modules to relay contacts and 
@@ -139,9 +171,12 @@ SwitchLinc Relay wall switch, 17amp    -  2477S
 LampLinc 300watt Dimmer plugin module  -  2457D2
 Appliance plugin module 15amp          -  2456S3 
 
+NOTE: The Insteon driver is still under development and some features 
+are not yet supported.
 
-UPB
----
+
+3.2) UPB
+--------
 Universal Powerline Bus (UPB) is a highly reliable, cost effective, 
 2-way communications technology similar to Insteon but supports a much 
 higher voltage on the power line which can provide more reliable 
@@ -193,8 +228,8 @@ Appliance Module             - AM1
 
 
 
-WTDIO digital I/O
------------------
+3.3) WTDIO digital I/O
+----------------------
 Weeder Technologies I/O board provides serial RS232 to 14 I/O lines all 
 individually controlled as in or out. All inputs incorporate a pull-up 
 resistor to 5-volts, simplifying hookup to switch contacts.Weeder boards are DIP switch addressable so you can stack up to 32modules on the same port for 448 I/O points.
@@ -232,8 +267,8 @@ Configuring:
     Use "dio_invert()" to invert the input.
 
 
-WGL & Associates W800RF32 
--------------------------
+3.4) WGL & Associates W800RF32 
+------------------------------
 The W800 family of RF receivers are designed to receive X10 RF signals 
 generated from X10 products such as key chain remotes, Hawkeye motion 
 detectors, Slimeline wall switches and many, many other X10 RF devices.
@@ -250,9 +285,202 @@ X10 RF receiver with the USB interface    - W800USB
 
 Note International models differ.
 
+3.5) STARGATE
+-------------
+
+3.6) NAMEDPIPE
+--------------
 
 
-4) ATTRIBUTES
+4) DEVICES
+
+The following devices are currently defined but are by no means the 
+limit, new devices will be created as design dictates.
+
+Each device has at a minimum an "address" and a "devices" attribute.  
+
+"address" is the hardware address associated with the device.  A few 
+examples are:
+
+Insteon   - "12.C0.D5"
+UPB       - (48,2)
+W800rf32  - 'A1'
+Wtdio     - 'AE' 
+
+Note: the UPB devices have a dual part address and must be enclosed in 
+parentheses.
+
+"devices" can be many but at a minimum, it must include the interface
+the address is associated with.  This device is dependent on how you 
+declared the interface. 
+
+
+4.1) DOOR
+
+    States supported - UNKNOWN, OPENED, CLOSED
+    
+    A Door device is used when a door has a contact which realizes the
+    current state of the door as being OPEN or CLOSED.
+    
+    Example:
+    
+    d_front = Door(address='AA', devices=wtdio)
+
+              
+4.2) GENERIC
+
+    An Interface Device is used for generic devices that don't conform 
+    to objects such as lights, doors and motion.
+    
+    For example, a keychain remote such as a Slimfire KR19A or a 
+    Slimline SS13A wall switch that talks to a W800RF32 Interface and 
+    has 'ON' and 'OFF" buttons would be defined as a Generic 
+    device.  It could then be used to turn devices such as lights, on 
+    and off.
+    
+    Examples:
+    
+    # Button on a Slimline wall switch
+    sl_living_room_sofa = Generic('A1', w800)
+
+    # Tie it to a Light device
+    sofa_light = Light(address='12.E4.88',
+                       devices=(insteon, sl_living_room_sofa)
+                      )
+    
+4.3) LIGHT
+
+    States supported - UNKNOWN, ON, OFF, LEVEL
+    
+    A Light device has is normally attached to an Insteon or UPB switch or 
+    module but could also be an LED on a WTDIO board.
+    
+    Examples:
+    
+    # Lets define three lights connected to different interfaces.
+    
+    #Insteon light
+    l_hallway = Light(address='12.E4.88',
+                       devices=insteon
+                      )
+    # UPB light    
+    l_hallway = Light(address=(48,4),
+                       devices=upb
+                      )
+    # An LED connected to a WTDIO board
+    led_light = Light(address='A4',
+                      devices=wtdio
+                     )
+    
+    *** Note ***  The "insteon", "upb" and "wtdio" values are actually
+    variables that you define in your code.  They could be called
+    "Ins", "U48" and "WIO" if you want.
+    
+    
+4.4) LOCATION
+
+    States supported - LIGHT, DARK
+    
+    The location device is essentially a virtual Photocell that will 
+    turn dark / light automatically based on the system clock and the 
+    specified location.  Location provides a Sunrise/Sunset device that turns
+    on at sunset and off at sunrise.
+    
+    It supports STANDARD, CIVIL, and ASTRONOMICAL.  In a nut shell CIVIL 
+    is brighter than STANDARD which is brighter than ASTRONOMICAL.
+
+    Attributes:
+	  latitude
+	  longitude
+	  tz == Time Zone for your location
+	  is_dst == Do you observe daylight savings time
+
+    Examples:
+
+    # Monitoring twilight
+    # Define a virtual photocell based on longitude and latitude and
+    # whether daylight savings time used at that location.
+    ph_civil = Location('35.2269', '-80.8433', 
+                         tz='US/Eastern', 
+                         mode=Location.MODE.CIVIL, 
+                         is_dst=True)
+
+    ph_standard = Location('35.2269', '-80.8433', 
+                            tz='US/Eastern', 
+                            mode=Location.MODE.STANDARD, 
+                            is_dst=True)
+   
+
+4.5) MOTION
+
+    States supported - UNKNOWN, MOTION, STILL
+    
+    A Motion device is a motion detector.  Motion detectors are generally 
+    connected to the system via a WTDIO hardwired device or a wireless X10
+    device such as a MS16a.
+    
+    Examples:
+    
+    # Lets define two motion detectors connected to different interfaces.
+    
+    # X10 MS16A Wireless motion detector via a W800RF32 interface
+    hall_motion = Motion(address='E1',
+                         devices=w800
+                        )
+              
+    # A standard wired motion detector connected to a WTDIO board
+    stairs_motion = Motion(address='A4',
+                           devices=wtdio
+                          )
+    
+    Providing some "debounce" to the device.  Often a hardwired motion detector
+    will switch on and off rapidly and may not be what is required. Using 
+    attributes one can add a delay to the off or STILL state to add some
+    debounce.
+    
+    # Define a motion device but give it a bit of debounce because it 
+    # is hardwired and will go on and off rapidly.
+    hall_motion = Motion(address='A4',
+                         devices=wtdio,
+                         delay={
+                             Attribute.COMMAND: Command.STILL,
+                             Attribute.SECS: 30,
+                         },
+                        )
+    
+
+4.6) PHOTOCELL
+
+    States supported - UNKNOWN, DARK, LIGHT, LEVEL
+
+    A Photocell device is used when one wants to monitor the region of
+    light and dark in a room or outside.
+    
+    Example:
+    
+    front_door_cell = Photocell(address='A2', devices=w800)
+
+
+4.7) STATEINTERFACE
+
+    States supported - UNKNOWN, ON, OFF, LEVEL
+    
+    A StateInterface device is mainly used to interface any manor of virtual or
+    real devices that can communicate through a NamedPipe interface.  Since it 
+    uses a NamedPipe you could communicate to the system with scripts or other
+    software and may provide a simpler way to add one device without writing a
+    full interface for it.  The sky is the limit here.
+    
+    Example:
+    
+    # My camera motion software will echo a "motion" to this pipe.
+    pipe_front_yard_motion = StateInterface(NamedPipe('/tmp/yard_motion'))
+
+
+
+5) ATTRIBUTES
+
+************* This section out of date *******************************
 
 Most devices can be used with an attribute that modifies the behaviour 
 of the device.  Some attributes belong to a specfic device.  Here is a 
@@ -320,204 +548,11 @@ time
         time_on='6:00pm'
         time_off='10:45pm'
 
-
-
-5) DEVICES
-
-The following devices are currently defined but are by no means the 
-limit, new devices will be created as design dictates.
-
-Each device has at a minimum an "address" and a "devices" attribute.  
-
-"address" is the hardware address associated with the device.  A few 
-examples are:
-
-Insteon   - "12.C0.D5"
-UPB       - (48,2)
-W800rf32  - 'A1'
-Wtdio     - 'AE' 
-
-Note: the UPB devices have a dual part address and must be enclosed in 
-parentheses.
-
-"devices" can be many but at a minimum, it must include the interface
-the address is associated with.  This device is dependent on how you 
-declared the interface. 
-
-
-Door
-    States supported - UNKNOWN, OPENED, CLOSED
-    
-    A Door device is used when a door has a contact which realizes the
-    current state of the door as being open or closed.
-    
-    Example:
-    
-    front_door = Door(address='AA', devices=wtdio)
-
-              
-Generic
-
-    An Interface Device is used for generic devices that don't conform 
-    to objects such as lights, doors and motion.
-    
-    For example, a keychain remote such as a Slimfire KR19A or a 
-    Slimline SS13A wall switch that talks to a W800RF32 Interface and 
-    has 'ON' and 'OFF" buttons would be defined as a Generic 
-    device.  It could then be used to turn devices such as lights, on 
-    and off.
-    
-    Examples:
-    
-    # Button on a Slimline wall switch
-    living_room_sofa = Generic('A1', w800)
-
-    # Tie it to a Light device
-    sofa_light = Light(address='12.E4.88',
-                       devices=(insteon, living_room_sofa)
-                      )
-    
-
-Light
-    States supported - UNKNOWN, ON, OFF
-    
-    A Light device has the following attributes associated with it:
-    
-    delay_off
-    time_on
-    time_off
-    ignore_dark
-
-    
-    Examples:
-    
-    # Lets define three lights connected to different interfaces.
-    
-    #Insteon light
-    hall_light = Light(address='12.E4.88',
-                       devices=insteon
-                      )
-    # UPB light    
-    hall_light = Light(address=(48,4),
-                       devices=upb
-                      )
-    # An LED connected to a WTDIO board
-    led_light = Light(address='A4',
-                      devices=wtdio
-                     )
-    
-    *** Note ***  The "insteon", "upb" and "wtdio" values are actually
-    variables that you define in your code.  They could be called
-    "Ins", "U48" and "WIO" if you want.
-    
-    
-    Using the attributes.
-    
-    To turn the light on at 5:00pm and off at 10:30pm
-    
-    hall_light = Light(address='12.E4.88',
-                       devices=insteon,
-                       time_on='5:00pm',
-                       time_off='10:30pm
-                      )
-    
-    To turn the light off 2 minutes after it comes on
-    
-    hall_light = Light(address='12.E4.88',
-                       devices=insteon,
-                       time_on='5:00pm',
-                       delay_off=120      
-                      )
-    
-    or you can use math, "delay_off=2*60"
-    
-
-Location
-
-    The location device is essentially a virtual Photocell that will 
-    turn dark / light automatically based on the system clock and the 
-    specified location.   
-    
-    It supports Standard = Sunset / Sunrise, CIVIL, and ASTRONOMICAL 
-    modes as well.
-	
-	Attributes:
-	latitude
-	longitude
-	tz == Time Zone for your location
-	is_dst == Do you observe daylight savings time
-
-    Examples:
-
-    # Monitoring twilight
-    # Define a virtual photocell based on longitude and latitude and
-    # whether daylight savings time used at that location.
-    ph_civil = Location('35.2269', '-80.8433', 
-                         tz='US/Eastern', 
-                         mode=Location.MODE.CIVIL, 
-                         is_dst=True)
-
-    ph_standard = Location('35.2269', '-80.8433', 
-                            tz='US/Eastern', 
-                            mode=Location.MODE.STANDARD, 
-                            is_dst=True)
-
-    # In a nut shell CIVIL is brighter than STANDARD which is brighter
-    # than ASTRONIMICAL.
-    
-
-Motion
-    States supported - UNKNOWN, MOTION, STILL
-    
-    A Motion device has the following attributes associated with it:
-    
-    delay_still
-    
-    Examples:
-    
-    # Lets define two motion detectors connected to different interfaces.
-    
-    # X10 MS16A Wireless motion detector via a W800RF32 interface
-    hall_motion = Motion(address='E1',
-                         devices=w800
-                        )
-              
-    # A standard wired motion detector connected to a WTDIO board
-    stairs_motion = Motion(address='A4',
-                           devices=wtdio
-                          )
-    
-    *** Note ***  The "insteon", "upb" and "wtdio" values are actually
-    variables that you define in your code.  They could be called
-    "Ins", "U48" and "WIO" if you want.
-    
-    
-    Using the attributes.
-    
-    # Define a motion device but give it a bit of debounce because it 
-    # is hardwired and will go on and off rapidly.
-    hall_motion = Motion(address='A4',
-                         devices=wtdio,
-                         delay_still=60
-                        )
-    
-
-Photocell
-    States supported - UNKNOWN, DARK, LIGHT
-
-    A Photocell device is used when one wants to monitor the region of
-    light and dark in a room or outside.
-    
-    Example:
-    
-    front_door_cell = Photocell(address='A2', devices=w800)
-
     
 
    
-6) CONFIGURING   ***** UNDER CONSTRUCTION *****
-    ** The configuration file is being migrated to a different format **
-    
+6) CONFIGURING
+        
     Pytomation has a main configuration file.  It is divided into
     sections.  The first section is strictly system configuration, it
     should not generally be changed unless you are doing driver or 
@@ -782,3 +817,15 @@ Photocell
 
     # sit and spin - Let the magic flow
     select.select([],[],[])
+
+
+8) FAQ
+
+8.1) How can I find the latitude and longitude of my location?
+     boston = ephem.city('Boston')
+     >>> print boston.lat, boston.lon
+
+8.2) How can I have a genric interface into the system
+     # My camera motion software will echo a "motion" to this pipe.
+     pipe_front_yard_motion = StateInterface(NamedPipe('/tmp/front_yard_motion'))
+
