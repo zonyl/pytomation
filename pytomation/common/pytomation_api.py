@@ -35,6 +35,8 @@ class PytomationAPI(PytomationObject):
         devices = {}
         for (k, v) in pytomation_system.get_instances_detail().iteritems():
             try:
+                a = v['instance']
+                b = a.state
                 del v['instance']
                 devices.update({k: v})
             except Exception, ex:
