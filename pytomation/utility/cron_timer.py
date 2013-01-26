@@ -65,14 +65,15 @@ class CronTimer(object):
                 (t.weekday()  in self.dow))
 
     def _check_for_event(self, *args, **kwargs):
-        t = datetime(*datetime.now().timetuple()[:6])
-#        print 'Time: ' + str(t) + ":" + str(self.secs)
-        if self.matchtime(t):
-#            print 'Run action'
-            if len(self._action_args) > 0:
-                self._action(self._action_args)
-            else:
-                self._action()
+        if datetime:
+            t = datetime(*datetime.now().timetuple()[:6])
+    #        print 'Time: ' + str(t) + ":" + str(self.secs)
+            if self.matchtime(t):
+    #            print 'Run action'
+                if len(self._action_args) > 0:
+                    self._action(self._action_args)
+                else:
+                    self._action()
                 
     @staticmethod
     def to_cron(string):
