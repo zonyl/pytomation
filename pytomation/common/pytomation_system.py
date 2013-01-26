@@ -16,6 +16,7 @@ def get_instances_detail():
                                    } 
         try:
             object_detail.update({'commands': object.COMMANDS})
+            object_detail.update({'state': object.state})
         except Exception, ex:
             # Not a state device
             pass
