@@ -315,7 +315,10 @@ l_family = Light(
 #l_front_porch.off()
 #l_family_lamp.l40()
 
-def MainLoop(*args, **kwargs):
+def MainLoop(startup=False, *args, **kwargs):
+    if startup:
+        print 'Run once'
+        
 #    print 'Im in a main loop!'
 #    if l_foyer.state == State.ON:
 #        l_foyer.off()

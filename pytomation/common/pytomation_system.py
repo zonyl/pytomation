@@ -29,8 +29,11 @@ def get_instances_detail():
 def start(loop_action=None, loop_time=1, admin_user=None, admin_password=None, telnet_port=None, 
           http_address=None, http_port=None, http_path=None):
     if loop_action:
+        # run the loop for startup once
+        loop_action(startup=True)
+        # run periodically from now on
         myLooper = PeriodicTimer(loop_time) # loop every 1 sec
-        myLooper.action(loop_action)
+        myLooper.action(loop_action, None, {'startup': False} )
         myLooper.start()
     
     if telnet_port:
