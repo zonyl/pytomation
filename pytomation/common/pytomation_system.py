@@ -9,12 +9,18 @@ def get_instances():
 def get_instances_detail():
     details = {}
     for object in get_instances():
-        details.update({
-                       object.type_id: {
+        object_detail = {
                                    'instance': object,
                                    'name': object.name,
                                    'type_name': object.type_name,
                                    } 
+        try:
+            object_detail.update({'commands': object.COMMANDS})
+        except Exception, ex:
+            # Not a state device
+            pass
+        details.update({
+                       object.type_id: object_detail,
                        })
         
     return details
