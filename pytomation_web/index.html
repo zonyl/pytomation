@@ -1,1 +1,29 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 <h1>Pytomation Web</h1>
+Objects:
+<div id='devices'></div>
+<script>
+$.getJSON('api/devices', function(data) {
+  var items = [];
+ 
+  $.each(data, function(key, val) {
+    items.push('<li id="' + key + '">' + val + '</li>');
+  });
+  
+  $('<ul/>', {
+    'class': 'my-new-list',
+    html: items.join('')
+  }).appendTo('body');
+});
+/*
+$.ajax({
+  dataType: "json",
+  url: "/api/devices",
+  context: document.body,
+  type: 'GET',
+}).done(function( data ) {
+$('div#devices').html(data);
+});
+*/
+</script>
+

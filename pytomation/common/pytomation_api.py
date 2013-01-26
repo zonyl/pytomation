@@ -14,6 +14,7 @@ class PytomationAPI(PytomationObject):
     def get_response(self, method="GET", path=None, type=None):
         response = None
         levels = path.split('/')
+#        print 'pizz:' + path + "l:" + levels[0]
         type = type.lower() if type else self.JSON
         f = self.get_map().get((method.lower(), levels[0]), None)
         if f:

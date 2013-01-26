@@ -13,6 +13,7 @@ class PytomationHandlerClass(SimpleHTTPRequestHandler):
 #        self._address = client_addr
 #        self._server = server
         self._logger = PytoLogging(self.__class__.__name__)
+        self._api = PytomationAPI()
 
         SimpleHTTPRequestHandler.__init__(self, req, client_addr, server)
     
@@ -22,20 +23,33 @@ class PytomationHandlerClass(SimpleHTTPRequestHandler):
         return path
 
     def do_GET(self):
-        
-        return SimpleHTTPRequestHandler.do_GET(self)
+        self.route()
 
-    def route(self, path, ):
-        pass
+    def do_PUT(self):
+        self.route()
         
+    def do_DELETE(self):
+        self.route()
+
+    def do_ON(self):
+        self.route()
         
-#        response_html = "test"
-#        self.send_response(200)
-#        self.send_header("Content-type", "text/html")
-#        self.send_header("Content-length", len(response_html))
-#        self.end_headers()
-#        self.wfile.write(response_html)
-    
+    def do_OFF(self):
+        self.route()
+
+    def route(self):
+        p = self.path.split('/')
+#        print "pd:" + self.path + ":" + str(p[1:])
+        if p[1].lower() == "api":
+            response = self._api.get_response(method=self.command, path="/".join(p[2:]), type=None)
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.send_header("Content-length", len(response))
+            self.end_headers()
+            self.wfile.write(response)
+        else:
+            getattr(SimpleHTTPRequestHandler, "do_" + self.command.upper())(self)
+
 class PytomationHTTPServer(object):
     def __init__(self, address="127.0.0.1", port=8080, path="/tmp", *args, **kwargs):
         global file_path
