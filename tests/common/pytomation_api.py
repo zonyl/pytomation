@@ -31,7 +31,7 @@ class PytomationAPITests(TestCase):
         d=StateDevice(name='device_test_1')
         d.off()
         self.assertEqual(d.state, State.OFF)
-        response = self.api.get_response(method='ON', path="device/" + str(d.type_id))
+        response = self.api.get_response(method='POST', path="device/" + str(d.type_id), data=['command=on'])
         self.assertEqual(d.state, State.ON)
         self.assertTrue('"name": "device_test_1"' in response)
         

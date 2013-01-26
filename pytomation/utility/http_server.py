@@ -25,6 +25,9 @@ class PytomationHandlerClass(SimpleHTTPRequestHandler):
     def do_GET(self):
         self.route()
 
+    def do_POST(self):
+        self.route()
+
     def do_PUT(self):
         self.route()
         
@@ -39,9 +42,14 @@ class PytomationHandlerClass(SimpleHTTPRequestHandler):
 
     def route(self):
         p = self.path.split('/')
+        method = self.command
 #        print "pd:" + self.path + ":" + str(p[1:])
         if p[1].lower() == "api":
-            response = self._api.get_response(method=self.command, path="/".join(p[2:]), type=None)
+            data = None
+            if method.lower() == 'post':
+                length = int(self.headers.getheader('content-length'))
+                data = self.rfile.readlines()
+            response = self._api.get_response(method=method, path="/".join(p[2:]), type=None, data=data)
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.send_header("Content-length", len(response))

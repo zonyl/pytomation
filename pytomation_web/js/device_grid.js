@@ -9,24 +9,37 @@ function reload_device_grid()
 	}).done(function( data ) {
 		var devices = [];
 		$.each(data, function(deviceID, values) {
-				rowData = "<tr><td id='" + deviceID + "'>" + values['name'] + "</td><td>" + values['state'] + "</td>";
+				rowData = "<tr id='" + deviceID + "'><td>" + values['name'] + "</td><td>" + values['state'] + "</td>";
 				rowData += "<td>";
 				commands = [];
 				if (values['commands']) {
 					$.each(values['commands'], function(index, command){
-						commands.push("<a href='' command='" + command + "' deviceId='" + deviceID + "'>" + command + "</a>");
+						commands.push("<a href='' class='command' command='" + command + "' deviceId='" + deviceID + "'>" + command + "</a>");
 					});
 				}
 				rowData += commands.join(" ") + "</td></tr>";
 				devices.push(rowData);
 			});
 		$("#tableDevices").append(devices.join(''));
+		$(".command").click(on_device_command);
 	});
 }
 
-function on_device_command(id, command)
+function on_device_command(eventObject)
 {
-
+	command = $(this).attr('command');
+	deviceID = $(this).attr('deviceId');
+	$.ajax({
+	  dataType: "json",
+//	  url: "/api/device/" + deviceID + "/" + command,
+	  url: "/api/device/" + deviceID,
+	  context: document.body,
+	  type: 'POST',
+	  data: { command: command },
+	}).done(function( data ) {
+		var a = data;		
+	});
+	//return false;
 }
 
 
