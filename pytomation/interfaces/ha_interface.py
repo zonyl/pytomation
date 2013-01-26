@@ -122,6 +122,8 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                           extraCommandDetails=None, modemCommandPrefix=None):
 
         returnValue = False
+        if self._interface.disabled:
+            return returnValue
 
         try:
 #            bytesToSend = self.MODEM_PREFIX + binascii.unhexlify(modemCommand)

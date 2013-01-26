@@ -92,8 +92,9 @@ class Command(object):
     OPEN = 'open'
     CLOSE = 'close'
     
-class Interface(object):
+class Interface(PytomationObject):
     def __init__(self):
+        self._disabled = False
         super(Interface, self).__init__()
 
     def read(self, bufferSize):
@@ -102,6 +103,9 @@ class Interface(object):
     def write(self, data):
         raise NotImplemented
 
+    @property
+    def disabled(self):
+        return self._disabled
 
 class AsynchronousInterface(threading.Thread, Interface):
     def __init__(self, *args, **kwargs):
@@ -211,14 +215,28 @@ class Serial(Interface):
         super(Serial, self).__init__()
         print "Using %s for PLM communication" % serialDevicePath
 #       self.__serialDevice = serial.Serial(serialDevicePath, 19200, timeout = 0.1) 
-        self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout) 
-
+        try:
+            self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout)
+        except serial.serialutil.SerialException, ex:
+            self._disabled = True
+            self.__serialDevice = None
+            self._logger.critical("{name} Could not open serial port.  Interface disabled".format(
+                                                                                    name=self.name
+                                                                                                  ))
+        
+    
     def read(self, bufferSize=1024):
-        return self.__serialDevice.read(bufferSize)
+        if self.__serialDevice:
+            return self.__serialDevice.read(bufferSize)
+        return ""
 
     def write(self, bytesToSend):
-        return self.__serialDevice.write(bytesToSend)
-
+        if self.__serialDevice:
+            return self.__serialDevice.write(bytesToSend)
+        self._logger.critical("{name} Could not write to closed serial port".format(
+                                                                    name=self.name
+                                                                                    ))
+        return True
 
 class USB(Interface):
     def __init__(self, device):
