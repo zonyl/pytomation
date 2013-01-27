@@ -2,7 +2,7 @@ from .pytomation_object import PytomationObject
 #from .pytomation_system import *
 import pytomation_system
 import json
-from collections import OrderedDict
+#from collections import OrderedDict
 
 class PytomationAPI(PytomationObject):
     JSON = 'json'
