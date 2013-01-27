@@ -8,13 +8,33 @@ function reload_device_grid()
 	  type: 'GET',
 	}).done(function( data ) {
 		var devices = [];
+		data.sort(function (a,b)
+		{
+		   if (a['type_name'] == b['type_name'])
+		   {
+		        var x = a['name'].toLowerCase(), y = b['name'].toLowerCase();
+		        return x < y ? -1 : x > y ? 1 : 0;		   		
+		   }
+		   var x = a['type_name'].toLowerCase(), y = b['type_name'].toLowerCase();
+	        return x < y ? -1 : x > y ? 1 : 0;		   		
+		   
+		});
+
+		var last_type = null;
 		$.each(data, function(deviceID, values) {
-				rowData = "<tr id='" + deviceID + "'><td>" + values['name'] + "</td><td>" + values['state'] + "</td>";
+				rowData = "";
+				if (values['type_name'] != last_type){
+					rowData += "<tr><Td colspan=3>" + values['type_name'] + "<td></tr>";
+					last_type = values['type_name'];
+				}
+				rowData += "<tr id='" + values['id'] + "'><td></td>";
+				rowData += "<td>" + values['name'] + "</td>";
+				rowData += "<td>" + values['state'] + "</td>";
 				rowData += "<td>";
 				commands = [];
 				if (values['commands']) {
 					$.each(values['commands'], function(index, command){
-						commands.push("<a href='' class='command' command='" + command + "' deviceId='" + deviceID + "'>" + command + "</a>");
+						commands.push("<a href='' class='command' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</a>");
 					});
 				}
 				rowData += commands.join(" ") + "</td></tr>";
