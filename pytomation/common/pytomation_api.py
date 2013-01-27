@@ -34,19 +34,21 @@ class PytomationAPI(PytomationObject):
 
     @staticmethod
     def get_devices(path=None, *args, **kwargs):
-        devices = {}
+        devices = []
         for (k, v) in pytomation_system.get_instances_detail().iteritems():
             try:
+                v.update({'id': k})
                 a = v['instance']
                 b = a.state
                 del v['instance']
-                devices.update({k: v})
+#                devices.append({k: v})
+                devices.append(v)
             except Exception, ex:
                 pass
-        f = OrderedDict(sorted(devices.items()))
-        odevices = OrderedDict(sorted(f.items(), key=lambda k: k[1]['type_name'])
-                               )
-        return odevices
+#        f = OrderedDict(sorted(devices.items()))
+#        odevices = OrderedDict(sorted(f.items(), key=lambda k: k[1]['type_name'])
+#                            )
+        return devices
 
     @staticmethod
     def get_device(levels, *args, **kwargs):
