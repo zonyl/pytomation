@@ -34,17 +34,19 @@ class Light(InterfaceDevice):
         if command == Command.ON:
             a = 1
         (m_state, m_command) = super(Light, self)._command_state_map(command, *args, **kwargs)
-        if source and not source == self and m_command == Command.ON and \
-            source.state in (State.OPEN, State.MOTION, State.DARK):
-            if self.restricted:
-                m_command = None
-                m_state = None 
-                self._logger.info("{name} is restricted. Ignoring command {command} from {source}".format(
-                                                                                     name=self.name,
-                                                                                     command=command,
-                                                                                     source=source.name,
-                                                                                                           ))
-
+        try:
+            if source and not source == self and m_command == Command.ON and \
+                getattr(source, 'state') and source.state in (State.OPEN, State.MOTION, State.DARK):
+                if self.restricted:
+                    m_command = None
+                    m_state = None 
+                    self._logger.info("{name} is restricted. Ignoring command {command} from {source}".format(
+                                                                                         name=self.name,
+                                                                                         command=command,
+                                                                                         source=source.name,
+                                                                                                               ))
+        except AttributeError, ex:
+            pass #source is not a state device
         return (m_state, m_command)
         
     @property
