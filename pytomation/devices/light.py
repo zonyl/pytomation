@@ -20,10 +20,13 @@ class Light(InterfaceDevice):
         source = kwargs.get('source', None)
         if command == Command.LIGHT:
             a = 1
-        if source and source.state == State.DARK:
-            self.restricted = False
-        elif source and source.state == State.LIGHT:
-            self.restricted = True
+        try:
+            if source and source.state == State.DARK:
+                self.restricted = False
+            elif source and source.state == State.LIGHT:
+                self.restricted = True
+        except AttributeError, ex:
+            pass
         super(Light, self).command(command, *args, **kwargs)
 
     def _command_state_map(self, command, *args, **kwargs):
