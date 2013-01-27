@@ -27,9 +27,9 @@ function reload_device_grid()
 					rowData += "<tr><Td colspan=3>" + values['type_name'] + "<td></tr>";
 					last_type = values['type_name'];
 				}
-				rowData += "<tr id='" + values['id'] + "'><td></td>";
+				rowData += "<tr data-id='" + values['id'] + "'><td></td>";
 				rowData += "<td>" + values['name'] + "</td>";
-				rowData += "<td>" + values['state'] + "</td>";
+				rowData += "<td class='state'>" + values['state'] + "</td>";
 				rowData += "<td>";
 				commands = [];
 				if (values['commands']) {
@@ -57,9 +57,11 @@ function on_device_command(eventObject)
 	  type: 'POST',
 	  data: { command: command },
 	}).done(function( data ) {
-		var a = data;		
+		var id = data['id'];
+		var state = data['state'];
+		$('tr[data-id="' + id + '"] td.state').text(state);
 	});
-	//return false;
+	return false;
 }
 
 

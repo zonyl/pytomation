@@ -54,20 +54,24 @@ class PytomationAPI(PytomationObject):
     def get_device(levels, *args, **kwargs):
         id = levels[1]
         detail = pytomation_system.get_instances_detail()[id]
+        detail.update({'id': id})
         del detail['instance']
-        return {id: detail}
+        return detail
     
     def update_device(self, levels, data=None, *args, **kwargs):
         command = None
         if data:
-            for d in data:
-#                print 'ff' + str(d)
-                e = d.split('=')
-#                print 'eee' + str(e)
-                if e[0]== 'command':
-                    command = e[1]
-#        command = levels[2]
-#        print 'Set Device' + command + ":::" + str(levels)
+            if isinstance(data, list):
+                for d in data:
+#                    print 'ff' + str(d)
+                    e = d.split('=')
+#                    print 'eee' + str(e)
+                    if e[0]== 'command':
+                        command = e[1]
+            else:
+                e = data.split('=')
+                command = e[1]
+#        print 'Set Device' + str(command) + ":::" + str(levels)
         id = levels[1]
         detail = pytomation_system.get_instances_detail()[id]
         device = detail['instance']

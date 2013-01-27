@@ -48,13 +48,16 @@ class PytomationHandlerClass(SimpleHTTPRequestHandler):
             data = None
             if method.lower() == 'post':
                 length = int(self.headers.getheader('content-length'))
-                data = self.rfile.readlines()
+                data = self.rfile.read(length)
+#                print 'rrrrr' + str(length) + ":" + str(data)
+                self.rfile.close()
             response = self._api.get_response(method=method, path="/".join(p[2:]), type=None, data=data)
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.send_header("Content-length", len(response))
             self.end_headers()
             self.wfile.write(response)
+            self.finish()
         else:
             getattr(SimpleHTTPRequestHandler, "do_" + self.command.upper())(self)
 
