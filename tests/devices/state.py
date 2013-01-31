@@ -442,6 +442,23 @@ class StateTests(TestCase):
         d2.on()
         self.assertEqual(d4.state, State.OFF)
         
+    def test_delay_cancel_on_other_state(self):
+        d1 = StateDevice()
+        d2 = StateDevice(devices=d1,
+                         initial=State.OFF,
+                         delay={
+                                Attribute.COMMAND: Command.OFF,
+                                Attribute.SECS: 2,
+                                },
+                         )
+        self.assertEqual(d2.state, State.UNKNOWN)
+        d1.on()
+        self.assertEqual(d2.state, State.ON)
+        d1.off()
+        self.assertEqual(d2.state, State.ON)
+        d1.on()
+        self.assertEqual(d2.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(d2.state, State.ON)
         
-
         

@@ -105,6 +105,7 @@ class StateDevice(PytomationObject):
                                                           source=source.name if source else None,
                                                                                                                       ))
                         self.state = state
+                        self._cancel_delays(map_command, source, original=command)
                         self._idle_start(*args, **kwargs)
                         self._previous_command = map_command
                         self._delegate_command(map_command, *args, **kwargs)
@@ -393,6 +394,11 @@ class StateDevice(PytomationObject):
             return delay
 
         return None       
+    
+    def _cancel_delays(self, command, source, original=None):
+        if not self._get_delay(command, source, original):
+            for c, timer in self._delay_timers.iteritems():
+                timer.stop()
 
     def _delay_start(self, command, source, *args, **kwargs):
         original_command = kwargs.get('original', None)
