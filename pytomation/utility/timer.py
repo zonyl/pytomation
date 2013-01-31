@@ -47,6 +47,8 @@ class Timer(object):
     def stop(self):
         if self._timer and self._timer.isAlive():
             self._timer.cancel()
+        if self._timer:
+            del(self._timer)
         self._timer = None
         
     def restart(self):

@@ -11,8 +11,8 @@ class PeriodicTimer(object):
         self.is_stopped.clear()
 
         self.interval = frequency
-        self.timer = Timer(self.frequency, self._check_for_event, ())
-        self.timer.daemon = True
+        self._timer = Timer(self.frequency, self._check_for_event, ())
+        self._timer.daemon = True
 
     @property
     def interval(self):
@@ -22,7 +22,13 @@ class PeriodicTimer(object):
     def interval(self, frequency):
         self.frequency = frequency
         self.stop()
-        self.timer = Timer(self.frequency, self._check_for_event, ())
+        try:
+            if self._timer:
+                self._timer.cancel()
+                del(self._timer)
+        except AttributeError, ex:
+            pass
+        self._timer = Timer(self.frequency, self._check_for_event, ())
         return self.frequency
 
     def action(self, action, *action_args, **kwargs):
@@ -32,8 +38,8 @@ class PeriodicTimer(object):
 
     def start(self):
         self.is_stopped.clear()
-        if not self.timer.isAlive():
-            self.timer.start()
+        if not self._timer.isAlive():
+            self._timer.start()
 
     def stop(self):
         self.is_stopped.set()
