@@ -1,4 +1,5 @@
 from datetime import datetime
+import gc
 
 from ..common import PytomationObject
 from ..interfaces import Command
@@ -104,6 +105,10 @@ class StateDevice(PytomationObject):
                     self._previous_command = map_command
                     self._delegate_command(map_command, *args, **kwargs)
                     self._trigger_start(map_command, source, original=command)
+                    self._logger.debug('{name} Garbarge Collection queue:{queue}'.format(
+                                                                                name=self.name,
+                                                                                queue=str(StateDevice.dump_garbage()),
+                                                                                         ))
                 else:
                     self._delay_start(map_command, source, original=command)
             else:
@@ -537,3 +542,24 @@ class StateDevice(PytomationObject):
     @property
     def last_command(self):
         return self._previous_command
+
+    @staticmethod
+    def dump_garbage():
+        """
+        show us what's the garbage about
+        """
+        c=-1
+        # force collection
+    #    print "\nGARBAGE:"
+        gc.collect()
+    
+    #    print "\nGARBAGE OBJECTS:"
+#        for x in gc.garbage:
+#            s = str(x)
+#            if len(s) > 80: s = s[:80]
+#            print type(x),"\n  ", s
+        try:
+            c = len(gc.garbage)
+        except:
+            pass
+        return c
