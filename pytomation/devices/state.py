@@ -1,5 +1,6 @@
 from datetime import datetime
 import gc
+import thread
 
 from ..common import PytomationObject
 from ..interfaces import Command
@@ -34,6 +35,7 @@ class StateDevice(PytomationObject):
     COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
     
     def __init__(self, *args, **kwargs):
+        self._command_lock = thread.allocate_lock()
         super(StateDevice, self).__init__(*args, **kwargs)
         if not kwargs.get('devices', None) and len(args)>0:
             kwargs.update({'devices': args[0]})
@@ -81,42 +83,44 @@ class StateDevice(PytomationObject):
             return lambda *a, **k: self.command(name, *a, sub_state=a, **k)
 
     def command(self, command, *args, **kwargs):
-        source = kwargs.get('source', None)
-        if not self._is_ignored(command, source):
-            m_command = self._process_maps(*args, command=command, **kwargs)
-            if m_command != command:
-                self._logger.debug("{name} Map from '{command}' to '{m_command}'".format(
-                                                                        name=self.name,
-                                                                        command=command,
-                                                                        m_command=m_command,
-                                                                                         ))
-            (state, map_command) = self._command_state_map(m_command, *args, **kwargs)
-    
-            if state and map_command and self._is_valid_state(state):
-                if source == self or not self._get_delay(map_command, source, original=command):
-                    self._logger.info('{name} changed state to state "{state}" by command {command} from {source}'.format(
-                                                      name=self.name,
-                                                      state=state,
-                                                      command=map_command,
-                                                      source=source.name if source else None,
-                                                                                                                  ))
-                    self.state = state
-                    self._idle_start(*args, **kwargs)
-                    self._previous_command = map_command
-                    self._delegate_command(map_command, *args, **kwargs)
-                    self._trigger_start(map_command, source, original=command)
-                    self._logger.debug('{name} Garbarge Collection queue:{queue}'.format(
-                                                                                name=self.name,
-                                                                                queue=str(StateDevice.dump_garbage()),
-                                                                                         ))
+        # Lets process one command at a time please
+        with self._command_lock:
+            source = kwargs.get('source', None)
+            if not self._is_ignored(command, source):
+                m_command = self._process_maps(*args, command=command, **kwargs)
+                if m_command != command:
+                    self._logger.debug("{name} Map from '{command}' to '{m_command}'".format(
+                                                                            name=self.name,
+                                                                            command=command,
+                                                                            m_command=m_command,
+                                                                                             ))
+                (state, map_command) = self._command_state_map(m_command, *args, **kwargs)
+        
+                if state and map_command and self._is_valid_state(state):
+                    if source == self or not self._get_delay(map_command, source, original=command):
+                        self._logger.info('{name} changed state to state "{state}" by command {command} from {source}'.format(
+                                                          name=self.name,
+                                                          state=state,
+                                                          command=map_command,
+                                                          source=source.name if source else None,
+                                                                                                                      ))
+                        self.state = state
+                        self._idle_start(*args, **kwargs)
+                        self._previous_command = map_command
+                        self._delegate_command(map_command, *args, **kwargs)
+                        self._trigger_start(map_command, source, original=command)
+                        self._logger.debug('{name} Garbarge Collection queue:{queue}'.format(
+                                                                                    name=self.name,
+                                                                                    queue=str(StateDevice.dump_garbage()),
+                                                                                             ))
+                    else:
+                        self._delay_start(map_command, source, original=command)
                 else:
-                    self._delay_start(map_command, source, original=command)
-            else:
-                self._logger.debug("{name} ignored command {command} from {source}".format(
-                                                                                           name=self.name,
-                                                                                           command=command,
-                                                                                           source=source.name if source else None
-                                                                                           ))
+                    self._logger.debug("{name} ignored command {command} from {source}".format(
+                                                                                               name=self.name,
+                                                                                               command=command,
+                                                                                               source=source.name if source else None
+                                                                                               ))
 
     def _command_state_map(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
