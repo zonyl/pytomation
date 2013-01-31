@@ -14,3 +14,15 @@ class GenericTests(TestCase):
         self.assertEqual(self.device.state, State.UNKNOWN)
         self.device.on()
         self.assertEqual(self.device.state, State.ON)
+    
+    def test_still(self):
+        self.assertEqual(self.device.state, State.UNKNOWN)
+        self.device.still()
+        self.assertEqual(self.device.state, State.STILL)
+        
+    def test_open(self):
+        self.assertEqual(self.device.state, State.UNKNOWN)
+        self.device.open()
+        self.assertEqual(self.device.state, State.OPEN)
+        
+        
