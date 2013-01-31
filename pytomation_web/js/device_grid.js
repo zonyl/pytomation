@@ -30,11 +30,15 @@ function reload_device_grid()
 				rowData += "<tr data-id='" + values['id'] + "'><td></td>";
 				rowData += "<td>" + values['name'] + "</td>";
 				rowData += "<td class='state'>" + values['state'] + "</td>";
-				rowData += "<td>";
+				rowData += "<td class='commands'>";
 				commands = [];
 				if (values['commands']) {
 					$.each(values['commands'], function(index, command){
-						commands.push("<a href='' class='command' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</a>");
+						if ('junk' == values['state']) {
+							commands.push("<button class='command btn btn-small' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</button>");
+						} else {
+							commands.push("<button class='command btn btn-primary btn-small' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</button>");
+						}
 					});
 				}
 				rowData += commands.join(" ") + "</td></tr>";
