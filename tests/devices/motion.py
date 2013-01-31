@@ -1,8 +1,9 @@
 
 from unittest import TestCase, main
 from mock import Mock, MagicMock
+import time
 
-from pytomation.devices import Motion, State
+from pytomation.devices import Motion, State, Attribute
 from pytomation.interfaces import Command
 
 class MotionTests(TestCase):
@@ -41,6 +42,21 @@ class MotionTests(TestCase):
         m = Motion()
         m.command(command=Command.ON, source=None)
         self.assertEqual(m.state, State.MOTION)        
+
+    def test_motion_delay_from_interface(self):
+        i = Mock()
+        m = Motion(devices=i,
+                   delay={
+                          Attribute.COMMAND: Command.STILL,
+                          Attribute.SECS: 2,
+                          })
+        m.command(command=Command.MOTION, source=i)
+        self.assertEqual(m.state, State.MOTION)
+        m.command(command=Command.STILL, source=i)
+        self.assertEqual(m.state, State.MOTION)
+        time.sleep(3)
+        self.assertEqual(m.state, State.STILL)
+        
 
 if __name__ == '__main__':
     main() 
