@@ -91,6 +91,8 @@ class Command(object):
     LIGHT = 'light'
     OPEN = 'open'
     CLOSE = 'close'
+    AUTOMATIC = 'automatic'
+    MANUAL = 'manual'
     
 class Interface(PytomationObject):
     def __init__(self):

@@ -32,7 +32,8 @@ class Attribute(object):
     
 class StateDevice(PytomationObject):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
-    COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL]
+    COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS,
+                Command.TOGGLE, Command.AUTOMATIC, Command.MANUAL, Command.INITIAL]
     
     def __init__(self, *args, **kwargs):
         self._command_lock = thread.allocate_lock()
@@ -61,6 +62,7 @@ class StateDevice(PytomationObject):
         self._idle_timer = None
         self._idle_command = None
         self._devices = []
+        self._automatic = True
         
     @property
     def state(self):
@@ -94,10 +96,16 @@ class StateDevice(PytomationObject):
                                                                             command=command,
                                                                             m_command=m_command,
                                                                                              ))
+
                 (state, map_command) = self._command_state_map(m_command, *args, **kwargs)
+
+                if map_command == Command.MANUAL:
+                    self._automatic = False
+                elif map_command == Command.AUTOMATIC:
+                    self._automatic = True
         
                 if state and map_command and self._is_valid_state(state):
-                    if source == self or not self._get_delay(map_command, source, original=command):
+                    if source == self or (not self._get_delay(map_command, source, original=command) or not self._automatic):
                         self._logger.info('{name} changed state to state "{state}" by command {command} from {source}'.format(
                                                           name=self.name,
                                                           state=state,
@@ -106,10 +114,12 @@ class StateDevice(PytomationObject):
                                                                                                                       ))
                         self.state = state
                         self._cancel_delays(map_command, source, original=command)
-                        self._idle_start(*args, **kwargs)
+                        if self._automatic:
+                            self._idle_start(*args, **kwargs)
                         self._previous_command = map_command
                         self._delegate_command(map_command, *args, **kwargs)
-                        self._trigger_start(map_command, source, original=command)
+                        if self._automatic:
+                            self._trigger_start(map_command, source, original=command)
                         self._logger.debug('{name} Garbarge Collection queue:{queue}'.format(
                                                                                     name=self.name,
                                                                                     queue=str(StateDevice.dump_garbage()),
@@ -144,7 +154,8 @@ class StateDevice(PytomationObject):
             m_command = self._state_to_command(state, m_command)
         elif command == Command.INITIAL:
             state = self.state
-
+        elif command == Command.AUTOMATIC or command == Command.MANUAL:
+            m_command = command
         return (state, m_command)
 
     def toggle_state(self):
@@ -240,7 +251,7 @@ class StateDevice(PytomationObject):
             
             # Find specific first
             if command in commands and source in sources:
-                if not timer:
+                if not timer or not self._automatic:
                     return target
                 else:
                     timer.action(self.command, (target, ), source=self, original=source)
@@ -249,7 +260,7 @@ class StateDevice(PytomationObject):
 
             # Go for a more general match next
             if command in commands and None in sources:
-                if not timer:
+                if not timer or not self._automatic:
                     return target
                 else:
                     timer.action(self.command, (target, ), source=self, original=source)

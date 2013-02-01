@@ -462,3 +462,33 @@ class StateTests(TestCase):
         self.assertEqual(d2.state, State.ON)
         
         
+    def test_manual_state(self):
+        d1 = StateDevice()
+        d2 = StateDevice(devices=d1,
+                         delay={
+                                Attribute.COMMAND: Command.OFF,
+                                Attribute.SECS: 2
+                                },
+                         )
+        d2.on()
+        self.assertEqual(d2.state, State.ON)
+        d2.manual()
+        d2.off()
+        self.assertEqual(d2.state, State.OFF)
+        d2.on()
+        d2.automatic()
+        d2.off()
+        self.assertEqual(d2.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(d2.state, State.OFF)
+                
+#                                 trigger={
+#                                  Attribute.COMMAND: Command.OFF,
+#                                  Attribute.MAPPED: Command.OFF,
+#                                  Attribute.SECS: 2
+#                                  },
+#                         mapped={
+#                                 Attribute.COMMAND: Command.OFF,
+#                                 Attribute.MAPPED: Command.OFF,
+#                                 Attribute.SECS: 2
+#                                 },
