@@ -1,13 +1,15 @@
 import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32, \
-                                    NamedPipe, StateInterface, Command
+                                    NamedPipe, StateInterface, Command, HTTPServer
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
                                 Photocell, Generic, StateDevice, State, Attribute
 
 #from pytomation.common.system import *
 
 ###################### INTERFACE CONFIG #########################
+web = HTTPServer()
+
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
 #insteon = InsteonPLM(TCP('192.168.13.146', 9761))
@@ -175,7 +177,7 @@ l_foyer = Light(
 
 l_front_porch = Light(
                       address=(49, 4),
-                      devices=(upb, d_foyer, m_front_porch, m_front_camera, ph_standard, ),
+                      devices=(upb, d_foyer, m_front_porch, m_front_camera, ph_standard, web),
                       initial=ph_standard,
                       delay=({
                              Attribute.COMMAND: Command.OFF,
@@ -185,7 +187,12 @@ l_front_porch = Light(
                               Attribute.COMMAND: Command.OFF,
                               Attribute.SECS: 0,
                               Attribute.SOURCE: ph_standard,
-                              }
+                              },
+                             {
+                              Attribute.COMMAND: Command.OFF,
+                              Attribute.SECS: 0,
+                              Attribute.SOURCE: web,
+                              },
                              ),
                        idle={
                              Attribute.COMMAND:(Command.LEVEL, 40),

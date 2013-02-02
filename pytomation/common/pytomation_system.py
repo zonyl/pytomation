@@ -1,3 +1,4 @@
+import select
 from .pytomation_object import PytomationObject
 from ..utility.periodic_timer import PeriodicTimer
 from ..utility.manhole import Manhole
@@ -39,5 +40,8 @@ def start(loop_action=None, loop_time=1, admin_user=None, admin_password=None, t
     if telnet_port:
         Manhole().start(user=admin_user, password=admin_password, port=telnet_port, instances=get_instances_detail())
 
-    if http_address and http_port and http_path:
+    if http_address and http_port and http_path and False:
         PytomationHTTPServer(address=http_address, port=http_port, path=http_path).start()
+    else:
+        # sit and spin - Let the magic flow
+        select.select([],[],[])
