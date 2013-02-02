@@ -21,6 +21,8 @@ class State(object):
     DARK = "dark"
     ACTIVE = 'activate'
     INACTIVE = 'deactivate'
+    OCCUPIED = 'occupied'
+    UNOCCUPIED = 'unoccupied'
 
 class Attribute(object):
     MAPPED = 'mapped'

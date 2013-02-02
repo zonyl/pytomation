@@ -8,3 +8,4 @@ from .motion import *
 from .photocell import *
 from .scene import *
 from .attributes import *
+from .room import *

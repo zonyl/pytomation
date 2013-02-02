@@ -93,6 +93,8 @@ class Command(object):
     CLOSE = 'close'
     AUTOMATIC = 'automatic'
     MANUAL = 'manual'
+    OCCUPIED = 'occupied'
+    UNOCCUPIED = 'unoccupied'
     
 class Interface(PytomationObject):
     def __init__(self):
