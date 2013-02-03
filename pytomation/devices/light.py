@@ -19,13 +19,19 @@ class Light(InterfaceDevice):
 
     def command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
-        if command == Command.LIGHT:
-            a = 1
         try:
             if source and source.state == State.DARK:
                 self.restricted = False
+                self._logger.debug('{name} received Dark from {source}.  Now unrestricted'.format(
+                                                            name=self.name,
+                                                            source=source.name if source else str(source)
+                                                                                    ))
             elif source and source.state == State.LIGHT:
                 self.restricted = True
+                self._logger.debug('{name} received Light from {source}.  Now restricted'.format(
+                                                            name=self.name,
+                                                            source=source.name if source else str(source)
+                                                                                    ))
         except AttributeError, ex:
             pass
         super(Light, self).command(command, *args, **kwargs)

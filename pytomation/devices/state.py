@@ -73,7 +73,8 @@ class StateDevice(PytomationObject):
     @state.setter
     def state(self, value, *args, **kwargs):
         source = kwargs.get('source', None)
-        self._previous_state = self._state
+        if value != self._state:
+            self._previous_state = self._state
         self._last_set = datetime.now()
         self._state = value
 #        if self._idle_timer:
@@ -114,12 +115,13 @@ class StateDevice(PytomationObject):
                                                           command=map_command,
                                                           source=source.name if source else None,
                                                                                                                       ))
+                        original_state = self.state
                         self.state = state
                         self._cancel_delays(map_command, source, original=command)
                         if self._automatic:
                             self._idle_start(*args, **kwargs)
                         self._previous_command = map_command
-                        self._delegate_command(map_command, *args, **kwargs)
+                        self._delegate_command(map_command, original_state=original_state, *args, **kwargs)
                         if self._automatic:
                             self._trigger_start(map_command, source, original=command)
                         self._logger.debug('{name} Garbarge Collection queue:{queue}'.format(
@@ -256,6 +258,13 @@ class StateDevice(PytomationObject):
                 if not timer or not self._automatic:
                     return target
                 else:
+                    self._logger.debug('{name} Map Timer Started for command "{command}" from source "{source}" will send "{target}" in "{secs}" secs.'.format(
+                                            name=self.name,
+                                            source=source,
+                                            command=command,
+                                            target=target,
+                                            secs=timer.interval,
+                    ))
                     timer.action(self.command, (target, ), source=self, original=source)
                     timer.restart()
                     return None
@@ -265,6 +274,13 @@ class StateDevice(PytomationObject):
                 if not timer or not self._automatic:
                     return target
                 else:
+                    self._logger.debug('{name} Map Timer Started for command "{command}" from source "{source}" will send "{target}" in "{secs}" secs.'.format(
+                                            name=self.name,
+                                            source=source,
+                                            command=command,
+                                            target=target,
+                                            secs=timer.interval,
+                    ))
                     timer.action(self.command, (target, ), source=self, original=source)
                     timer.restart()
                     return None

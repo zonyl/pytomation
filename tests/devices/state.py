@@ -347,6 +347,21 @@ class StateTests(TestCase):
         s1.previous()
         self.assertEqual(s1.state, State.ON)
 
+    def test_previous_state_twice_command(self):
+        s1 = StateDevice()
+        s2 = StateDevice(devices=s1)
+        s1.off()
+        self.assertEqual(s1.state, State.OFF)
+        s1.on()
+        self.assertEqual(s1.state, State.ON)
+        s1.on()
+        self.assertEqual(s1.state, State.ON)
+        s1.previous()
+        self.assertEqual(s1.state, State.OFF)
+        
+        
+        
+        
     def test_toggle_state(self):
         s1 = StateDevice()
         s1.on()

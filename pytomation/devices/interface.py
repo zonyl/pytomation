@@ -18,7 +18,8 @@ class InterfaceDevice(StateDevice):
         self._sync_timer = None
         self._read_only = False
         self._send_always = False
-    
+        self._previous_interface_command = None
+        
     @property
     def address(self):
         return self._address
@@ -43,12 +44,14 @@ class InterfaceDevice(StateDevice):
             return super(InterfaceDevice, self)._add_device(device)
 
     def _delegate_command(self, command, *args, **kwargs):
+        original_state = kwargs.get('original_state', None)
         source = kwargs.get('source', None)
         original = kwargs.get('original', None)
         if not self._read_only:
             for interface in self._interfaces:
                 if source != interface and original != interface:
-                    if not self._send_always and self._previous_state != self._command_to_state(command, None):
+                    if not self._send_always and original_state != self._command_to_state(command, None):
+                        self._previous_interface_command = command
                         try:
                             if isinstance(command, tuple):
                                 getattr(interface, command[0])(self._address, *command[1:])
