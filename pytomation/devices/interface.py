@@ -54,6 +54,11 @@ class InterfaceDevice(StateDevice):
                     if not self._send_always and original_state != new_state:
                         self._previous_interface_command = command
                         try:
+                            self._logger.debug("{name} Send command '{command}' to interface '{interface}'".format(
+                                                                                                name=self.name,
+                                                                                                command=command,
+                                                                                                interface=interface.name
+                                                                                             ))
                             if isinstance(command, tuple):
                                 getattr(interface, command[0])(self._address, *command[1:])
                             else:
