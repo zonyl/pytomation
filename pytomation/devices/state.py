@@ -306,10 +306,12 @@ class StateDevice(PytomationObject):
             try:
                 isFound = state[0] in self.STATES
             except:
-                self._logger.debug("{name} tried to be set to invalid state {state}".format(
-                                                                            name=self.name,
-                                                                            state=state,
-                                                                                            ))
+                pass
+        if not isFound:
+            self._logger.debug("{name} tried to be set to invalid state {state}".format(
+                                                                        name=self.name,
+                                                                        state=state,
+                                                                                        ))
         return isFound
 
     def _is_valid_command(self, command):
