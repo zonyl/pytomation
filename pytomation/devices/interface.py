@@ -50,7 +50,8 @@ class InterfaceDevice(StateDevice):
         if not self._read_only:
             for interface in self._interfaces:
                 if source != interface and original != interface:
-                    if not self._send_always and original_state != self._command_to_state(command, None):
+                    new_state = self._command_to_state(command, None)
+                    if not self._send_always and original_state != new_state:
                         self._previous_interface_command = command
                         try:
                             if isinstance(command, tuple):
@@ -62,11 +63,21 @@ class InterfaceDevice(StateDevice):
                                                                                                 name=self.name,
                                                                                                 command=command,
                                                                                                 interface=interface.name
-                                                                                                                         ))
-                else:
-                    self._logger.debug("{name} is already at this state {state} for command {command}, do not send to interface".format(
+                                                                                             ))
+                    else:
+                        self._logger.debug("{name} is already at this new state {state} originally {original_state} for command {command} -> {new_state}, do not send to interface".format(
                                                                                                 name=self.name,
                                                                                                 state=self.state,
+                                                                                                original_state=original_state,
+                                                                                                command=command,
+                                                                                                new_state=new_state,
+                                                                                                                  ))
+                else:
+                    self._logger.debug("{name} do not send to interface because either the current source {source} or original source {original} is the interface itself.".format(
+                                                                                                name=self.name,
+                                                                                                state=self.state,
+                                                                                                source=source,
+                                                                                                original=original,
                                                                                                 command=command,
                                                                                                                   ))
         return super(InterfaceDevice, self)._delegate_command(command, *args, **kwargs)
