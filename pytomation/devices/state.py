@@ -109,13 +109,14 @@ class StateDevice(PytomationObject):
         
                 if state and map_command and self._is_valid_state(state):
                     if source == self or (not self._get_delay(map_command, source, original=command) or not self._automatic):
-                        self._logger.info('{name} changed state to state "{state}" by command {command} from {source}'.format(
+                        original_state = self.state
+                        self._logger.info('{name} changed state from "{original_state}" to "{state}", by command {command} from {source}'.format(
                                                           name=self.name,
                                                           state=state,
+                                                          original_state=original_state,
                                                           command=map_command,
                                                           source=source.name if source else None,
                                                                                                                       ))
-                        original_state = self.state
                         self.state = state
                         self._cancel_delays(map_command, source, original=command)
                         if self._automatic:
@@ -129,13 +130,24 @@ class StateDevice(PytomationObject):
                                                                                     queue=str(StateDevice.dump_garbage()),
                                                                                              ))
                     else:
+                        self._logger.debug("{name} command {command} from {source} was delayed".format(
+                                                                                                   name=self.name,
+                                                                                                   command=command,
+                                                                                                   source=source.name if source else None
+                                                                                                   ))
                         self._delay_start(map_command, source, original=command)
                 else:
-                    self._logger.debug("{name} ignored command {command} from {source}".format(
+                    self._logger.debug("{name} mapped to nothing, ignored command {command} from {source}".format(
                                                                                                name=self.name,
                                                                                                command=command,
                                                                                                source=source.name if source else None
                                                                                                ))
+            else:
+                self._logger.debug("{name} ignored command {command} from {source}".format(
+                                                                                           name=self.name,
+                                                                                           command=command,
+                                                                                           source=source.name if source else None
+                                                                                           ))
 
     def _command_state_map(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
@@ -427,6 +439,13 @@ class StateDevice(PytomationObject):
     def _cancel_delays(self, command, source, original=None):
         if not self._get_delay(command, source, original):
             for c, timer in self._delay_timers.iteritems():
+                self._logger.debug("{name} stopping an existing delay timer of '{interval}' secs for command: '{command}' because the same non-delayed command was now processed. From {source} original command {original}".format(
+                                                                                           name=self.name,
+                                                                                           command=command,
+                                                                                           source=source.name if source else None,
+                                                                                           interval=timer.interval,
+                                                                                           original=original,
+                                                                                           ))
                 timer.stop()
 
     def _delay_start(self, command, source, *args, **kwargs):
