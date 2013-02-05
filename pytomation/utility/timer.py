@@ -55,3 +55,5 @@ class Timer(object):
         self.stop()
         self.start()
 
+    def isAlive(self):
+        return self._timer.isAlive() if self._timer else False

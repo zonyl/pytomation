@@ -43,6 +43,14 @@ class TimerTests(TestCase):
         self.assertFalse(callback.test.called)
         time.sleep(4)
         self.assertFalse(callback.test.called)
+        
+    def test_isAlive(self):
+        rt = CTimer()
+        rt.interval = 2
+        rt.start()
+        self.assertTrue(rt.isAlive())
+        time.sleep(3)
+        self.assertFalse(rt.isAlive())
 
 
 if __name__ == '__main__':
