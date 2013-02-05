@@ -497,13 +497,54 @@ class StateTests(TestCase):
         time.sleep(3)
         self.assertEqual(d2.state, State.OFF)
                 
-#                                 trigger={
-#                                  Attribute.COMMAND: Command.OFF,
-#                                  Attribute.MAPPED: Command.OFF,
-#                                  Attribute.SECS: 2
-#                                  },
-#                         mapped={
-#                                 Attribute.COMMAND: Command.OFF,
-#                                 Attribute.MAPPED: Command.OFF,
-#                                 Attribute.SECS: 2
-#                                 },
+    def test_changes_only(self):
+        d1 = StateDevice()
+        d2 = StateDevice(devices=d1,
+                         changes_only=True,
+                         name='tested')
+        d3 = StateDevice(devices=d2)
+        d1.off()
+        self.assertEqual(d1.state, State.OFF)
+        self.assertEqual(d2.state, State.OFF)
+        self.assertEqual(d3.state, State.OFF)
+        d1.on()
+        self.assertEqual(d1.state, State.ON)
+        self.assertEqual(d2.state, State.ON)
+        self.assertEqual(d3.state, State.ON)
+        d3.off()
+        self.assertEqual(d3.state, State.OFF)
+        # set on again, this time no delegation
+        d1.on()
+        self.assertEqual(d3.state, State.OFF)
+
+        # after x amount of time still prevent dupes
+        time.sleep(3)
+        d1.on()
+        self.assertEqual(d3.state, State.OFF)
+        
+    def test_one_shot(self):
+        d1 = StateDevice()
+        d2 = StateDevice(devices=d1,
+                         one_shot={
+                                   Attribute.SECS: 2
+                                   },
+                         name='tested')
+        d3 = StateDevice(devices=d2)
+        d1.off()
+        self.assertEqual(d1.state, State.OFF)
+        self.assertEqual(d2.state, State.OFF)
+        self.assertEqual(d3.state, State.OFF)
+        d1.on()
+        self.assertEqual(d1.state, State.ON)
+        self.assertEqual(d2.state, State.ON)
+        self.assertEqual(d3.state, State.ON)
+        d3.off()
+        self.assertEqual(d3.state, State.OFF)
+        # set on again, this time no delegation
+        d1.on()
+        self.assertEqual(d3.state, State.OFF)
+        
+        # after x amount of time allow dupes
+        time.sleep(3)
+        d1.on()
+        self.assertEqual(d3.state, State.ON)

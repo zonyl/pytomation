@@ -53,6 +53,7 @@ class StateDevice(PytomationObject):
         self._previous_state = self._state
         self._previous_command = None
         self._last_set = datetime.now()
+        self._changes_only = False
         self._delegates = []
         self._times = []
         self._maps = {}
@@ -65,6 +66,7 @@ class StateDevice(PytomationObject):
         self._idle_command = None
         self._devices = []
         self._automatic = True
+        self._one_short = None
         
     @property
     def state(self):
@@ -91,7 +93,7 @@ class StateDevice(PytomationObject):
         # Lets process one command at a time please
         with self._command_lock:
             source = kwargs.get('source', None)
-            if not self._is_ignored(command, source):
+            if not self._is_ignored(command, source) and not self._filter_one_shot(command=command, source=source):
                 m_command = self._process_maps(*args, command=command, **kwargs)
                 if m_command != command:
                     self._logger.debug("{name} Map from '{command}' to '{m_command}'".format(
@@ -223,6 +225,7 @@ class StateDevice(PytomationObject):
                 getattr(self, 'devices')( **kwargs['devices'])
             except Exception, ex:
                 getattr(self, 'devices')( kwargs['devices'])
+
         # run through the rest
         for k, v in kwargs.iteritems():
             if k.lower() != 'devices':
@@ -350,16 +353,25 @@ class StateDevice(PytomationObject):
     
     def _delegate_command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
-        for delegate in self._delegates:
-            self._logger.debug("{name} delegating command {command} from {source} to object {delegate}".format(
-                                                                               name=self.name,
-                                                                               command=command,
-                                                                               source=source.name if source else None,
-                                                                               delegate=delegate.name,
-                                                                                                               
-                                                                                                               ))
-            delegate.command(command=command, source=self)
+        original_state = kwargs.get('original_state', None)
         
+        for delegate in self._delegates:
+            if not self._changes_only or (self._changes_only and self._state != original_state):
+                self._logger.debug("{name} delegating command {command} from {source} to object {delegate}".format(
+                                                                                   name=self.name,
+                                                                                   command=command,
+                                                                                   source=source.name if source else None,
+                                                                                   delegate=delegate.name,
+                                                                           ))
+                delegate.command(command=command, source=self)
+            else:
+                self._logger.debug("{name} Avoid duplicate delegation of {command} from {source} to object {delegate}".format(
+                                                                                   name=self.name,
+                                                                                   command=command,
+                                                                                   source=source.name if source else None,
+                                                                                   delegate=delegate.name,
+                                                                           ))
+                
     def devices(self, *args, **kwargs):
         devices = args[0]
 
@@ -605,6 +617,24 @@ class StateDevice(PytomationObject):
     @property
     def last_command(self):
         return self._previous_command
+    
+    def changes_only(self, value):
+        self._changes_only=value
+        return self._changes_only
+    
+    def one_shot(self, *args, **kwargs):
+        secs = kwargs.get('secs', None)
+        self._one_shot = CTimer()
+        self._one_shot.interval = secs       
+
+    def _filter_one_shot(self, *args, **kwargs):
+        command = kwargs.get('command', None)
+        (map_state, map_command) = self._command_state_map( *args, **kwargs)
+        if self.state == map_state and self._one_shot and self._one_shot.isAlive():
+            return True
+        elif self._state != map_state and self._one_shot:
+            self._one_shot.restart()
+        return False          
 
     @staticmethod
     def dump_garbage():
