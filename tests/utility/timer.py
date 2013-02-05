@@ -50,8 +50,7 @@ class TimerTests(TestCase):
         rt.start()
         self.assertTrue(rt.isAlive())
         time.sleep(3)
-        self.assertFalse(rt.isAlive())
-
+        self.assertFalse(rt.isAlive())        
 
 if __name__ == '__main__':
     main()

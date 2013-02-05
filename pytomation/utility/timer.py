@@ -9,6 +9,7 @@ class Timer(object):
     def __init__(self, secs=60, *args, **kwargs):
         self._timer = None
         self._secs = secs
+        self._action = None
         
     def _get_timer(self, secs):
         timer = PTimer(secs, self._run_action, ())
