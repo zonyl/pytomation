@@ -338,6 +338,24 @@ class LightTests(TestCase):
         # Light should be off as m2 set the new time to only 2 secs
         self.assertEqual(l.state, State.OFF)
         
+    def test_light_restriction_idle(self):
+        ph = Photocell()
+        m = Motion()
+        ph.dark()
+        l = Light(
+                  devices=(ph, m),
+                  idle={Attribute.COMMAND: (Command.LEVEL, 30),
+                        Attribute.SECS: 2,
+                        }
+                  )
+        m.motion()
+        self.assertEqual(l.state, State.ON)
+        ph.light()
+        self.assertEqual(l.state, State.OFF)
+        m.motion()
+        self.assertEqual(l.state, State.OFF)
+        time.sleep(3)
+        self.assertEqual(l.state, State.OFF)
         
 if __name__ == '__main__':
     main() 

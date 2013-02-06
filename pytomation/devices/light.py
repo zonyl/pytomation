@@ -41,9 +41,13 @@ class Light(InterfaceDevice):
         if command == Command.ON:
             a = 1
         (m_state, m_command) = super(Light, self)._command_state_map(command, *args, **kwargs)
+        primary_command = m_command
+        if isinstance(m_command, tuple):
+            primary_command = m_command[0]
         try:
-            if source and not source == self and m_command == Command.ON and \
-                getattr(source, 'state') and source.state in (State.OPEN, State.MOTION, State.DARK):
+#            if source and not source == self and (primary_command == Command.ON or primary_command == Command.LEVEL) and \
+#                getattr(source, 'state') and source.state in (State.OPEN, State.MOTION, State.DARK):
+            if source and (primary_command in [Command.ON, Command.LEVEL]):
                 if self.restricted:
                     m_command = None
                     m_state = None 
