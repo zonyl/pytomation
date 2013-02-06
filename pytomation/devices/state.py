@@ -275,7 +275,7 @@ class StateDevice(PytomationObject):
                 else:
                     self._logger.debug('{name} Map Timer Started for command "{command}" from source "{source}" will send "{target}" in "{secs}" secs.'.format(
                                             name=self.name,
-                                            source=source,
+                                            source=source.name if source else None,
                                             command=command,
                                             target=target,
                                             secs=timer.interval,
