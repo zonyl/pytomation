@@ -93,7 +93,7 @@ class StateDevice(PytomationObject):
         # Lets process one command at a time please
         with self._command_lock:
             source = kwargs.get('source', None)
-            if not self._is_ignored(command, source) and not self._filter_retrigger_delay(command=command, source=source):
+            if not self._is_ignored(command, source):
                 m_command = self._process_maps(*args, command=command, **kwargs)
                 if m_command != command:
                     self._logger.debug("{name} Map from '{command}' to '{m_command}'".format(
@@ -110,34 +110,43 @@ class StateDevice(PytomationObject):
                     self._automatic = True
         
                 if state and map_command and self._is_valid_state(state):
-                    if source == self or (not self._get_delay(map_command, source, original=command) or not self._automatic):
-                        original_state = self.state
-                        self._logger.info('{name} changed state from "{original_state}" to "{state}", by command {command} from {source}'.format(
-                                                          name=self.name,
-                                                          state=state,
-                                                          original_state=original_state,
-                                                          command=map_command,
-                                                          source=source.name if source else None,
-                                                                                                                      ))
-                        self.state = state
-                        self._cancel_delays(map_command, source, original=command)
-                        if self._automatic:
-                            self._idle_start(*args, **kwargs)
-                        self._previous_command = map_command
-                        self._delegate_command(map_command, original_state=original_state, *args, **kwargs)
-                        if self._automatic:
-                            self._trigger_start(map_command, source, original=command)
-                        self._logger.debug('{name} Garbarge Collection queue:{queue}'.format(
-                                                                                    name=self.name,
-                                                                                    queue=str(StateDevice.dump_garbage()),
-                                                                                             ))
+                    if not self._filter_retrigger_delay(command=map_command, source=source, new_state=state, original_state=self.state, original=command):
+                    
+                        if source == self or (not self._get_delay(map_command, source, original=command) or not self._automatic):
+                            original_state = self.state
+                            self._logger.info('{name} changed state from "{original_state}" to "{state}", by command {command} from {source}'.format(
+                                                              name=self.name,
+                                                              state=state,
+                                                              original_state=original_state,
+                                                              command=map_command,
+                                                              source=source.name if source else None,
+                                                                                                                          ))
+                            self.state = state
+                            self._cancel_delays(map_command, source, original=command)
+                            if self._automatic:
+                                self._idle_start(*args, **kwargs)
+                            self._previous_command = map_command
+                            self._delegate_command(map_command, original_state=original_state, *args, **kwargs)
+                            if self._automatic:
+                                self._trigger_start(map_command, source, original=command)
+                            self._logger.debug('{name} Garbarge Collection queue:{queue}'.format(
+                                                                                        name=self.name,
+                                                                                        queue=str(StateDevice.dump_garbage()),
+                                                                                                 ))
+                        else:
+                            self._logger.debug("{name} command {command} from {source} was delayed".format(
+                                                                                                       name=self.name,
+                                                                                                       command=command,
+                                                                                                       source=source.name if source else None
+                                                                                                       ))
+                            self._delay_start(map_command, source, original=command)
                     else:
-                        self._logger.debug("{name} command {command} from {source} was delayed".format(
-                                                                                                   name=self.name,
-                                                                                                   command=command,
-                                                                                                   source=source.name if source else None
-                                                                                                   ))
-                        self._delay_start(map_command, source, original=command)
+                        # retrigger
+                        self._logger.debug("{name} Retrigger delay ignored command {command} from {source}".format(
+                                                                                               name=self.name,
+                                                                                               command=command,
+                                                                                               source=source.name if source else None
+                                                                                               ))
                 else:
                     self._logger.debug("{name} mapped to nothing, ignored command {command} from {source}".format(
                                                                                                name=self.name,
@@ -629,10 +638,11 @@ class StateDevice(PytomationObject):
 
     def _filter_retrigger_delay(self, *args, **kwargs):
         command = kwargs.get('command', None)
-        (map_state, map_command) = self._command_state_map( *args, **kwargs)
-        if self.state == map_state and self._retrigger_delay and self._retrigger_delay.isAlive():
+        original_state = kwargs.get('original_state', None)
+        new_state = kwargs.get('new_state', None)
+        if new_state == original_state and self._retrigger_delay and self._retrigger_delay.isAlive():
             return True
-        elif self._state != map_state and self._retrigger_delay:
+        elif new_state != original_state and self._retrigger_delay:
             self._retrigger_delay.restart()
         return False          
 

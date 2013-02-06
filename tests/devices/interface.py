@@ -130,6 +130,8 @@ class InterfaceDevice_Tests(TestCase):
         self.assertEqual(self.device.state, State.ON)
         self.assertFalse(self.interface.on.called)
         
+    def test_interface_interface_source(self):
+        pass
 
 if __name__ == '__main__':
     main() 

@@ -3,7 +3,7 @@ from unittest import TestCase, main
 from mock import Mock, MagicMock
 import time
 
-from pytomation.devices import Motion, State, Attribute
+from pytomation.devices import Motion, State, Attribute, StateDevice, Light
 from pytomation.interfaces import Command
 
 class MotionTests(TestCase):
@@ -56,6 +56,26 @@ class MotionTests(TestCase):
         self.assertEqual(m.state, State.MOTION)
         time.sleep(3)
         self.assertEqual(m.state, State.STILL)
+
+    def test_motion_retrigger(self):
+        i = Mock()
+        m = Motion(devices=i,
+                   retrigger_delay={
+                                    Attribute.SECS: 2,
+                                    },
+                   )
+        s = Light(devices=m)
+        s.off()
+        self.assertEqual(s.state, State.OFF)
+        m.command(command=Command.ON, source=i)
+        self.assertEqual(s.state, State.ON)
+        s.off()
+        self.assertEqual(s.state, State.OFF)
+        m.command(command=Command.ON, source=i)
+        self.assertEqual(s.state, State.OFF)
+        time.sleep(3)
+        m.command(command=Command.ON, source=i)
+        self.assertEqual(s.state, State.ON)
         
 
 if __name__ == '__main__':
