@@ -522,10 +522,10 @@ class StateTests(TestCase):
         d1.on()
         self.assertEqual(d3.state, State.OFF)
         
-    def test_one_shot(self):
+    def test_retrigger_delay(self):
         d1 = StateDevice()
         d2 = StateDevice(devices=d1,
-                         one_shot={
+                         retrigger_delay={
                                    Attribute.SECS: 2
                                    },
                          name='tested')

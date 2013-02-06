@@ -66,7 +66,7 @@ class StateDevice(PytomationObject):
         self._idle_command = None
         self._devices = []
         self._automatic = True
-        self._one_short = None
+        self._retrigger_delay = None
         
     @property
     def state(self):
@@ -93,7 +93,7 @@ class StateDevice(PytomationObject):
         # Lets process one command at a time please
         with self._command_lock:
             source = kwargs.get('source', None)
-            if not self._is_ignored(command, source) and not self._filter_one_shot(command=command, source=source):
+            if not self._is_ignored(command, source) and not self._filter_retrigger_delay(command=command, source=source):
                 m_command = self._process_maps(*args, command=command, **kwargs)
                 if m_command != command:
                     self._logger.debug("{name} Map from '{command}' to '{m_command}'".format(
@@ -622,18 +622,18 @@ class StateDevice(PytomationObject):
         self._changes_only=value
         return self._changes_only
     
-    def one_shot(self, *args, **kwargs):
+    def retrigger_delay(self, *args, **kwargs):
         secs = kwargs.get('secs', None)
-        self._one_shot = CTimer()
-        self._one_shot.interval = secs       
+        self._retrigger_delay = CTimer()
+        self._retrigger_delay.interval = secs       
 
-    def _filter_one_shot(self, *args, **kwargs):
+    def _filter_retrigger_delay(self, *args, **kwargs):
         command = kwargs.get('command', None)
         (map_state, map_command) = self._command_state_map( *args, **kwargs)
-        if self.state == map_state and self._one_shot and self._one_shot.isAlive():
+        if self.state == map_state and self._retrigger_delay and self._retrigger_delay.isAlive():
             return True
-        elif self._state != map_state and self._one_shot:
-            self._one_shot.restart()
+        elif self._state != map_state and self._retrigger_delay:
+            self._retrigger_delay.restart()
         return False          
 
     @staticmethod
