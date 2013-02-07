@@ -51,8 +51,7 @@ class InterfaceDevice(StateDevice):
             for interface in self._interfaces:
                 if source != interface and original != interface:
                     new_state = self._command_to_state(command, None)
-                    if not self._send_always and original_state != new_state or
-                        self._send_always:
+                    if self._send_always or (not self._send_always and original_state != new_state)
                         self._previous_interface_command = command
                         try:
                             self._logger.debug("{name} Send command '{command}' to interface '{interface}'".format(
