@@ -544,3 +544,12 @@ class StateTests(TestCase):
         time.sleep(3)
         d1.on()
         self.assertEqual(d3.state, State.ON)
+        
+    def test_loop_prevention(self):
+        s1 = StateDevice()
+        s2 = StateDevice()
+        s1.devices(s2)
+        s2.devices(s1)
+        s1.on()
+        pass
+    

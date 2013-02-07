@@ -21,8 +21,8 @@ class State(object):
     DARK = "dark"
     ACTIVE = 'activate'
     INACTIVE = 'deactivate'
-    OCCUPIED = 'occupied'
-    UNOCCUPIED = 'unoccupied'
+    OCCUPIED = 'occupy'
+    VACANT = 'vacate'
 
 class Attribute(object):
     MAPPED = 'mapped'
@@ -365,7 +365,7 @@ class StateDevice(PytomationObject):
         original_state = kwargs.get('original_state', None)
         
         for delegate in self._delegates:
-            if not self._changes_only or (self._changes_only and self._state != original_state):
+            if source != delegate and not self._changes_only or (self._changes_only and self._state != original_state):
                 self._logger.debug("{name} delegating command {command} from {source} to object {delegate}".format(
                                                                                    name=self.name,
                                                                                    command=command,

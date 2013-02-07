@@ -13,9 +13,11 @@ class Light(InterfaceDevice):
         self.mapped(command=Command.MOTION, mapped=Command.ON)
         self.mapped(command=Command.DARK, mapped=Command.ON)
         self.mapped(command=Command.OPEN, mapped=Command.ON)
+        self.mapped(command=Command.OCCUPY, mapped=Command.ON)
         self.mapped(command=Command.STILL, mapped=Command.OFF)
         self.mapped(command=Command.LIGHT, mapped=Command.OFF)
         self.mapped(command=Command.CLOSE, mapped=Command.OFF)
+        self.mapped(command=Command.VACATE, mapped=Command.OFF)
 
     def command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
