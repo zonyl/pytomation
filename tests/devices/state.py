@@ -68,10 +68,6 @@ class StateTests(TestCase):
                                                  )
         print 'Trigger Time' + trigger_time2
         device = StateDevice(
-#                              time=Attributes(command=Command.OFF,
-#                                              time=(trigger_time1, trigger_time2)
-#                                              )
-#                              )
                               time={
                                     
                                     'command': Command.OFF,
