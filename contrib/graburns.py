@@ -3,7 +3,8 @@ import select
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32, \
                                     NamedPipe, StateInterface, Command, HTTPServer
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
-                                Photocell, Generic, StateDevice, State, Attribute
+                                Photocell, Generic, StateDevice, State, Attribute, \
+                                Room,
 
 #from pytomation.common.system import *
 
@@ -147,6 +148,21 @@ ph_civil = Location('35.2269', '-80.8433',
                     is_dst=True,
                     name='Civil Photocell')
 
+# Rooms
+r_foyer = Room(name='Foyer', devices=(m_foyer))
+r_den = Room(name='Den', devices=(m_den, r_foyer))
+r_family = Room(name='Family', devices=(m_family, r_foyer))
+r_kitchen = Room(name='Kitchen', devices=(m_kitchen, r_foyer))
+r_foyer.add_device(r_den)
+r_foyer.add_device(r_family)
+r_foyer.add_device(r_kitchen)
+r_breakfast = Room(name='Breakfast', devices=(m_breakfast, r_kitchen))
+r_utility = Room(name='Utility', devices=(m_utility, r_kitchen, d_laundry))
+r_kitchen.add_device(r_breakfast)
+r_kitchen.add_device(r_utility)
+r_garage = Room(name='Garage', devices=(m_garage, r_utility, d_laundry, d_garage, d_garage_overhead))
+r_utility.add_device(r_garage)
+
 #lights
 # Turn on the foyer light at night when either the door is opened or family PIR is tripped.
 l_foyer = Light(
@@ -287,7 +303,7 @@ l_garage = Light(
 
 l_family_lamp = Light(
                 address=(49, 6), 
-                devices=(upb, m_family, ph_standard),
+                devices=(upb, ph_standard, r_family),
                 mapped={
                         Attribute.COMMAND: (Command.MOTION, Command.LIGHT),
                         Attribute.TARGET: Command.OFF,
@@ -296,6 +312,11 @@ l_family_lamp = Light(
                 ignore={
                         Attribute.COMMAND: (Command.STILL, Command.DARK),
                         },
+                delay={
+                       Attribute.COMMAND: Command.OFF,
+                       Attribute.SECS: 15*60,
+                       Attribute.SOURCE: r_family,
+                       }
                 name='Family Lamp Light',
                 )
 
