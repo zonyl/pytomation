@@ -365,7 +365,14 @@ class StateDevice(PytomationObject):
         original_state = kwargs.get('original_state', None)
         
         for delegate in self._delegates:
-            if source != delegate and not self._changes_only or (self._changes_only and self._state != original_state):
+#            print "here {name} s:{source} d:{delegate}".format(
+#                                                               name=self.name,
+#                                                               source=source.name if source else None,
+#                                                               delegate=delegate.name if delegate else None,
+#                                                               )
+            if delegate != self and source != delegate and \
+                (not self._changes_only or \
+                (self._changes_only and self._state != original_state)):
                 self._logger.debug("{name} delegating command {command} from {source} to object {delegate}".format(
                                                                                    name=self.name,
                                                                                    command=command,
@@ -390,6 +397,9 @@ class StateDevice(PytomationObject):
         for device in devices:
             if device:
                 self._add_device(device)
+
+    def add_device(self, device):
+        return self._add_device(device)
 
     def _add_device(self, device):
         if not isinstance(device, dict):
