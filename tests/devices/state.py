@@ -293,6 +293,8 @@ class StateTests(TestCase):
         self.assertEqual(s2.state, State.OFF)
         s1.on()
         self.assertEqual(s2.state, State.ON)
+        
+
 
     def test_ignore_state(self):
         s1 = StateDevice()

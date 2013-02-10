@@ -523,7 +523,7 @@ class StateDevice(PytomationObject):
             
     def _idle_start(self, *args, **kwargs):
         source = kwargs.get('source', None)
-        if self._idle_command and source != self:
+        if self._idle_command and source != self and self.state != State.OFF:
             self._idle_timer.action(self.command, (self._idle_command, ), source=self, original=source)
             self._idle_timer.start()
         
