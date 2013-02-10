@@ -415,9 +415,12 @@ class StateDevice(PytomationObject):
         return True
 
     def remove_device(self, device):
-        device.on_command(device=self, remove=True)
-        self._devices.remove(device)
-        return True
+        if device in self._devices:
+            device.on_command(device=self, remove=True)
+            self._devices.remove(device)
+            return True
+        else:
+            return False
     
     def mapped(self, *args, **kwargs):
         command = kwargs.get('command', None)

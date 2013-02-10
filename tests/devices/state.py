@@ -600,9 +600,15 @@ class StateTests(TestCase):
         self.assertEqual(s2.state, State.ON)
         s2.off()
         self.assertEqual(s2.state, State.OFF)        
-        s2.remove_device(s1)
+        r=s2.remove_device(s1)
+        self.assertTrue(r)
         self.assertEqual(s2.state, State.OFF)        
         s1.on()
-        self.assertEqual(s2.state, State.OFF)        
+        self.assertEqual(s2.state, State.OFF)     
+        # remove again and not error
+        r = s2.remove_device(s1)
+        self.assertFalse(r)
+        
+         
         
         
