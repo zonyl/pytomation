@@ -283,8 +283,8 @@ class StateTests(TestCase):
         s1 = StateDevice()
         s2 = StateDevice(devices=s1,
                          idle={
-                               'command': State.OFF,
-                               'secs': 2,
+                               Attribute.MAPPED: State.OFF,
+                               Attribute.SECS: 2,
                                }
                          )
         s1.on()
@@ -294,7 +294,27 @@ class StateTests(TestCase):
         s1.on()
         self.assertEqual(s2.state, State.ON)
         
-
+    def test_idle_source(self):
+        s1 = StateDevice()
+        s2 = StateDevice()
+        s1.off()
+        s2.off()
+        s3 = StateDevice(devices=(s1, s2),
+                          idle={
+                                Attribute.MAPPED: State.OFF,
+                                Attribute.SECS: 2,
+                                Attribute.SOURCE: s2
+                                }
+                          )
+        s1.on()
+        self.assertEqual(s3.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(s3.state, State.ON)
+        s2.on()
+        self.assertEqual(s3.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(s3.state, State.OFF)
+        
 
     def test_ignore_state(self):
         s1 = StateDevice()

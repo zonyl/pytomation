@@ -344,7 +344,7 @@ class LightTests(TestCase):
         ph.dark()
         l = Light(
                   devices=(ph, m),
-                  idle={Attribute.COMMAND: (Command.LEVEL, 30),
+                  idle={Attribute.MAPPED: (Command.LEVEL, 30),
                         Attribute.SECS: 2,
                         }
                   )
@@ -362,7 +362,7 @@ class LightTests(TestCase):
         m.still()
         l = Light(
                   devices=(m),
-                  idle={Attribute.COMMAND: (Command.LEVEL, 30),
+                  idle={Attribute.MAPPED: (Command.LEVEL, 30),
                         Attribute.SECS: 2,
                         }
                   )
