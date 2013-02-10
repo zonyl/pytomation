@@ -593,3 +593,16 @@ class StateTests(TestCase):
         s1.on()
         pass
     
+    def test_state_remove_device(self):
+        s1 = StateDevice()
+        s2 = StateDevice(devices=s1)
+        s1.on()
+        self.assertEqual(s2.state, State.ON)
+        s2.off()
+        self.assertEqual(s2.state, State.OFF)        
+        s2.remove_device(s1)
+        self.assertEqual(s2.state, State.OFF)        
+        s1.on()
+        self.assertEqual(s2.state, State.OFF)        
+        
+        

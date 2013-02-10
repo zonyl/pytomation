@@ -357,8 +357,11 @@ class StateDevice(PytomationObject):
                 timer.start()
                 self._times.append((command, timer))
 
-    def on_command(self, device=None):
-        self._delegates.append(device)
+    def on_command(self, device=None, remove=False):
+        if not remove:
+            self._delegates.append(device)
+        else:
+            self._delegates.remove(device)
     
     def _delegate_command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
@@ -411,6 +414,11 @@ class StateDevice(PytomationObject):
             return device.on_command(device=self)
         return True
 
+    def remove_device(self, device):
+        device.on_command(device=self, remove=True)
+        self._devices.remove(device)
+        return True
+    
     def mapped(self, *args, **kwargs):
         command = kwargs.get('command', None)
         mapped = kwargs.get('mapped', None)
