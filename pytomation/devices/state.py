@@ -345,7 +345,7 @@ class StateDevice(PytomationObject):
         command = kwargs.get('command', State.UNKNOWN)
         
         if times:
-            if not isinstance( times, tuple):
+            if not isinstance( times, tuple) or (isinstance(times, tuple) and isinstance(times[0], (long, int))):
                 times = (times, )
             for time in times:
                 timer = CronTimer()

@@ -84,6 +84,24 @@ class StateTests(TestCase):
         print device._times
         self.assertEqual(device.state, State.OFF)
         
+    def test_time_cron_off(self):
+        now = datetime.now()
+        hours, mins, secs = now.timetuple()[3:6]
+        secs = (secs + 2) % 60
+        mins += (secs + 2) / 60
+        ctime = (secs, mins, hours)
+        
+        s = StateDevice(
+                       time={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.TIME: ctime,
+                             }
+                       )
+        s.on()
+        self.assertEqual(s.state, Command.ON)
+        time.sleep(3)
+        self.assertEqual(s.state, Command.OFF)
+
     def test_binding(self):
         d1 = StateDevice()
         d1.off()
