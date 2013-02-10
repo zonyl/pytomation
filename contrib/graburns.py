@@ -211,7 +211,7 @@ l_front_porch = Light(
                               },
                              ),
                        idle={
-                             Attribute.COMMAND:(Command.LEVEL, 40),
+                             Attribute.MAPPED:(Command.LEVEL, 40),
                              Attribute.SECS: 10*60,
                              },
                        time={
@@ -237,7 +237,7 @@ l_front_flood = Light(
                               }
                              ),
                        idle={
-                             Attribute.COMMAND:(Command.LEVEL, 40),
+                             Attribute.MAPPED:(Command.LEVEL, 40),
                              Attribute.SECS: 5*60,
                              },
                        time={
@@ -275,7 +275,7 @@ l_front_garage = Light(
                               }
                              ),
                        idle={
-                             Attribute.COMMAND:(Command.LEVEL, 40),
+                             Attribute.MAPPED:(Command.LEVEL, 40),
                              Attribute.SECS: 10*60,
                              },
                        time={
