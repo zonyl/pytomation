@@ -14,8 +14,18 @@ reload_device_grid();
 <body>
 <div class='row'>
 <div class='span11 offset1'>
-<h1>Pytomation Web</h1>
+<h1>Pytomation Web </h1>
 Devices
+<select name='listDevice'onchange=window.location.reload()>
+  <option value='all'>All</option>
+  <option value='Door'>Door</option>
+  <option value='Generic'>Generic</option>
+  <option value='Light'>Light</option>
+  <option value='Location'>Location</option>
+  <option value='Motion'>Motion</option>
+  <option value='Photocell'>Photocell</option>
+  <option value='Room'>Room</option>
+</select>
 <table id='tableDevices' class='table table-striped table-bordered table-hover table-condensed'>
 <thead><th>Type</th><th>Device name</th><th>State</th><th>Commands</th></thead>
 </table>
