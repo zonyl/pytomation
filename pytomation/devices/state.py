@@ -62,7 +62,7 @@ class StateDevice(PytomationObject):
         self._triggers = {}
         self._trigger_timers = {}
         self._ignores = []
-        self._idle_timer = None
+        self._idle_timer = {}
         self._idle_command = None
         self._devices = []
         self._automatic = True
@@ -124,7 +124,7 @@ class StateDevice(PytomationObject):
                             self.state = state
                             self._cancel_delays(map_command, source, original=command)
                             if self._automatic:
-                                self._idle_start(*args, **kwargs)
+                                self._idle_start(command=map_command, source=source, original_command=command)
                             self._previous_command = map_command
                             self._delegate_command(map_command, original_state=original_state, *args, **kwargs)
                             if self._automatic:
@@ -345,7 +345,7 @@ class StateDevice(PytomationObject):
         command = kwargs.get('command', State.UNKNOWN)
         
         if times:
-            if not isinstance( times, tuple):
+            if not isinstance( times, tuple) or (isinstance(times, tuple) and isinstance(times[0], (long, int))):
                 times = (times, )
             for time in times:
                 timer = CronTimer()
@@ -357,8 +357,11 @@ class StateDevice(PytomationObject):
                 timer.start()
                 self._times.append((command, timer))
 
-    def on_command(self, device=None):
-        self._delegates.append(device)
+    def on_command(self, device=None, remove=False):
+        if not remove:
+            self._delegates.append(device)
+        else:
+            self._delegates.remove(device)
     
     def _delegate_command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
@@ -411,6 +414,14 @@ class StateDevice(PytomationObject):
             return device.on_command(device=self)
         return True
 
+    def remove_device(self, device):
+        if device in self._devices:
+            device.on_command(device=self, remove=True)
+            self._devices.remove(device)
+            return True
+        else:
+            return False
+    
     def mapped(self, *args, **kwargs):
         command = kwargs.get('command', None)
         mapped = kwargs.get('mapped', None)
@@ -513,19 +524,35 @@ class StateDevice(PytomationObject):
     def idle(self, *args, **kwargs):
         command = kwargs.get('command', None)
         source = kwargs.get('source', None)
+        mapped = kwargs.get(Attribute.MAPPED, None)
         secs = kwargs.get('secs', None)
-        self._idle_command = command
         if secs:
             timer = CTimer()
             timer.interval = secs
-            timer.action(self.command, (self._idle_command, ), source=self, original=source)
-            self._idle_timer = timer
+            timer.action(self.command, (mapped, ), source=self, original=source)
+#            self._idle_timer = timer
+            self._idle_timer.update({(command, source): {Attribute.SECS: secs, 
+                                                         Attribute.MAPPED: mapped,
+                                                         'timer': timer}})
             
     def _idle_start(self, *args, **kwargs):
+        command = kwargs.get('command', None)
         source = kwargs.get('source', None)
-        if self._idle_command and source != self:
-            self._idle_timer.action(self.command, (self._idle_command, ), source=self, original=source)
-            self._idle_timer.start()
+        original_command = kwargs.get('original_command', None)
+        idle = self._idle_timer.get((command, source), None)
+        if not idle:
+            idle = self._idle_timer.get((original_command, source), None)
+        if not idle:
+            idle = self._idle_timer.get((None, source), None)
+        if not idle:
+            idle = self._idle_timer.get((Command, None), None)
+        if not idle:
+            idle = self._idle_timer.get((None, None), None)
+        if idle:
+            if idle[Attribute.MAPPED] and source != self and self.state != State.OFF:
+                timer = idle['timer']
+                timer.action(self.command, (idle[Attribute.MAPPED], ), source=self, original=source)
+                timer.start()
         
         
     def ignore(self, *args, **kwargs):

@@ -84,6 +84,24 @@ class StateTests(TestCase):
         print device._times
         self.assertEqual(device.state, State.OFF)
         
+    def test_time_cron_off(self):
+        now = datetime.now()
+        hours, mins, secs = now.timetuple()[3:6]
+        secs = (secs + 2) % 60
+        mins += (secs + 2) / 60
+        ctime = (secs, mins, hours)
+        
+        s = StateDevice(
+                       time={
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.TIME: ctime,
+                             }
+                       )
+        s.on()
+        self.assertEqual(s.state, Command.ON)
+        time.sleep(3)
+        self.assertEqual(s.state, Command.OFF)
+
     def test_binding(self):
         d1 = StateDevice()
         d1.off()
@@ -265,8 +283,8 @@ class StateTests(TestCase):
         s1 = StateDevice()
         s2 = StateDevice(devices=s1,
                          idle={
-                               'command': State.OFF,
-                               'secs': 2,
+                               Attribute.MAPPED: State.OFF,
+                               Attribute.SECS: 2,
                                }
                          )
         s1.on()
@@ -275,6 +293,28 @@ class StateTests(TestCase):
         self.assertEqual(s2.state, State.OFF)
         s1.on()
         self.assertEqual(s2.state, State.ON)
+        
+    def test_idle_source(self):
+        s1 = StateDevice()
+        s2 = StateDevice()
+        s1.off()
+        s2.off()
+        s3 = StateDevice(devices=(s1, s2),
+                          idle={
+                                Attribute.MAPPED: State.OFF,
+                                Attribute.SECS: 2,
+                                Attribute.SOURCE: s2
+                                }
+                          )
+        s1.on()
+        self.assertEqual(s3.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(s3.state, State.ON)
+        s2.on()
+        self.assertEqual(s3.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(s3.state, State.OFF)
+        
 
     def test_ignore_state(self):
         s1 = StateDevice()
@@ -553,3 +593,22 @@ class StateTests(TestCase):
         s1.on()
         pass
     
+    def test_state_remove_device(self):
+        s1 = StateDevice()
+        s2 = StateDevice(devices=s1)
+        s1.on()
+        self.assertEqual(s2.state, State.ON)
+        s2.off()
+        self.assertEqual(s2.state, State.OFF)        
+        r=s2.remove_device(s1)
+        self.assertTrue(r)
+        self.assertEqual(s2.state, State.OFF)        
+        s1.on()
+        self.assertEqual(s2.state, State.OFF)     
+        # remove again and not error
+        r = s2.remove_device(s1)
+        self.assertFalse(r)
+        
+         
+        
+        

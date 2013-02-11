@@ -344,7 +344,7 @@ class LightTests(TestCase):
         ph.dark()
         l = Light(
                   devices=(ph, m),
-                  idle={Attribute.COMMAND: (Command.LEVEL, 30),
+                  idle={Attribute.MAPPED: (Command.LEVEL, 30),
                         Attribute.SECS: 2,
                         }
                   )
@@ -356,6 +356,26 @@ class LightTests(TestCase):
         self.assertEqual(l.state, State.OFF)
         time.sleep(3)
         self.assertEqual(l.state, State.OFF)
+
+    def test_light_idle(self):
+        m = Motion()
+        m.still()
+        l = Light(
+                  devices=(m),
+                  idle={Attribute.MAPPED: (Command.LEVEL, 30),
+                        Attribute.SECS: 2,
+                        }
+                  )
+        l.on()
+        self.assertEqual(l.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(l.state, (State.LEVEL, 30))
+        #Light shouldnt idle if it is off
+        l.off()
+        self.assertEqual(l.state, State.OFF)
+        time.sleep(3)
+        self.assertEqual(l.state, State.OFF)
+        
         
 if __name__ == '__main__':
     main() 
