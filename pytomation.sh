@@ -11,4 +11,5 @@ if [ -w /var/run ]; then
 else
     echo "Running as regular user can't write PID file to /var/run/pytomation.pid..."
     echo "PID is $PID..."
+	echo $PID > pytomation.pid
 fi
