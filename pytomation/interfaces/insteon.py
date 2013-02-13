@@ -12,7 +12,7 @@ Description:
 Author(s): 
          Pyjamasam@github <>
          Jason Sharpee <jason@sharpee.com>  http://www.sharpee.com
-
+         George Farris <farrisg@gmsys.com>
 
         Based loosely on the Insteon_PLM.pm code:
         -       Expanded by Gregg Liming <gregg@limings.net>
