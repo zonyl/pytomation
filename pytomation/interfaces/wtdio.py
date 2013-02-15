@@ -60,6 +60,7 @@ Versions and changes:
     2012/12/07 - 1.5 - Add invert pin function.
     2012/12/07 - 1.6 - Update to new logging stuff
     2012/12/17 - 1.7 - readModem command now readInterface
+    2013/02/15 - 1.8 - Fix output to channel
     
 """
 import threading
@@ -73,7 +74,7 @@ from .ha_interface import HAInterface
 
 
 class Wtdio(HAInterface):
-    VERSION = '1.7'
+    VERSION = '1.8'
     MODEM_PREFIX = ''
         
     def __init__(self, interface, *args, **kwargs):
@@ -176,13 +177,13 @@ class Wtdio(HAInterface):
     def dio_invert(self, channel, value=True):
         self.d_inverted[ord(channel) - 65] = value
                     
-    def on(self, board, channel):
-        command = board + 'H' + channel + '\r'
+    def on(self, address):
+        command = address[0] + 'H' + address[1] + '\r'
         commandExecutionDetails = self._sendInterfaceCommand(command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
 
-    def off(self, board, channel):
-        command = board + 'L' + channel + '\r'
+    def off(self, address):
+        command = address[0] + 'L' + address[1] + '\r'
         commandExecutionDetails = self._sendInterfaceCommand(command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
 		
