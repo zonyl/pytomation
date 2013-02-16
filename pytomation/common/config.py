@@ -64,6 +64,7 @@ logging_modules = {
                    #'Wtdio': 'DEBUG',
                    #'UPB': 'DEBUG',
                    #"Light": "DEBUG",
+                   #'Arduino': 'DEBUG',                   
                    }
 
 # Logging file path
