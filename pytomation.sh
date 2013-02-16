@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 # It's possible PYHOME in /usr/bin has been changed by the install.sh script
-PYHOME="/home/pytomation"
+PYHOME="/home/george/Projects/pytomation"
 cd $PYHOME
 PROGRAM='python ./pytomation.py'
 $PROGRAM &

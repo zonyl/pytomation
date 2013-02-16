@@ -32,7 +32,7 @@ http_address = "127.0.0.1"
 http_port = 8080
 http_path = "./pytomation_web"
 telnet_port = None
-loop_time = 1
+loop_time = 30
 
 device_send_always = False
 
@@ -59,7 +59,7 @@ logging_default_level = "INFO"
 logging_modules = {
                    'LoggingTests': "CRITICAL",
                    #'Stargate': 'DEBUG',
-                   #'InsteonPLM': 'DEBUG',
+                   'InsteonPLM': 'DEBUG',
                    #'W800rf32': 'DEBUG',
                    #'Wtdio': 'DEBUG',
                    #'UPB': 'DEBUG',

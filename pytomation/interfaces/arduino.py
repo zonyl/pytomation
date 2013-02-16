@@ -63,7 +63,7 @@ is no terminating CR or NL character.
 	AP89.		Analog pin A1 has value 89
 	
   Available pins, pins with ~ can be analog Output
-                  pins starting with A can be Analog Inut
+                  pins starting with A can be Analog Input
                   All pins can be digital except 0 and 1
   ----------------------------------------------------------------------------
   02 03 04 05 06 07 08 09 10 11 12 13 A0 A1 A2 A3 A4 A5
@@ -71,7 +71,7 @@ is no terminating CR or NL character.
      ~     ~  ~        ~  ~  ~
   ============================================================================ 
   The board will return a '?' on error.
-  The board will retunr a '!' on power up or reset.
+  The board will return a '!' on power up or reset.
 
 
 Author(s):
