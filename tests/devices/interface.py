@@ -27,6 +27,10 @@ class InterfaceDevice_Tests(TestCase):
         self.device.on()
         self.interface.on.assert_called_with('D1')
         
+    def test_level(self):
+        self.device.level(80)
+        self.interface.level.assert_called_with('D1',80)
+        
     def test_substate(self):    
         self.device.command((State.LEVEL, 80))
         self.interface.level.assert_called_with('D1', 80)

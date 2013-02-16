@@ -68,6 +68,7 @@ class InsteonInterfaceTests(TestCase):
         
     def test_insteon_level2(self):
         m = Mock()
+        m.disabled.return_value = False
         i = InsteonPLM(m)
         i.level('12.20.B0', 50)
         m.write.assert_called_with(unhexlify('02621220b00f117f'))
