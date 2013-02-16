@@ -3,6 +3,7 @@ import random
 from pytomation.utility.timer import Timer as CTimer
 from .state import StateDevice, State
 from ..interfaces import Command
+from ..common import config
 
 class InterfaceDevice(StateDevice):
     
@@ -17,7 +18,7 @@ class InterfaceDevice(StateDevice):
         self._sync = False
         self._sync_timer = None
         self._read_only = False
-        self._send_always = False
+        self._send_always = config.device_send_always
         self._previous_interface_command = None
         
     @property

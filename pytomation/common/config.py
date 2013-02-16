@@ -34,6 +34,7 @@ http_path = "./pytomation_web"
 telnet_port = None
 loop_time = 1
 
+device_send_always = False
 
 # ********************* LOGGING CONFIGURATION ****************************
 """
