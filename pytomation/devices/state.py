@@ -6,6 +6,7 @@ from ..common import PytomationObject
 from ..interfaces import Command
 from ..utility import CronTimer
 from ..utility.timer import Timer as CTimer
+from ..utility.time_funcs import *
 
 class State(object):
     ALL = 'all'
@@ -615,10 +616,18 @@ class StateDevice(PytomationObject):
         if not item:
             return None
 
-        now = datetime.now().timetuple()[3:6]
         start = item.get(Attribute.START, None)
+        if start:
+            end = item.get(Attribute.END, None)
+            if end:
+                now = datetime.now().timetuple()[3:6]
+                now_cron = CronTimer.to_cron("{h}:{m}:{s}".format(
+                                                                  h=now[0],
+                                                                  m=now[1],
+                                                                  s=now[2],
+                                                                  ))
+                return crontime_in_range(now_cron, start, end) 
         return item
-
 
     def trigger(self, *args, **kwargs):
         commands = kwargs.get('command', None)
