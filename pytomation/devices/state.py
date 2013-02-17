@@ -31,6 +31,8 @@ class Attribute(object):
     TIME = 'time'
     SECS = 'secs'
     SOURCE = 'source'
+    START = 'start'
+    END = 'end'
     
 class StateDevice(PytomationObject):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
@@ -61,7 +63,7 @@ class StateDevice(PytomationObject):
         self._delay_timers = {}
         self._triggers = {}
         self._trigger_timers = {}
-        self._ignores = []
+        self._ignores = {}
         self._idle_timer = {}
         self._idle_command = None
         self._devices = []
@@ -558,6 +560,9 @@ class StateDevice(PytomationObject):
     def ignore(self, *args, **kwargs):
         commands = kwargs.get('command', None)
         sources = kwargs.get('source', None)
+        start = kwargs.get(Attribute.START, None)
+        end = kwargs.get(Attribute.END, None)
+
         if not isinstance(commands, tuple):
             commands = (commands, )
         if not isinstance(sources, tuple):
@@ -565,7 +570,12 @@ class StateDevice(PytomationObject):
 
         for command in commands:
             for source in sources:
-                self._ignores.append({'command': command,'source': source})
+                self._ignores.update({
+                                      (command, source): {
+                                                          Attribute.START: CronTimer.to_cron(start),
+                                                         Attribute.END: CronTimer.to_cron(end),
+                                                     }
+                                      })
                 self._logger.debug("{name} add ignore for {command} from {source}".format(
         										name=self.name,
         										command=command,
@@ -574,17 +584,42 @@ class StateDevice(PytomationObject):
         
     def _is_ignored(self, command, source):
         is_ignored = False
-        for ignore in self._ignores:
-            if ignore['command'] == command and \
-            (ignore['source'] == None or ignore['source'] == source):
-                is_ignored = True
+        match = self._match_condition(command, source, self._ignores)
+        if match:
+            return True
+        else:
+            return False
+        
         self._logger.debug("{name} check ignore for {command} from {source}".format(
         								name=self.name,
         								command=command,
         								source=source.name if source else None,
         								));
-        return is_ignored
-    
+
+    def _match_condition(self, command, source, d):
+        # Specific match first
+        cond = self._match_condition_item(d.get((command, source), None))
+        if cond:
+            return cond
+        cond = self._match_condition_item(d.get((command, None), None))
+        if cond:
+            return cond
+        cond = self._match_condition_item(d.get((None, source), None))
+        if cond:
+            return cond
+        cond = self._match_condition_item(d.get((None, None), None))
+        if cond:
+            return cond
+        
+    def _match_condition_item(self, item):
+        if not item:
+            return None
+
+        now = datetime.now().timetuple()[3:6]
+        start = item.get(Attribute.START, None)
+        return item
+
+
     def trigger(self, *args, **kwargs):
         commands = kwargs.get('command', None)
         sources = kwargs.get('source', None)

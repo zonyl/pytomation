@@ -365,6 +365,17 @@ class StateTests(TestCase):
         s1.on()
         self.assertEqual(s2.state, State.UNKNOWN)
 
+    def test_ignore_device(self):
+        s1 = StateDevice()
+        s2 = StateDevice(devices=s1,
+                         ignore={
+                                 Attribute.SOURCE: s1
+                                 }
+                         )
+        self.assertEqual(s2.state, State.UNKNOWN)
+        s1.on()
+        self.assertEqual(s2.state, State.UNKNOWN)
+        
 
     def test_last_command(self):
         s1 = StateDevice()
@@ -609,6 +620,31 @@ class StateTests(TestCase):
         r = s2.remove_device(s1)
         self.assertFalse(r)
         
-         
-        
-        
+    def test_state_ignore_range(self):
+        (s_h, s_m, s_s) = datetime.now().timetuple()[3:6]
+        e_h = s_h
+        e_m = s_m
+        e_s = s_s + 2
+        s = StateDevice()
+        s2 = StateDevice(devices=s,
+                         ignore={
+                                 Attribute.SOURCE: s,
+                                 Attribute.START: '{h}:{m}:{s}'.format(
+                                                                      h=s_h,
+                                                                      m=s_m,
+                                                                      s=s_s,
+                                                                      ),
+                                 Attribute.END: '{h}:{m}:{s}'.format(
+                                                                      h=e_h,
+                                                                      m=e_m,
+                                                                      s=e_s,
+                                                                      ),
+                                 },
+                         
+                         )
+        self.assertEqual(s2.state, State.UNKNOWN)
+        s.on()
+        self.assertEqual(s2.state, State.UNKNOWN)
+        time.sleep(3)
+        s.on()
+        self.assertEqual(s2.state, State.ON)
