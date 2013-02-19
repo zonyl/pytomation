@@ -145,13 +145,10 @@ class Arduino(HAInterface):
                     self._processDigitalInput(response[:response.index('.')], lastPacketHash)
                 elif a.match(response):
                     self._processAnalogInput(response[:response.index('.')], lastPacketHash)
-                elif response[1] == '!':
+                elif response[0] == '!':
                     self._logger.debug("[Arduino] Board [" + response[0] + "] has been reset or power cycled, reinitializing...\n")
-                    #while self._interface.read():
-                    pass
-                    #for bct in self.boardSettings:
-                    #    if bct[0] == response[0]:
-                    #        self.setChannel(bct)
+                    for bct in self.boardSettings:
+                        self.setChannel(bct)
                 elif response[1] == '?':
                     self._logger.debug("[Arduino] Board [" + response[0] + "] received invalid command or variable...\n")
                     
@@ -201,9 +198,10 @@ class Arduino(HAInterface):
             self._logger.debug("[Arduino] Error malformed command...   " + boardChannelType + '\n')
             return
         # Save the board settings in case we need to re-init
-        #if not boardChannelType in self.boardSettings:
-        #    self.boardSettings.append(boardChannelType)
-                
+        if not boardChannelType in self.boardSettings:
+            self.boardSettings.append(boardChannelType)
+        
+        self._logger.debug("[Arduino] Setting channel " + boardChannelType + '\n')
         command = boardChannelType
         commandExecutionDetails = self._sendInterfaceCommand(command)
 
