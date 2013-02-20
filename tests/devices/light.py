@@ -180,6 +180,20 @@ class LightTests(TestCase):
                             })
         self.assertIsNotNone(light)
         
+    def test_time_cron2(self):
+        ttime = datetime.now().timetuple()[3:7]
+        l = Light(address='12.03.BB',
+                    time={
+                    Attribute.TIME: (ttime[2]+2,ttime[1], ttime[0], '*','*','*'),
+                    Attribute.COMMAND: Command.OFF
+                    },
+                    name='test')
+        l.on()
+        self.assertEqual(l.state, State.ON)
+        time.sleep(2)
+        self.assertEqual(l.state, State.OFF)
+        
+        
         
     def test_light_scenario1(self):
         m = Motion()

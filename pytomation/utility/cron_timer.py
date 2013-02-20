@@ -38,6 +38,18 @@ class CronTimer(object):
 
     def interval(self, secs=allMatch, min=allMatch, hour=allMatch,
                        day=allMatch, month=allMatch, dow=allMatch):
+        if secs=='*':
+            secs=allMatch
+        if min=='*':
+            min=allMatch
+        if hour=='*':
+            hour=allMatch
+        if day=='*':
+            day=allMatch
+        if month=='*':
+            month=allMatch
+        if dow=='*':
+            dow=allMatch
         self.secs = conv_to_set(secs)
         self.mins = conv_to_set(min)
         self.hours = conv_to_set(hour)
