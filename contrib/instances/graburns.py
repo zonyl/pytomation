@@ -4,7 +4,7 @@ from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf
                                     NamedPipe, StateInterface, Command, HTTPServer
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
                                 Photocell, Generic, StateDevice, State, Attribute, \
-                                Room,
+                                Room
 
 #from pytomation.common.system import *
 
@@ -228,7 +228,7 @@ l_front_flood = Light(
                                d_foyer, m_front_garage, m_front_camera, ph_standard),
                       delay=({
                              Attribute.COMMAND: Command.OFF,
-                             Attribute.SECS: 10*60*60,
+                             Attribute.SECS: 10*60,
                              },
                              {
                               Attribute.COMMAND: Command.OFF,
@@ -309,14 +309,20 @@ l_family_lamp = Light(
                         Attribute.TARGET: Command.OFF,
                         Attribute.SECS: 30*60
                         },
-                ignore={
+                ignore=({
                         Attribute.COMMAND: (Command.STILL, Command.DARK),
                         },
+                        {
+                         Attribute.COMMAND: (Command.MOTION, Command.OCCUPY),
+                         Attribute.START: '12:00am',
+                         Attribute.END: '6:00am',
+                         }
+                        ),
                 delay={
                        Attribute.COMMAND: Command.OFF,
                        Attribute.SECS: 15*60,
                        Attribute.SOURCE: r_family,
-                       }
+                       },
                 name='Family Lamp Light',
                 )
 
