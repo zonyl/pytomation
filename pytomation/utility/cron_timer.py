@@ -74,7 +74,7 @@ class CronTimer(object):
                 (t.hour       in self.hours) and
                 (t.day        in self.days) and
                 (t.month      in self.months) and
-                (t.weekday()  in self.dow))
+                (t.isoweekday()  in self.dow))
 
     def _check_for_event(self, *args, **kwargs):
         if datetime:
