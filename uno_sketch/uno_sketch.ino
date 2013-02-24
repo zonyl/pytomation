@@ -96,10 +96,12 @@ ASCII Table
 
 */
 
+int board = 'A';	//First board 'A', second borad 'B' etc  pin 13 will blink board address
+                        //after reset 1 blink for A, 2 for B etc
+
 int cmd;
 int chn;		//channel
 int pin;		//actual pin on arduino
-int board = 'A';	//First board 'A'
 int eom = '.';           // end of message
 int error = '?';         // error or unknown response
 int reset = '!';         // board rest or power up
@@ -124,6 +126,22 @@ void setup()
 
         pinMode(i, INPUT_PULLUP);
     }
+    
+    // blink LED to ID board 1 blink for A, 2 for B etc
+    pinMode(13, OUTPUT);
+    digitalWrite(13,LOW);
+
+    int blinks = board - 64;
+   
+    delay(2000);  //wait a bit after reset.
+    while (blinks--)
+    {
+    	digitalWrite(13,HIGH);
+	delay(1000);
+	digitalWrite(13,LOW);
+	delay(1000);
+    }
+    pinMode(13,INPUT_PULLUP);
 }
 
 void loop()
