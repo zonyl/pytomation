@@ -172,6 +172,11 @@ class LightTests(TestCase):
         self.device.command((Command.LEVEL, 40))
         self.interface.level.assert_called_with('D1', 40)
 
+    def test_level_ramp(self):
+        self.device.command((Command.LEVEL, 40, 20))
+        self.interface.level.assert_called_with('D1', 40, 20)
+
+
     def test_time_cron(self):
         light = Light('a2',
                       time={

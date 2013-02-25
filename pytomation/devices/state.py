@@ -170,7 +170,11 @@ class StateDevice(PytomationObject):
         m_command = self._state_to_command(state, command)
         if command == Command.LEVEL or (isinstance(command, tuple) and command[0] == Command.LEVEL):
             if isinstance(command, tuple):
-                state = (State.LEVEL, command[1])
+                state = (State.LEVEL, command[1:])
+                if len(command[1:]) > 1:
+                    state = sum([(State.LEVEL, ), command[1:]], ())
+                else:
+                    state = (State.LEVEL, command[1])
 #                m_command = command
             else:
                 state = (State.LEVEL, kwargs.get('sub_state', (0,))[0])
