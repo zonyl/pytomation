@@ -812,16 +812,24 @@ class InsteonPLM(HAInterface):
             self._logger.debug("stuffing")
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
-    def on(self, deviceId, timeout = None):
+    def on(self, deviceId, fast=None, timeout = None, fast=True):
+        if fast == 'fast':
+            cmd = '12'
+        else:
+            cmd = '11'
         if len(deviceId) != 2: #insteon device address
-            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', 'ff')
+            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, cmd, 'ff')
         else: #X10 device address
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'02')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = 2.5)
 
-    def off(self, deviceId, timeout = None):
+    def off(self, deviceId, fast=None, timeout = None):
+        if fast == 'fast':
+            cmd = '14'
+        else:
+            cmd = '13'
         if len(deviceId) != 2: #insteon device address
-            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '13', '00')
+            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, cmd, '00')
         else: #X10 device address
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'03')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = 2.5)
