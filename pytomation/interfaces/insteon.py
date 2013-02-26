@@ -264,6 +264,11 @@ class InsteonPLM(HAInterface):
                                         'callBack' : self._handle_StandardDirect_LightStatusResponse,
                                         'validResponseCommands' : ['SD19']
                                     },
+                                    'SD2E': {        #Light Status Response
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
+                                        'validResponseCommands' : ['SD2E']
+                                    },
+                                    
                                     #Broadcast Messages/Responses
                                     'SB01': {
                                                     #Set button pushed
@@ -837,17 +842,37 @@ class InsteonPLM(HAInterface):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '14', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
-    def level(self, deviceId, level, timeout=None, percent=True):
-        if percent and level > 100 or level <0:
-            self._logger.error("{name} cannot set light level {level} beyond 0-100%".format(
+    # if rate the bits 0-3 is 2 x ramprate +1, bits 4-7 on level + 0x0F
+    def level(self, deviceId, level, rate=None, timeout=None):
+        if level > 100 or level <0:
+            self._logger.error("{name} cannot set light level {level} beyond 1-15".format(
                                                                                     name=self.name,
                                                                                     level=level,
-                                                                                    ))
-        if percent:
+                                                                                     ))
+        if rate:
+            if level > 15 or level <1:
+                self._logger.error("{name} cannot set light level {level} beyond 1-15".format(
+                                                                                    name=self.name,
+                                                                                    level=level,
+                                                                                     ))
+            if rate > 15 or rate <1:
+                self._logger.error("{name} cannot set light ramp rate {rate} beyond 1-15".format(
+                                                                                    name=self.name,
+                                                                                    level=level,
+                                                                                     ))
+            levelramp = (int(level) << 4) + rate
+            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '2E', '%02x' % levelramp)
+            return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        else:
+            if level > 100 or level <0:
+                self._logger.error("{name} cannot set light level {level} beyond 0-100%".format(
+                                                                                    name=self.name,
+                                                                                    level=level,
+                                                                                     ))
+            # make it 0 to 255                                                                                     
             level = int((int(level) / 100.0) * int(0xFF))
-        
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', '%02x' % level)
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', '%02x' % level)
+            return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def level_up(self, deviceId, timeout=None):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '15', '00')
