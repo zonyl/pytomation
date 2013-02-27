@@ -21,7 +21,8 @@
 
 Version history
   0.1  Jan 20, 2010 First release
-  0.2  Feb 24, 2012 Change port names.
+  0.2  Feb 24, 2013 Change port names.
+  0.3  Feb 26, 2013 Add Arduino Uno boards with Pytomation driver
 
 USB serial port adapters have the annoying feature of changing every time 
 Linux boots, probeport.py will query your devices and link them to the correct 
