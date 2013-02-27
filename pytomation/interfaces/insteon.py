@@ -71,9 +71,9 @@ def _stringIdToByteIds(stringId):
 def _buildFlags(stdOrExt=None):
     #todo: impliment this
     if stdOrExt:
-        return '\x1f'
+        return '\x1f'  # Extended command
     else:
-        return '\x0f'
+        return '\x0f'  # Standard command
 
 
 def hashPacket(packetData):
@@ -760,9 +760,18 @@ class InsteonPLM(HAInterface):
                         # Retry the command..Do we really want this?
                         self._sendStandardP2PInsteonCommand(deviceId, cmd1[2:], cmd2)
 
+    def __getattr__(self, name):
+        name = name.lower()
+        # Support levels of lighting
+        if name[0] == 'l' and len(name) == 3:
+            level = name[1:3]
+            level = int((int(level) / 100.0) * int(0xFF))
+            return lambda x, y=None: self.level(x, level, timeout=y ) 
 
 
-    #public methods
+
+    #---------------------------public methods---------------------------------
+    
     def getPLMInfo(self, timeout = None):
         commandExecutionDetails = self._sendInterfaceCommand('60')
 
@@ -834,22 +843,7 @@ class InsteonPLM(HAInterface):
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'03')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = 2.5)
     
-    def __getattr__(self, name):
-        name = name.lower()
-        # Support levels of lighting
-        if name[0] == 'l' and len(name) == 3:
-            level = name[1:3]
-            level = int((int(level) / 100.0) * int(0xFF))
-            return lambda x, y=None: self.level(x, level, timeout=y ) 
-        
-    def on_fast(self, deviceId, timeout = None):
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '12', 'ff')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
-
-    def off_fast(self, deviceId, timeout=None):
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '14', '00')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
-
+      
     # if rate the bits 0-3 is 2 x ramprate +1, bits 4-7 on level + 0x0F
     def level(self, deviceId, level, rate=None, timeout=None):
         if level > 100 or level <0:

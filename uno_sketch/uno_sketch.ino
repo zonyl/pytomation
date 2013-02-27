@@ -63,13 +63,13 @@ ASCII Table
   ===========================================================================
   [Board] 	- 'A'
   [I/O]		- 'DN<pin>' Configure as Digital Input no internal pullup (default)
-  			- 'DI<pin>'     "      " Digital Input uses internal pullup
-	  		- 'DO<pin>'     "      " Digital Output 
-	  		- 'AI<pin>'     "      " Analog Input
-			- 'AO<pin>'     "      " Analog Output
+  		- 'DI<pin>'     "      " Digital Input uses internal pullup
+	  	- 'DO<pin>'     "      " Digital Output 
+	  	- 'AI<pin>'     "      " Analog Input
+		- 'AO<pin>'     "      " Analog Output
 	        - 'L<pin>'  Set Digital Output to LOW
 	        - 'H<pin>'  Set Digital Output to HIGH
-			- '%<pin><value>'  Set Analog Output to value (0 - 255)
+		- '%<pin><value>'  Set Analog Output to value (0 - 255)
   [Pin]		- Ascii 'C' to 'T'  C = pin 2, R = pin A3, etc
  
   Examples transmitted to board:
@@ -93,11 +93,13 @@ ASCII Table
   ============================================================================ 
   The board will return a '?' on error.
   The board will return a '!' on power up or reset.
+  The board will return it's name and address if sent a '?'
 
 */
 
 int board = 'A';	//First board 'A', second borad 'B' etc  pin 13 will blink board address
                         //after reset 1 blink for A, 2 for B etc
+char id[] = "PYARUNO";	// returned when board is sent a '?'
 
 int cmd;
 int chn;		//channel
@@ -152,7 +154,8 @@ void loop()
     if (Serial.available() > 0)
     {
     	// right now we handle one board which is board 'A'
-    	if (Serial.read() == board )
+	char rx_cmd = Serial.read();
+    	if (rx_cmd == board )
 	{
 	    //Serial.write("Board A\n");
             while (Serial.available() == 0)
@@ -270,8 +273,14 @@ void loop()
 				    } else
 	                      Serial.write(error);
                     break;
-		    }
-		}
+	    }
+	} else if (rx_cmd == '?')
+	{
+	    Serial.print(id);
+	    Serial.write(' ');
+	    Serial.write(board);
+	}
+	
     }
     // loop through all the inputs
     for (int i=2; i<19; i++)

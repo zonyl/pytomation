@@ -59,13 +59,15 @@ import sys, os, serial, string, binascii, time, tempfile
 # -------------- User modifiable settings -----------------------------
 
 #PROBE_DEVICES = ['test']
-PROBE_DEVICES = ['probe_plm', 'probe_wtdio', 'probe_w800']
-SERIAL_PORTS = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2', '/dev/ttyR1','/dev/ttyR2']
+# make sure we probe the arduino first
+PROBE_DEVICES = ['probe_plm', 'probe_wtdio', 'probe_w800', 'probe_uno']
+SERIAL_PORTS = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2', '/dev/ttyACM0', '/dev/ttyACM1', '/dev/ttyR1','/dev/ttyR2']
 INSTEON_PLM_BAUD_RATE = 19200
 WEEDER_IO_BAUD_RATE = 9600
 WEEDER_BOARD_ADDRESS = "A"
 W800RF32_BAUD_RATE = 4800
-
+ARDUINO_UNO_BAUD_RATE = 9600
+spports = []
 
 
 # ------------- End of user modifiable settings -----------------------
@@ -91,7 +93,8 @@ def probe_plm():
 			s2 = binascii.b2a_hex(ser.read(8))
 			print s2
 			if s2[0:4] == "0273":
-				print "linking " + myport + " to /dev/sp_insteon_plm"
+				#print "linking " + myport + " to /dev/sp_insteon_plm"
+				spports.append("linking " + myport + " to /dev/sp_insteon_plm")
 				command = "/bin/ln -sf " + myport + " /dev/sp_insteon_plm"
 				os.system(command)
 				del SERIAL_PORTS[id]
@@ -113,12 +116,11 @@ def probe_wtdio():
 		try:
 			id = SERIAL_PORTS.index(myport)
 			ser = serial.Serial(myport, WEEDER_IO_BAUD_RATE, timeout=2)
-			# Probe for Insteon response to command		
 			ser.write(WEEDER_BOARD_ADDRESS)
 			s2 = ser.read(5)
 			print s2
 			if s2[0:2] == WEEDER_BOARD_ADDRESS + '?':
-				print "linking " + myport + " to /dev/sp_weeder_wtdio"
+				spports.append("linking " + myport + " to /dev/sp_weeder_wtdio")
 				command = "/bin/ln -sf " + myport + " /dev/sp_weeder_wtdio"
 				os.system(command)
 				del SERIAL_PORTS[id]
@@ -140,13 +142,11 @@ def probe_w800():
 		try:
 			id = SERIAL_PORTS.index(myport)
 			ser = serial.Serial(myport, W800RF32_BAUD_RATE, timeout=2)
-			# Probe for Insteon response to command		
-
 			ser.write(binascii.a2b_hex("F029"))
 			s2 = binascii.b2a_hex(ser.read(8))
 			print s2
 			if s2[0:2] == "29":
-				print "linking " + myport + " to /dev/sp_w800rf32"
+				spports.append("linking " + myport + " to /dev/sp_w800rf32")
 				command = "/bin/ln -sf " + myport + " /dev/sp_w800rf32"
 				os.system(command)
 				del SERIAL_PORTS[id]
@@ -157,10 +157,45 @@ def probe_w800():
 		except:
 			print "Error - Could not open serial port..."
 
+#-----------------------------------------------------------------------------
+# Probe for the Arduino Uno with the Pytomation firmware
+# uno   send '?', receive "PYARUNO <char>" where char is board address
+#-----------------------------------------------------------------------------
+def probe_uno():
+	for myport in SERIAL_PORTS:
+		print "Probing for Arduino Uno port -> " + myport
+		
+		try:
+			id = SERIAL_PORTS.index(myport)
+			ser = serial.Serial(myport, ARDUINO_UNO_BAUD_RATE, timeout=2)
+			ser.write('?')
+			ser.read(100)	#clear buffer
+			ser.write('?')
+			s2 = ser.read(9)
+			print s2
+			if s2[0:7] == "PYARUNO":
+				spports.append("linking " + myport + " to /dev/sp_pyaruno")
+				command = "/bin/ln -sf " + myport + " /dev/sp_pyaruno"
+				os.system(command)
+				del SERIAL_PORTS[id]
+				ser.close()
+				break
+			ser.close()
+
+		except:
+			print "Error - Could not open serial port..."
+
+def show():
+	print '\n\n'
+	print 'Report\n--------------------------------------------------'
+	for line in spports:
+		print line
+
 if __name__ == "__main__":
 	for device in PROBE_DEVICES:
 		func = globals()[device]
 		func()
+	show ()
 
 
 	print "Goodbye..."
