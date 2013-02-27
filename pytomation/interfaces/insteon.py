@@ -821,7 +821,7 @@ class InsteonPLM(HAInterface):
             self._logger.debug("stuffing")
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
-    def on(self, deviceId, fast=None, timeout = None, fast=True):
+    def on(self, deviceId, fast=None, timeout = None):
         if fast == 'fast':
             cmd = '12'
         else:
