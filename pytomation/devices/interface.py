@@ -65,10 +65,11 @@ class InterfaceDevice(StateDevice):
                             else:
                                 getattr(interface, command)(self._address)
                         except Exception, ex:
-                            self._logger.error("{name} Could not send command '{command}' to interface '{interface}'".format(
+                            self._logger.error("{name} Could not send command '{command}' to interface '{interface}.  Exception: {exc}'".format(
                                                                                                 name=self.name,
                                                                                                 command=command,
-                                                                                                interface=interface.name
+                                                                                                interface=interface.name,
+                                                                                                exc=str(ex),
                                                                                              ))
                     else:
                         self._logger.debug("{name} is already at this new state {state} originally {original_state} for command {command} -> {new_state}, do not send to interface".format(
