@@ -851,30 +851,26 @@ class InsteonPLM(HAInterface):
                                                                                     name=self.name,
                                                                                     level=level,
                                                                                      ))
-        if rate:
-            if level > 15 or level <1:
-                self._logger.error("{name} cannot set light level {level} beyond 1-15".format(
-                                                                                    name=self.name,
-                                                                                    level=level,
-                                                                                     ))
-            if rate > 15 or rate <1:
-                self._logger.error("{name} cannot set light ramp rate {rate} beyond 1-15".format(
-                                                                                    name=self.name,
-                                                                                    level=level,
-                                                                                     ))
-            levelramp = (int(level) << 4) + rate
-            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '2E', '%02x' % levelramp)
-            return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+            return
         else:
-            if level > 100 or level <0:
-                self._logger.error("{name} cannot set light level {level} beyond 0-100%".format(
+            if rate == None:
+                # make it 0 to 255                                                                                     
+                level = int((int(level) / 100.0) * int(0xFF))
+                commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', '%02x' % level)
+                return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+
+            else:
+                if rate > 15 or rate <1:
+                    self._logger.error("{name} cannot set light ramp rate {rate} beyond 1-15".format(
                                                                                     name=self.name,
                                                                                     level=level,
                                                                                      ))
-            # make it 0 to 255                                                                                     
-            level = int((int(level) / 100.0) * int(0xFF))
-            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '11', '%02x' % level)
-            return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+                    return
+                else:
+                    lev = int(simpleMap(level, 1, 100, 1, 15))                                                                                     
+                    levelramp = (int(lev) << 4) + rate
+                    commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '2E', '%02x' % levelramp)
+                    return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def level_up(self, deviceId, timeout=None):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '15', '00')
