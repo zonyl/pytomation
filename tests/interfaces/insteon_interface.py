@@ -71,6 +71,8 @@ class InsteonInterfaceTests(TestCase):
         m.disabled.return_value = False
         i = InsteonPLM(m)
         i.level('12.20.B0', 50)
+        #todo: figure out how to really deal with this race condition
+        time.sleep(3)
         m.write.assert_called_with(unhexlify('02621220b00f117f'))
 
 if __name__ == '__main__':
