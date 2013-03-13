@@ -4,3 +4,4 @@ pytz
 mock
 pyephem
 pyserial
+twisted
