@@ -100,6 +100,26 @@ class UPBInterfaceTests(TestCase):
         m_interface.callback.assert_called_with(address=(49,38,'L'), command=State.ON, source=upb)  
         m_interface.read.return_value = ''
         
+    def test_incoming_k(self):
+        """
+0000   50 55 30 37 31 34 31 36    PU071416
+0008   31 30 46 46 33 30 39 30    10FF3090
+0010   0D 50 55 30 37 31 35 31    .PU07151
+0018   36 31 30 46 46 33 30 38    610FF308
+0020   46 0D                      F.
+        """
+        m_interface = Mock()
+        m_interface.callback.return_value = True
+        m_interface.read.return_value = ''
+        upb = UPB(m_interface)
+        upb.onCommand(address=(22,255), callback=m_interface.callback)
+        m_interface.read.return_value = "PU07141610FF3090\x0DPU07151610FF308F\x0D"
+#        time.sleep(4000)
+        time.sleep(2)
+        m_interface.callback.assert_called_with(address=(22,255), command='status', source=upb)  
+        m_interface.read.return_value = ''
+            
+        
     def test_level(self):
         response = self.upb.l40((39, 4))
         self.assertTrue(True)

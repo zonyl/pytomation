@@ -258,7 +258,10 @@ class UPB(HAInterface):
         command = 0x00
         self._logger.debug("Incoming message: " + response)
         incoming = UPBMessage()
-        incoming.decode(response)
+        try:
+            incoming.decode(response)
+        except Exception, ex:
+            self._logger.error("UPB Error decoding message -Incoming message: " + response +"=="+ str(ex))
         self._logger.debug('UPBN:' + str(incoming.network) + ":" + str(incoming.source) + ":" + str(incoming.destination) + ":" + Conversions.int_to_hex(incoming.message_did))
         address = (incoming.network, incoming.source)
         if incoming.message_did == 0x22 \
@@ -274,7 +277,8 @@ class UPB(HAInterface):
         if incoming.message_did == 0x21:
             address = (incoming.network, incoming.destination, 'L')
             command = Command.OFF
-            
+        if incoming.message_did == 0x30: #report state
+            command = Command.STATUS
         self._onCommand(command, address)
 
     def _device_goto(self, address, level, timeout=None, rate=None):
