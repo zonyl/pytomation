@@ -95,6 +95,7 @@ class Command(object):
     MANUAL = 'manual'
     OCCUPY = 'occupy'
     VACATE = 'vacate'
+    STATUS = 'status'
     
 class Interface(PytomationObject):
     def __init__(self):
