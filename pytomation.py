@@ -20,8 +20,13 @@ if __name__ == "__main__":
 
     if len(scripts) > 0:
         # Start the whole system.  pytomation.common.system.start()
+        try:
+            loop_action=scripts[0].MainLoop
+        except AttributeError, ex:
+            loop_action=None
+
         pytomation_system.start(
-            loop_action=scripts[0].MainLoop if scripts[0].MainLoop else None,
+            loop_action=loop_action,
             loop_time=config.loop_time, # Loop every 1 sec
             admin_user=config.admin_user,
             admin_password=config.admin_password,
