@@ -11,4 +11,5 @@ from .http_server import *
 from .arduino import *
 from .cm11a import *
 from .mochad import *
+from .mh_send import *
 
