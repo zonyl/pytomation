@@ -10,4 +10,5 @@ from .state_interface import *
 from .http_server import *
 from .arduino import *
 from .cm11a import *
+from .mochad import *
 
