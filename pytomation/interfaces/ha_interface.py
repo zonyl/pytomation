@@ -104,7 +104,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                                 source=self
                                                 )
         for device in self._devices:
-            if device.address == address or device.address == None:
+            if device.addressMatches(address):
                 try:
                     device._on_command(
                                        command=command,

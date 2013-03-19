@@ -30,6 +30,9 @@ class InterfaceDevice(StateDevice):
         self._address = value
         return self._address
     
+    def addressMatches(self, address):
+        return self.address == None or self.address == address
+
     def _add_device(self, device):
         try:
             device.onCommand(device=self) # Register with the interface to receive events
