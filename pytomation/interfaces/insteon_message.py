@@ -51,7 +51,7 @@ class InsteonMessage(PytomationObject):
     def getCommands(self):
         commands = []
         try:
-            commands = self._getCommands(self._data)
+            commands = self._getCommands()
         except Exception as e:
             self._logger.debug("Exception %s" % e)
         

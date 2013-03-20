@@ -99,6 +99,8 @@ class InsteonPLM2(HAInterface):
                 # exclude the start of text message 0x02
                 if (not message and b != 0x2):
                     message = self.messages[b]()
+                    if (b != 0x15):
+                        message.appendData(0x2)
                     
                 # append the data to the message if it exists                    
                 if (message):
@@ -116,7 +118,7 @@ class InsteonPLM2(HAInterface):
 
     def _processMessage(self, message):
         self._printByteArray(message.getData())
-        response = message.getCommand()
+        response = message.getCommands()
         
         if (response != None):
             command = response['commands']
