@@ -12,7 +12,11 @@ from .arduino import *
 from .cm11a import *
 from .mochad import *
 from .mh_send import *
-from .rpi_input import *
 from .insteon_message import *
 from .insteon_command import *
 from .insteon2 import *
+
+try:
+    from .rpi_input import *
+except:
+    pass

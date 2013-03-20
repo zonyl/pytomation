@@ -1,6 +1,6 @@
 from .interface import InterfaceDevice
 from .state import State
-from ..interfaces import Command
+from pytomation.interfaces import Command
 
 class Photocell(InterfaceDevice):
     STATES = [State.UNKNOWN, State.DARK, State.LIGHT, State.LEVEL]

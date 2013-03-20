@@ -20,7 +20,7 @@ Notes:
 Created on Mar 11, 2013
 '''
 from .interface import InterfaceDevice
-from ..interfaces import Command
+from pytomation.interfaces.common import Command
 from .state import State
 
 class Scene(InterfaceDevice):

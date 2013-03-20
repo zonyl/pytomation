@@ -2,8 +2,8 @@ import random
 
 from pytomation.utility.timer import Timer as CTimer
 from .state import StateDevice, State
-from ..interfaces import Command
-from ..common import config
+from pytomation.interfaces import Command
+from pytomation.common import config
 
 class InterfaceDevice(StateDevice):
     

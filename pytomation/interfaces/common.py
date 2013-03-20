@@ -37,7 +37,7 @@ import serial
 import hashlib
 import sys
 
-from ..common.pytomation_object import PytomationObject
+from pytomation.common.pytomation_object import PytomationObject
 
 
 class Lookup(dict):

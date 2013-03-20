@@ -54,7 +54,8 @@ class InsteonStandardCommand(InsteonCommand):
     def setSecondary(self,data):
         self._data[6:] = data
 
-    def isAck(self, data):
+    def isAck(self, message):
+        data = message.getData[1:]
         #basically we are just checking that the message is the right length,
         #has the correct address and the command number is correct
         return len(data) >= self._minAckLength and \

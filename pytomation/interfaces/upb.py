@@ -42,7 +42,6 @@ from binascii import unhexlify
 
 from .common import *
 from .ha_interface import HAInterface
-from ..devices.state import State
 
 class UPBMessage(object):
     class LinkType(object):

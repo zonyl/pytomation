@@ -1,7 +1,8 @@
+import time
 import select
 from .pytomation_object import PytomationObject
 from ..utility.periodic_timer import PeriodicTimer
-from ..utility.manhole import Manhole
+#from ..utility.manhole import Manhole
 from ..utility.http_server import PytomationHTTPServer
 
 def get_instances():
@@ -44,4 +45,5 @@ def start(loop_action=None, loop_time=1, admin_user=None, admin_password=None, t
         PytomationHTTPServer(address=http_address, port=http_port, path=http_path).start()
     else:
         # sit and spin - Let the magic flow
-        select.select([],[],[])
+        #select.select([],[],[])
+        while True: time.sleep(1)
