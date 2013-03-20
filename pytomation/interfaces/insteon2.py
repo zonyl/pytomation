@@ -106,7 +106,7 @@ class InsteonPLM2(HAInterface):
                 
                 # if our message is complete, then process it and 
                 # start the next one
-                if (message.isComplete()):
+                if (message and message.isComplete()):
                     self._processMessage(message)
                     message = None
 

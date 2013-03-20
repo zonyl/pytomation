@@ -38,7 +38,10 @@ class InsteonMessage(PytomationObject):
 
     def appendData(self, value):
         self._data.append(value)
-        
+
+    def getData(self):
+        return self._data
+                
     def getLength(self):
         return self._length
 
