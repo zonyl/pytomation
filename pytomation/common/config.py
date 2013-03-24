@@ -28,7 +28,7 @@ import sys
 #
 admin_user = 'pyto'
 admin_password = 'mation'
-http_address = "127.0.0.1"
+http_address = "0.0.0.0"
 http_port = 8080
 http_path = "./pytomation_web"
 telnet_port = None
