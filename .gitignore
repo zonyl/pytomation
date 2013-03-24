@@ -1,6 +1,9 @@
 *.py[co]
 *.log
 
+#Config file
+pytomation/common/config.py
+
 # Packages
 *.egg
 *.egg-info
