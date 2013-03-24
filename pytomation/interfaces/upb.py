@@ -271,21 +271,29 @@ class UPB(HAInterface):
         self._logger.debug('UPBN:' + str(incoming.network) + ":" + str(incoming.source) + ":" + str(incoming.destination) + ":" + Conversions.int_to_hex(incoming.message_did))
         address = (incoming.network, incoming.source)
         if incoming.message_did == UPBMessage.MessageDeviceControl.goto \
-            or incoming.message_did == UPBMessage.MessageDeviceControl.fade_start \
-            or incoming.message_did == UPBMessage.MessageDeviceControl.state_response:
+            or incoming.message_did == UPBMessage.MessageDeviceControl.fade_start:
             if Conversions.hex_to_int(incoming.message_data[1:2]) > 0:
                 command = Command.ON
             else:
                 command = Command.OFF
-        if incoming.message_did == UPBMessage.MessageDeviceControl.activate:
+        elif incoming.message_did == UPBMessage.MessageDeviceControl.state_response:
+            if Conversions.hex_to_int(incoming.message_data[1:2]) > 0:
+                command = Command.ON
+            else:
+                command = Command.OFF
+            self._set_device_state(address, command)
+            command = None
+        elif incoming.message_did == UPBMessage.MessageDeviceControl.activate:
             address = (incoming.network, incoming.destination, 'L')
             command = Command.ON
-        if incoming.message_did == UPBMessage.MessageDeviceControl.deactivate:
+        elif incoming.message_did == UPBMessage.MessageDeviceControl.deactivate:
             address = (incoming.network, incoming.destination, 'L')
             command = Command.OFF
-        if incoming.message_did == UPBMessage.MessageDeviceControl.report_state: 
+        elif incoming.message_did == UPBMessage.MessageDeviceControl.report_state: 
             command = Command.STATUS
-        self._onCommand(command, address)
+            command = None
+        if command:
+            self._onCommand(command, address)
 
     def _device_goto(self, address, level, timeout=None, rate=None):
         message = UPBMessage()
@@ -336,3 +344,8 @@ class UPB(HAInterface):
         
     def version(self):
         self._logger.info("UPB Pytomation driver version " + self.VERSION + "\n")
+
+    def _set_device_state(self, address, state):
+        for d in self._devices:
+            if d.address == address:
+                d.state = state
