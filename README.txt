@@ -13,9 +13,11 @@ more planned in the future.
     - JDS Stargate (RS232 / RS485)
     - Weeder Digital I/O board (Wtdio/RS232)
     - W800RF32 X10 RF receiver (W800/RS232)
+    - Arduino Uno board (USB)
+    - X10 CM11a (RS232)
+    - Mochad X10 CM15 (USB) and CM19 (USB)
+    - Misterhouse Voice Commands MHSend (TCP)
 
 Future:
     - Z-Wave (Aeon Labs) DSA02203-ZWUS
-    - CM11 X10 control
-    - Arduino boards
     - Weeder Analog I/O board (Wtaio/RS232)
