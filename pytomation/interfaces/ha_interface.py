@@ -297,3 +297,10 @@ class HAInterface(AsynchronousInterface, PytomationObject):
     def name(self, value):
         self.name_ex = value
         return self.name_ex
+    
+    def update_status(self):
+        for d in self._devices:
+            self.status(d.address)
+            
+    def status(self, address=None):
+        return None
