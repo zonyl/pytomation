@@ -6,7 +6,7 @@ class Motion(InterfaceDevice):
     STATES = [State.UNKNOWN, State.MOTION, State.STILL, State.LEVEL]
     COMMANDS = [Command.MOTION, Command.STILL, Command.LEVEL,
                 Command.PREVIOUS, Command.TOGGLE, Command.INITIAL,
-                Command.AUTOMATIC, Command.MANUAL]
+                Command.AUTOMATIC, Command.MANUAL, Command.STATUS]
 
     def _initial_vars(self, *args, **kwargs):
         super(Motion, self)._initial_vars(*args, **kwargs)

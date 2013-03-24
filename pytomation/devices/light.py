@@ -5,7 +5,7 @@ from ..interfaces import Command
 class Light(InterfaceDevice):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL,
-                Command.AUTOMATIC, Command.MANUAL]
+                Command.AUTOMATIC, Command.MANUAL, Command.STATUS]
 
     def _initial_vars(self, *args, **kwargs):
         super(Light, self)._initial_vars(*args, **kwargs)

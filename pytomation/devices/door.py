@@ -5,7 +5,7 @@ from .state import State
 class Door(InterfaceDevice):
     STATES = [State.UNKNOWN, State.OPEN, State.CLOSED]
     COMMANDS = [Command.OPEN, Command.CLOSE, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL,
-                Command.AUTOMATIC, Command.MANUAL]
+                Command.AUTOMATIC, Command.MANUAL, Command.STATUS]
 
     
     def _initial_vars(self, *args, **kwargs):
