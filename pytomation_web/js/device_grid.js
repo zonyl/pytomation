@@ -1,3 +1,8 @@
+function clear_device_grid()
+{
+	$("#tableDevices").find("tr").remove();
+}
+
 function reload_device_grid()
 {
 	var devices = []
@@ -72,6 +77,7 @@ function reload_device_grid()
 					devices.push(rowData);
 				}
 			});
+		clear_device_grid();
 		$("#tableDevices").append(devices.join(''));
 		$(".command").click(on_device_command);
 	});
