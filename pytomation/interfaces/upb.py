@@ -69,6 +69,8 @@ class UPBMessage(object):
     class MessageIDSet(object):
         upb_core = 0
         device = 1
+        upb_report = 4
+        extended = 7
 
     class MessageUPBControl(object):
         retransmit = 0x0d
@@ -77,6 +79,10 @@ class UPBMessage(object):
         activate = 0x20
         deactivate = 0x21
         goto = 0x22
+        fade_start = 0x23
+        report_state = 0x30
+        state_response=0x86
+        
 
     link_type = LinkType.direct
     repeat_request = RepeatType.none
@@ -264,20 +270,20 @@ class UPB(HAInterface):
             self._logger.error("UPB Error decoding message -Incoming message: " + response +"=="+ str(ex))
         self._logger.debug('UPBN:' + str(incoming.network) + ":" + str(incoming.source) + ":" + str(incoming.destination) + ":" + Conversions.int_to_hex(incoming.message_did))
         address = (incoming.network, incoming.source)
-        if incoming.message_did == 0x22 \
-            or incoming.message_did == 0x23 \
-            or incoming.message_did == 0x86:
+        if incoming.message_did == UPBMessage.MessageDeviceControl.goto \
+            or incoming.message_did == UPBMessage.MessageDeviceControl.fade_start \
+            or incoming.message_did == UPBMessage.MessageDeviceControl.state_response:
             if Conversions.hex_to_int(incoming.message_data[1:2]) > 0:
                 command = Command.ON
             else:
                 command = Command.OFF
-        if incoming.message_did == 0x20:
+        if incoming.message_did == UPBMessage.MessageDeviceControl.activate:
             address = (incoming.network, incoming.destination, 'L')
             command = Command.ON
-        if incoming.message_did == 0x21:
+        if incoming.message_did == UPBMessage.MessageDeviceControl.deactivate:
             address = (incoming.network, incoming.destination, 'L')
             command = Command.OFF
-        if incoming.message_did == 0x30: #report state
+        if incoming.message_did == UPBMessage.MessageDeviceControl.report_state: 
             command = Command.STATUS
         self._onCommand(command, address)
 
@@ -296,6 +302,18 @@ class UPB(HAInterface):
         commandExecutionDetails = self._sendInterfaceCommand(
                              self._modemCommands['send_upb'], command)
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+
+    def status(self, address, timeout=None):
+        message = UPBMessage()
+        message.network = address[0]
+        message.destination = address[1]
+#        message.message_eid = UPBMessage.MessageDeviceControl.goto
+        message.message_did = UPBMessage.MessageDeviceControl.report_state
+        command = message.to_hex()
+        command = command + Conversions.hex_to_ascii('0D')
+        commandExecutionDetails = self._sendInterfaceCommand(
+                             self._modemCommands['send_upb'], command)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)      
 
     def on(self, address, timeout=None, rate=None):
         return self._device_goto(address, 0x64, timeout=timeout)
