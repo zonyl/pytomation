@@ -648,3 +648,8 @@ class StateTests(TestCase):
         time.sleep(3)
         s.on()
         self.assertEqual(s2.state, State.ON)
+        
+    def test_status_command(self):
+        s = StateDevice()
+        s.status()
+        self.assertTrue(True)

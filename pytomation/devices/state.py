@@ -38,7 +38,7 @@ class Attribute(object):
 class StateDevice(PytomationObject):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS,
-                Command.TOGGLE, Command.AUTOMATIC, Command.MANUAL, Command.INITIAL]
+                Command.TOGGLE, Command.AUTOMATIC, Command.MANUAL, Command.INITIAL, Command.STATUS]
     
     def __init__(self, *args, **kwargs):
         self._command_lock = thread.allocate_lock()
@@ -157,7 +157,7 @@ class StateDevice(PytomationObject):
                                                                                                command=command,
                                                                                                source=source.name if source else None
                                                                                                ))
-                    self._delegate_command(map_command, original_state=original_state, *args, **kwargs)
+                    self._delegate_command(map_command, original_state=self.state, *args, **kwargs)
                 else:
                     self._logger.debug("{name} mapped to nothing, ignored command {command} from {source}".format(
                                                                                                name=self.name,
