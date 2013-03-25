@@ -157,7 +157,7 @@ class StateDevice(PytomationObject):
                                                                                                command=command,
                                                                                                source=source.name if source else None
                                                                                                ))
-                    self._delegate_command(map_command, original_state=self.state, *args, **kwargs)
+                    self._delegate_command(command, original_state=self.state, *args, **kwargs)
                 else:
                     self._logger.debug("{name} mapped to nothing, ignored command {command} from {source}".format(
                                                                                                name=self.name,
