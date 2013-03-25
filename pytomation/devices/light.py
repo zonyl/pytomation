@@ -48,7 +48,7 @@ class Light(InterfaceDevice):
             primary_command = m_command[0]
         try:
             if source and (primary_command in [Command.ON, Command.LEVEL]):
-                if self.restricted:
+                if self.restricted and source not in self._interfaces:
                     m_command = None
                     m_state = None 
                     self._logger.info("{name} is restricted. Ignoring command {command} from {source}".format(

@@ -722,6 +722,9 @@ class StateDevice(PytomationObject):
         self._retrigger_delay.interval = secs       
 
     def _filter_retrigger_delay(self, *args, **kwargs):
+        """
+        If there is a need to squelch multiple of the same command within a certain timeframe
+        """
         command = kwargs.get('command', None)
         original_state = kwargs.get('original_state', None)
         new_state = kwargs.get('new_state', None)
