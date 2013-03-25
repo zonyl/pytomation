@@ -150,6 +150,14 @@ class StateDevice(PytomationObject):
                                                                                                command=command,
                                                                                                source=source.name if source else None
                                                                                                ))
+                elif command == Command.STATUS:
+                    # If this is a status request, dont set state just pass along the command.
+                    self._logger.debug("{name} delgating 'Status' command from {source}".format(
+                                                                                               name=self.name,
+                                                                                               command=command,
+                                                                                               source=source.name if source else None
+                                                                                               ))
+                    self._delegate_command(map_command, original_state=original_state, *args, **kwargs)
                 else:
                     self._logger.debug("{name} mapped to nothing, ignored command {command} from {source}".format(
                                                                                                name=self.name,
