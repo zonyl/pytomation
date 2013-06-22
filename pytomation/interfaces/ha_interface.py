@@ -213,15 +213,18 @@ class HAInterface(AsynchronousInterface, PytomationObject):
     def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read
         response = self._interface.read()
-        if len(response) != 0:
-#            self._logger.debug("[HAInterface-Serial] Response>\n" + hex_dump(response))
-            self._logger.debug("Response>" + hex_dump(response) + "<")
-            self._onCommand(command=response)
-        else:
-            #print "Sleeping"
-            #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
-            #time.sleep(0.1)
-            time.sleep(0.5)
+        try:
+            if len(response) != 0:
+    #            self._logger.debug("[HAInterface-Serial] Response>\n" + hex_dump(response))
+                self._logger.debug("Response>" + hex_dump(response) + "<")
+                self._onCommand(command=response)
+            else:
+                #print "Sleeping"
+                #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
+                #time.sleep(0.1)
+                time.sleep(0.5)
+        except TypeError, ex:
+            pass
 
     def _waitForCommandToFinish(self, commandExecutionDetails, timeout=None):
 

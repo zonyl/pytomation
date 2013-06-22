@@ -339,72 +339,75 @@ class InsteonPLM(HAInterface):
     def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read
         firstByte = self._interface.read(1)
-        if len(firstByte) == 1:
-            #got at least one byte.  Check to see what kind of byte it is (helps us sort out how many bytes we need to read now)
-
-            if firstByte[0] == '\x02':
-                #modem command (could be an echo or a response)
-                #read another byte to sort that out
-                secondByte = self._interface.read(1)
-
-                responseSize = -1
-                callBack = None
-                
-                if self.extendedCommand:
-                    # set the callback and response size expected for extended commands
-                    modemCommand = binascii.hexlify(secondByte).upper()
-                    if self._modemExtCommands.has_key(modemCommand):
-                        if self._modemExtCommands[modemCommand].has_key('responseSize'):
-                            responseSize = self._modemExtCommands[modemCommand]['responseSize']
-                        if self._modemExtCommands[modemCommand].has_key('callBack'):
-                            callBack = self._modemExtCommands[modemCommand]['callBack']
-					
-                else:
-                    # set the callback and response size expected for standard commands
-                    modemCommand = binascii.hexlify(secondByte).upper()
-                    if self._modemCommands.has_key(modemCommand):
-                        if self._modemCommands[modemCommand].has_key('responseSize'):
-                            responseSize = self._modemCommands[modemCommand]['responseSize']
-                        if self._modemCommands[modemCommand].has_key('callBack'):
-                            callBack = self._modemCommands[modemCommand]['callBack']
-
-                if responseSize != -1:
-                    remainingBytes = self._interface.read(responseSize)
-                    currentPacketHash = hashPacket(firstByte + secondByte + remainingBytes)
-                    self._logger.debug("Receive< " + hex_dump(firstByte + secondByte + remainingBytes, len(firstByte + secondByte + remainingBytes)) + currentPacketHash + "\n")
-
-                    if lastPacketHash and lastPacketHash == currentPacketHash:
-                        #duplicate packet.  Ignore
-                        pass
-                    else:
-                        if callBack:
-                            callBack(firstByte + secondByte + remainingBytes)
-                        else:
-                            self._logger.debug("No callBack defined for for modem command %s" % modemCommand)
-
-                    self._lastPacketHash = currentPacketHash
-                    self.spinTime = 0.2     #reset spin time, there were no naks, Don't set this lower
-                else:
-                    self._logger.debug("No responseSize defined for modem command %s" % modemCommand)
+        try:
+            if len(firstByte) == 1:
+                #got at least one byte.  Check to see what kind of byte it is (helps us sort out how many bytes we need to read now)
+    
+                if firstByte[0] == '\x02':
+                    #modem command (could be an echo or a response)
+                    #read another byte to sort that out
+                    secondByte = self._interface.read(1)
+    
+                    responseSize = -1
+                    callBack = None
                     
-            elif firstByte[0] == '\x15':
-                self.spinTime += 0.2
-                self._logger.debug("Received a Modem NAK! Resending command, loop time %f" % (self.spinTime))
-                if self.spinTime < 12.0:
-                    self._sendInterfaceCommand(self.currentCommand[0], self.currentCommand[1], self.currentCommand[2])
+                    if self.extendedCommand:
+                        # set the callback and response size expected for extended commands
+                        modemCommand = binascii.hexlify(secondByte).upper()
+                        if self._modemExtCommands.has_key(modemCommand):
+                            if self._modemExtCommands[modemCommand].has_key('responseSize'):
+                                responseSize = self._modemExtCommands[modemCommand]['responseSize']
+                            if self._modemExtCommands[modemCommand].has_key('callBack'):
+                                callBack = self._modemExtCommands[modemCommand]['callBack']
+    					
+                    else:
+                        # set the callback and response size expected for standard commands
+                        modemCommand = binascii.hexlify(secondByte).upper()
+                        if self._modemCommands.has_key(modemCommand):
+                            if self._modemCommands[modemCommand].has_key('responseSize'):
+                                responseSize = self._modemCommands[modemCommand]['responseSize']
+                            if self._modemCommands[modemCommand].has_key('callBack'):
+                                callBack = self._modemCommands[modemCommand]['callBack']
+    
+                    if responseSize != -1:
+                        remainingBytes = self._interface.read(responseSize)
+                        currentPacketHash = hashPacket(firstByte + secondByte + remainingBytes)
+                        self._logger.debug("Receive< " + hex_dump(firstByte + secondByte + remainingBytes, len(firstByte + secondByte + remainingBytes)) + currentPacketHash + "\n")
+    
+                        if lastPacketHash and lastPacketHash == currentPacketHash:
+                            #duplicate packet.  Ignore
+                            pass
+                        else:
+                            if callBack:
+                                callBack(firstByte + secondByte + remainingBytes)
+                            else:
+                                self._logger.debug("No callBack defined for for modem command %s" % modemCommand)
+    
+                        self._lastPacketHash = currentPacketHash
+                        self.spinTime = 0.2     #reset spin time, there were no naks, Don't set this lower
+                    else:
+                        self._logger.debug("No responseSize defined for modem command %s" % modemCommand)
+                        
+                elif firstByte[0] == '\x15':
+                    self.spinTime += 0.2
+                    self._logger.debug("Received a Modem NAK! Resending command, loop time %f" % (self.spinTime))
+                    if self.spinTime < 12.0:
+                        self._sendInterfaceCommand(self.currentCommand[0], self.currentCommand[1], self.currentCommand[2])
+                    else:
+                        self._logger.debug("Too many NAK's! Device not responding...")
                 else:
-                    self._logger.debug("Too many NAK's! Device not responding...")
+                    self._logger.debug("Unknown first byte %s" % binascii.hexlify(firstByte[0]))
+                
+                self.extendedCommand = False	# go back to standard commands as default
+                
             else:
-                self._logger.debug("Unknown first byte %s" % binascii.hexlify(firstByte[0]))
-            
-            self.extendedCommand = False	# go back to standard commands as default
-            
-        else:
-            self._checkCommandQueue()
-            #print "Sleeping"
-            #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
-            #time.sleep(0.1)
-            time.sleep(self.spinTime)
+                self._checkCommandQueue()
+                #print "Sleeping"
+                #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
+                #time.sleep(0.1)
+                time.sleep(self.spinTime)
+        except TypeError, ex:
+            pass
 
     def _sendStandardP2PInsteonCommand(self, destinationDevice, commandId1, commandId2):
         self._logger.debug("Command: %s %s %s" % (destinationDevice, commandId1, commandId2))
