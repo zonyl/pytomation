@@ -304,6 +304,33 @@ class UPB(HAInterface):
                              self._modemCommands['send_upb'], command)
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
+    def _link_activate(self, address, timeout=None):
+        message = UPBMessage()
+        message.link_type = UPBMessage.LinkType.link
+        message.network = address[0]
+        message.destination = address[1]
+#        message.message_eid = UPBMessage.MessageDeviceControl.goto
+        message.message_did = UPBMessage.MessageDeviceControl.activate
+        command = message.to_hex()
+        command = command + Conversions.hex_to_ascii('0D')
+        commandExecutionDetails = self._sendInterfaceCommand(
+                             self._modemCommands['send_upb'], command)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)        
+
+    def _link_deactivate(self, address, timeout=None):
+        message = UPBMessage()
+        message.link_type = UPBMessage.LinkType.link
+        message.network = address[0]
+        message.destination = address[1]
+#        message.message_eid = UPBMessage.MessageDeviceControl.goto
+        message.message_did = UPBMessage.MessageDeviceControl.deactivate
+        command = message.to_hex()
+        command = command + Conversions.hex_to_ascii('0D')
+        commandExecutionDetails = self._sendInterfaceCommand(
+                             self._modemCommands['send_upb'], command)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+
+
     def status(self, address, timeout=None):
         message = UPBMessage()
         message.network = address[0]
@@ -317,13 +344,25 @@ class UPB(HAInterface):
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)      
 
     def on(self, address, timeout=None, rate=None):
-        return self._device_goto(address, 0x64, timeout=timeout)
+        if len(address) <= 2:
+            return self._device_goto(address, 0x64, timeout=timeout)
+        else: # Device Link
+            return self._link_activate(address, timeout=timeout)
 
     def off(self, address, timeout=None, rate=None):
-        return self._device_goto(address, 0x00, timeout=timeout)
+        if len(address) <= 2:
+            return self._device_goto(address, 0x00, timeout=timeout)
+        else: # Device Link
+            return self._link_deactivate(address, timeout=timeout)
     
     def level(self, address, level, timeout=None, rate=None):
-        self._device_goto(address, level, timeout, rate)
+        if len(address) <= 2:
+            self._device_goto(address, level, timeout, rate)
+        else: # Device Link
+            if level >= 50:
+                return self._link_activate(address, timeout=timeout)
+            else:
+                return self._link_deactivate(address, timeout=timeout)
         
     def __getattr__(self, name):
         name = name.lower()
