@@ -149,16 +149,9 @@ class UPBInterfaceTests(TestCase):
         response = self.upb.level((39, 4), 40)
         self.assertTrue(True)
 
-    def test_link(self):
+    def test_link_activate(self):
         """
-        UPBPIM, myPIM, 49, 0x1B08, 30
-        UPBD,   upb_foyer,      myPIM,  49, 3
-        Response>  Foyer Light On
-        0000   50 55 30 38 31 30 33 31    PU081031
-        0008   30 33 31 45 32 32 36 34    031E2264
-        0010   31 30 0D                   10.
-        """
-#        self.ms.add_response({'\x14081031031E226410\x0D': 'PA\x0D'})
+        """#        self.ms.add_response({'\x14081031031E226410\x0D': 'PA\x0D'})
         self.ms.add_response({'\x14871031031E20F7\x0D': 'PA\x0D'})
         # Network / Device ID 
         response = self.upb.on((49, 3, "L"))
