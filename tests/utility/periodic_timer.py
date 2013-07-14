@@ -5,8 +5,7 @@ from datetime import datetime, timedelta
 
 from pytomation.utility import PeriodicTimer
 
-
-class RepeatingTimerTests(TestCase):
+class PeriodicTimerTests(TestCase):
     def setUp(self):
         self.called = False
 
@@ -27,7 +26,18 @@ class RepeatingTimerTests(TestCase):
         time.sleep(3)
         rt.stop()
         self.assertEqual(self.called, True, "Callback was not called")
-
+    
+    def test_2_sec_repeated(self):
+        rt = PeriodicTimer()
+        rt.interval = 2
+        rt.action(self.callback, ())
+        rt.start()
+        time.sleep(3)
+        self.assertEqual(self.called, True, "Callback was not called 1st time")
+        self.called = False
+        time.sleep(3)
+        self.assertEqual(self.called, True, "Callback was not called 2nd time")
+                
     def callback(self, *args, **kwargs):
         self.called = True
 

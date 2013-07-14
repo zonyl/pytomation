@@ -1,18 +1,22 @@
 import time
 from datetime import datetime, timedelta
-from threading import Timer, Event
+from threading import Event
+from apscheduler.scheduler import Scheduler
 
 
 # The actual Event class
 class PeriodicTimer(object):
-
+        
     def __init__(self, frequency=60, *args, **kwargs):
+        # Start the scheduler
+        self.frequency = frequency
+        self._sched = Scheduler()
         self.is_stopped = Event()
         self.is_stopped.clear()
 
-        self.interval = frequency
-        self._timer = Timer(self.frequency, self._check_for_event, ())
-        self._timer.daemon = True
+#         self.interval = frequency
+#         self._timer = Timer(self.frequency, self._check_for_event, ())
+        self.interval = frequency    
 
     @property
     def interval(self):
@@ -22,13 +26,9 @@ class PeriodicTimer(object):
     def interval(self, frequency):
         self.frequency = frequency
         self.stop()
-        try:
-            if self._timer:
-                self._timer.cancel()
-                del(self._timer)
-        except AttributeError, ex:
-            pass
-        self._timer = Timer(self.frequency, self._check_for_event, ())
+        self.dispose()
+        self._sched = Scheduler()
+        self._sched.add_interval_job(self._check_for_event, seconds = frequency)
         return self.frequency
 
     def action(self, action, *action_args, **kwargs):
@@ -38,22 +38,25 @@ class PeriodicTimer(object):
 
     def start(self):
         self.is_stopped.clear()
-        if not self._timer.isAlive():
-            self._timer.start()
+        self._sched.start()
 
     def stop(self):
         self.is_stopped.set()
+        self._sched.shutdown()
+        
+    def dispose(self):
+        try:
+            if self._sched:
+                self._sched.shutdown()
+                del(self._sched)
+        except:
+            pass
+        
 
     def _check_for_event(self):
-        while not self.is_stopped.isSet():
-            if self.is_stopped.isSet():
-                break
-            if self._action:
-                self._action(*self._action_args, **self._action_kwargs)
-            else:
-                self.stop()
-            # Handle not so graceful shutdown
-            try:
-                self.is_stopped.wait(self.frequency)
-            except:
-                pass
+        if self.is_stopped.isSet():
+            return
+        if self._action:
+            self._action(*self._action_args, **self._action_kwargs)
+        else:
+            self.stop()
