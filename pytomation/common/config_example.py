@@ -51,12 +51,13 @@ device_send_always = False
 """
 
 ## Default logging level
-logging_default_level = "INFO"
+logging_default_level = "CRITICAL"
 
 # Logging modules is dict() of modules names and their minimum logging
 # levels.  If it is not listed default level is used
 #
 logging_modules = {
+                  "apscheduler.scheduler": "CRITICAL",
                    'LoggingTests': "CRITICAL",
                    #'Stargate': 'DEBUG',
                    #'InsteonPLM': 'DEBUG',
