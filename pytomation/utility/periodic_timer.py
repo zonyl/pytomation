@@ -28,7 +28,7 @@ class PeriodicTimer(object):
         self.stop()
         self.dispose()
         self._sched = Scheduler()
-        self._sched.add_interval_job(self._check_for_event, seconds = frequency)
+        self._sched.add_interval_job(self._check_for_event, seconds = frequency, max_instances=10)
         return self.frequency
 
     def action(self, action, *action_args, **kwargs):
