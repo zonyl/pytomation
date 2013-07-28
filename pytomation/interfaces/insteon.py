@@ -582,8 +582,11 @@ class InsteonPLM(HAInterface):
 
         if waitEvent and foundCommandHash:
             waitEvent.set()
-            del self._pendingCommandDetails[foundCommandHash]
-            self._logger.debug("Command %s completed\n" % foundCommandHash)
+            try:
+                del self._pendingCommandDetails[foundCommandHash]
+                self._logger.debug("Command %s completed\n" % foundCommandHash)
+            except:
+                self._logger.error("Command %s couldnt be deleted!\n" % foundCommandHash)
 
     def _process_InboundExtendedInsteonMessage(self, responseBytes):
         (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, \
