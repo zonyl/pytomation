@@ -280,12 +280,16 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                 self._outboundQueue.append(commandHash)
                 self._retryCount[commandHash] += 1
             else:
-                self._logger.debug("Interesting.  timed out for %s, but there is no pending command details" % commandHash)
+                self._logger.debug("Interesting.  timed out for %s, but there are no pending command details" % commandHash)
                 #to prevent a huge loop here we bail out
                 requiresRetry = False
 
-            self._commandLock.release()
-
+            try:
+                self._logger.debug("Removing Lock " + str( self._commandLock))
+                self._commandLock.release()
+            except:
+                self._logger.error("Could not release Lock! " + str(self._commandLock))
+                
             if requiresRetry:
                 return self._waitForCommandToFinish(commandExecutionDetails,
                                                     timeout=timeout)

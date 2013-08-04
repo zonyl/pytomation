@@ -209,12 +209,13 @@ class UPB(HAInterface):
                     self._processNewUBP(response)
                 elif responseCode == 'PK':  # UPB Packet was acknowledged
                     pass
+                elif responseCode == 'PN':  # UPB Packet was not acknowledged
+                    pass
 #                    self._processUBP(response, lastPacketHash)
                 elif responseCode == 'PR':  # Register read response
                     self._processRegister(response, lastPacketHash)
         else:
-            #print "Sleeping"
-            #X10 is slow.  Need to adjust based on protocol sent.  Or pay attention to NAK and auto adjust
+            self._logger.debug('Sleeping')
             #time.sleep(0.1)
             time.sleep(0.5)
 
@@ -234,7 +235,11 @@ class UPB(HAInterface):
                 break
 
         if foundCommandHash:
-            del self._pendingCommandDetails[foundCommandHash]
+            try:
+                del self._pendingCommandDetails[foundCommandHash]
+                self._logger.debug("Command %s completed\n" % foundCommandHash)
+            except:
+                self._logger.error("Command %s couldnt be deleted!\n" % foundCommandHash)
         else:
             self._logger.debug("Unable to find pending command details for the following packet:\n")
             self._logger.debug(hex_dump(response, len(response)) + "\n")
@@ -255,7 +260,11 @@ class UPB(HAInterface):
                 break
 
         if foundCommandHash:
-            del self._pendingCommandDetails[foundCommandHash]
+            try:
+                del self._pendingCommandDetails[foundCommandHash]
+                self._logger.debug("Command %s completed\n" % foundCommandHash)
+            except:
+                self._logger.error("Command %s couldnt be deleted!\n" % foundCommandHash)
         else:
             self._logger.debug("Unable to find pending command details for the following packet:\n")
             self._logger.debug(hex_dump(response, len(response)) + "\n")
