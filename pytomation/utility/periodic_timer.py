@@ -37,8 +37,10 @@ class PeriodicTimer(object):
         self._action_kwargs = kwargs
 
     def start(self):
-        self.is_stopped.clear()
+        if self._sched.running:
+            self._sched.shutdown()
         self._sched.start()
+        self.is_stopped.clear()
 
     def stop(self):
         self.is_stopped.set()
