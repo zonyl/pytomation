@@ -16,10 +16,10 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
 #        self._server = server
         self._logger = PytoLogging(self.__class__.__name__)
         self._api = PytomationAPI()
-
-        SimpleHTTPRequestHandler.__init__(self, req, client_addr, server)
         self._server = server
         self._server.add_handler_instance(self)
+
+        SimpleHTTPRequestHandler.__init__(self, req, client_addr, server)
 
     @property
     def api(self):
