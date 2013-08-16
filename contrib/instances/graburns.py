@@ -10,7 +10,7 @@ from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
 
 ###################### INTERFACE CONFIG #########################
 web = HTTPServer()
-
+print "WWWWW" + str(web)
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
 #insteon = InsteonPLM(TCP('192.168.13.146', 9761))
@@ -18,7 +18,7 @@ insteon = InsteonPLM(Serial('/dev/ttyMI1', 19200, xonxoff=False))
 
 w800 = W800rf32(Serial('/dev/ttyMI3', 4800)) 
 
-sg = Stargate(Serial('/dev/ttyMI2', 9600))
+sg = Stargate(Serial('/dev/ttyMI4', 9600))
 # invert the DIO channels for these contact sensors
 sg.dio_invert(1)
 sg.dio_invert(2)
@@ -151,7 +151,13 @@ ph_civil = Location('35.2269', '-80.8433',
 # Rooms
 r_foyer = Room(name='Foyer', devices=(m_foyer))
 r_den = Room(name='Den', devices=(m_den, r_foyer))
-r_family = Room(name='Family', devices=(m_family, r_foyer))
+r_family = Room(name='Family', 
+		devices=(m_family, r_foyer),
+		trigger={ Attribute.COMMAND: Command.OCCUPY,
+			  Attribute.MAPPED: Command.VACATE,
+			  Attribute.SECS: 2*60*60,
+			},
+		)
 r_kitchen = Room(name='Kitchen', devices=(m_kitchen, r_foyer))
 r_foyer.add_device(r_den)
 r_foyer.add_device(r_family)
@@ -166,8 +172,8 @@ r_utility.add_device(r_garage)
 #lights
 # Turn on the foyer light at night when either the door is opened or family PIR is tripped.
 l_foyer = Light(
-                address=(49, 3),
-                devices=(upb, d_foyer,
+                address="24.a9.14",
+                devices=(insteon, d_foyer,
                          m_foyer,
                          ph_standard),
                  ignore=({
@@ -192,8 +198,8 @@ l_foyer = Light(
                 )
 
 l_front_porch = Light(
-                      address=(49, 4),
-                      devices=(upb, d_foyer, m_front_porch, m_front_camera, ph_standard, web),
+                      address="24.9d.55",
+                      devices=(insteon, d_foyer, m_front_porch, m_front_camera, ph_standard),
                       initial=ph_standard,
                       delay=({
                              Attribute.COMMAND: Command.OFF,
@@ -223,8 +229,8 @@ l_front_porch = Light(
 
 
 l_front_flood = Light(
-                      address=(49, 5), 
-                      devices=(upb, d_garage, d_garage_overhead, 
+                      address="24.6f.17", 
+                      devices=(insteon, d_garage, d_garage_overhead, 
                                d_foyer, m_front_garage, m_front_camera, ph_standard),
                       delay=({
                              Attribute.COMMAND: Command.OFF,
@@ -234,6 +240,11 @@ l_front_flood = Light(
                               Attribute.COMMAND: Command.OFF,
                               Attribute.SECS: 0,
                               Attribute.SOURCE: ph_standard,
+                              },
+                             {
+                              Attribute.COMMAND: Command.OFF,
+                              Attribute.SECS: 0,
+                              Attribute.SOURCE: web,
                               }
                              ),
                        idle={
@@ -261,8 +272,8 @@ l_front_outlet = Light(
                       )
 
 l_front_garage = Light(
-                      address=(49, 2), 
-                      devices=(upb, d_garage, d_garage_overhead, 
+                      address="24.9d.7c", 
+                      devices=(insteon, d_garage, d_garage_overhead, 
                                m_front_garage, m_front_camera, ph_standard),
                       delay=({
                              Attribute.COMMAND: Command.OFF,
@@ -272,6 +283,11 @@ l_front_garage = Light(
                               Attribute.COMMAND: Command.OFF,
                               Attribute.SECS: 0,
                               Attribute.SOURCE: ph_standard,
+                              },
+                             {
+                              Attribute.COMMAND: Command.OFF,
+                              Attribute.SECS: 0,
+                              Attribute.SOURCE: web,
                               }
                              ),
                        idle={
@@ -286,13 +302,21 @@ l_front_garage = Light(
                       )
 
 l_garage = Light(
-                      address=(49, 18), 
-                      devices=(upb, m_garage, d_garage, d_garage_overhead, 
+#                      address=(49, 18), 
+	              address='20.8b.40',    
+                      devices=(insteon, m_garage, d_garage, d_garage_overhead, 
                                ph_standard, s_all_indoor_off),
-                      delay={
+                      delay=(
+				{
                              Attribute.COMMAND: Command.OFF,
                              Attribute.SECS: 5*60,
                              },
+				{
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.SECS: 5*60,
+			     Attribute.SOURCE: web,
+                             },
+				),
                        time={
                              Attribute.COMMAND: Command.OFF,
                              Attribute.TIME: '11:59pm',
@@ -303,7 +327,8 @@ l_garage = Light(
 
 l_family_lamp = Light(
                 address=(49, 6), 
-                devices=(upb, ph_standard, r_family),
+#                devices=(upb, ph_standard, r_family),
+                devices=(upb, ph_standard),
                 mapped={
                         Attribute.COMMAND: (Command.MOTION, Command.LIGHT),
                         Attribute.TARGET: Command.OFF,
@@ -323,6 +348,11 @@ l_family_lamp = Light(
                        Attribute.SECS: 15*60,
                        Attribute.SOURCE: r_family,
                        },
+		time={
+			Attribute.COMMAND: Command.OFF,
+			Attribute.TIME: '11:59pm',
+			},
+
                 name='Family Lamp Light',
                 )
 
@@ -340,6 +370,18 @@ l_family = Light(
                         },
                  )
 
+l_bed_hallway = Light(
+                 address='19.0d.1b',    
+                 devices=(insteon,),
+                 name='Bed Hallway Light',
+                 )
+
+l_garage_new = Light(
+                 address='20.8b.40',    
+                 devices=(insteon,),
+                 name='Garage New Light',
+                 )
+
 
 ##################### USER CODE ###############################
 #Manually controlling the light
@@ -348,6 +390,8 @@ l_family = Light(
 #l_front_porch.on()
 #l_front_porch.off()
 #l_family_lamp.l40()
+
+upb.update_status()
 
 def MainLoop(startup=False, *args, **kwargs):
     if startup:
