@@ -58,8 +58,11 @@ class PytomationAPI(PytomationObject):
         del detail['instance']
         return detail
     
-    def update_device(self, levels, data=None, source=self, *args, **kwargs):
+    def update_device(self, levels, data=None, source=None, *args, **kwargs):
         command = None
+        if not source:
+            source = self
+
         if data:
             if isinstance(data, list):
                 for d in data:
