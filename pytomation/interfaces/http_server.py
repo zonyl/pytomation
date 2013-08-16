@@ -83,7 +83,7 @@ class HTTPServer(HAInterface):
         server_address = (self._address, self._port)
         
         PytoHandlerClass.protocol_version = self._protocol
-	PytoHandlerClass.server = self
+        PytoHandlerClass.server = self
         httpd = BaseHTTPServer.HTTPServer(server_address, PytoHandlerClass)
         
         sa = httpd.socket.getsockname()
