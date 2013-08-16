@@ -14,7 +14,7 @@ class PytomationAPI(PytomationObject):
            ('post', 'device'): self.update_device,
            }
     
-    def get_response(self, method="GET", path=None, type=None, data=None):
+    def get_response(self, method="GET", path=None, type=None, data=None, source=None):
         response = None
         method = method.lower()
         levels = path.split('/')
@@ -25,7 +25,7 @@ class PytomationAPI(PytomationObject):
             response = f(levels, data=data)
         elif levels[0].lower() == 'device':
             try:
-                response = self.update_device(command=method, levels=levels)
+                response = self.update_device(command=method, levels=levels, source=source)
             except Exception, ex:
                 pass
         if type==self.JSON:
@@ -58,7 +58,7 @@ class PytomationAPI(PytomationObject):
         del detail['instance']
         return detail
     
-    def update_device(self, levels, data=None, *args, **kwargs):
+    def update_device(self, levels, data=None, source=self, *args, **kwargs):
         command = None
         if data:
             if isinstance(data, list):
@@ -75,7 +75,7 @@ class PytomationAPI(PytomationObject):
         id = levels[1]
         detail = pytomation_system.get_instances_detail()[id]
         device = detail['instance']
-        device.command(command=command, source=self)
+        device.command(command=command, source=source)
         response =  PytomationAPI.get_device(levels)
 #        print 'res['+ str(response)
         return response

@@ -18,6 +18,12 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
         self._api = PytomationAPI()
 
         SimpleHTTPRequestHandler.__init__(self, req, client_addr, server)
+        self._server = server
+        self._server.add_handler_instance(self)
+
+    @property
+    def api(self):
+        return self._api
     
     def translate_path(self, path):
         global file_path
@@ -53,7 +59,7 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
                 data = self.rfile.read(length)
 #                print 'rrrrr' + str(length) + ":" + str(data)
                 self.rfile.close()
-            response = self._api.get_response(method=method, path="/".join(p[2:]), type=None, data=data)
+            response = self._api.get_response(method=method, path="/".join(p[2:]), type=None, data=data, source=self._server)
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.send_header("Content-length", len(response))
@@ -66,6 +72,14 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
 class HTTPServer(HAInterface):
     def __init__(self, address=None, port=None, path=None, *args, **kwargs):
         super(HTTPServer, self).__init__(address, *args, **kwargs)
+        self._handler_instances = []
+    
+    def add_handler_instance(self, handler):
+        self._handler_instances.append(handler)
+        
+    @property
+    def handlers(self):
+        return self._handler_instances
     
     def _init(self, *args, **kwargs):
         super(HTTPServer, self)._init(*args, **kwargs)
