@@ -10,21 +10,17 @@ from .ha_interface import HAInterface
 file_path = "/tmp"
 
 class PytoHandlerClass(SimpleHTTPRequestHandler):
+    server = None
+
     def __init__(self,req, client_addr, server):
 #        self._request = req
 #        self._address = client_addr
-#        self._server = server
         self._logger = PytoLogging(self.__class__.__name__)
         self._api = PytomationAPI()
         self._server = server
-        self._server.add_handler_instance(self)
 
         SimpleHTTPRequestHandler.__init__(self, req, client_addr, server)
 
-    @property
-    def api(self):
-        return self._api
-    
     def translate_path(self, path):
         global file_path
         path = file_path + path
@@ -57,9 +53,9 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
             if method.lower() == 'post':
                 length = int(self.headers.getheader('content-length'))
                 data = self.rfile.read(length)
-#                print 'rrrrr' + str(length) + ":" + str(data)
+#                print 'rrrrr' + str(length) + ":" + str(data) + 'fffff' + str(self._server)
                 self.rfile.close()
-            response = self._api.get_response(method=method, path="/".join(p[2:]), type=None, data=data, source=self._server)
+            response = self._api.get_response(method=method, path="/".join(p[2:]), type=None, data=data, source=PytoHandlerClass.server)
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.send_header("Content-length", len(response))
@@ -74,13 +70,6 @@ class HTTPServer(HAInterface):
         super(HTTPServer, self).__init__(address, *args, **kwargs)
         self._handler_instances = []
     
-    def add_handler_instance(self, handler):
-        self._handler_instances.append(handler)
-        
-    @property
-    def handlers(self):
-        return self._handler_instances
-    
     def _init(self, *args, **kwargs):
         super(HTTPServer, self)._init(*args, **kwargs)
         global file_path
@@ -94,6 +83,7 @@ class HTTPServer(HAInterface):
         server_address = (self._address, self._port)
         
         PytoHandlerClass.protocol_version = self._protocol
+	PytoHandlerClass.server = self
         httpd = BaseHTTPServer.HTTPServer(server_address, PytoHandlerClass)
         
         sa = httpd.socket.getsockname()

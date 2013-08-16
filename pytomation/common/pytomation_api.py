@@ -19,10 +19,11 @@ class PytomationAPI(PytomationObject):
         method = method.lower()
         levels = path.split('/')
 #        print 'pizz:' + path + "l:" + levels[0] + "DDD"+ str(data)
+#	print "eeeeee" + str(source)
         type = type.lower() if type else self.JSON
         f = self.get_map().get((method, levels[0]), None)
         if f:
-            response = f(levels, data=data)
+            response = f(levels, data=data, source=source)
         elif levels[0].lower() == 'device':
             try:
                 response = self.update_device(command=method, levels=levels, source=source)
@@ -60,6 +61,7 @@ class PytomationAPI(PytomationObject):
     
     def update_device(self, levels, data=None, source=None, *args, **kwargs):
         command = None
+#	print 'kkkkkkkk' + str(source)
         if not source:
             source = self
 
