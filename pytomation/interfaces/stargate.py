@@ -65,6 +65,7 @@ class Stargate(HAInterface):
                                }
         self.d_inverted = [False for x in xrange(16)]
         self.echoMode()
+	self._logger.error('Startgggg')
 
     def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read
@@ -113,6 +114,9 @@ class Stargate(HAInterface):
                     state = Command.ON
                 else:
                     state = Command.OFF
+		self._logger.info("Digital Input #{input} to state {state}".format(
+				input=str(offset + i + 1),
+				state=state))
                 self._onCommand(command=state,
                                 address='D' + str(offset + i + 1))
 
@@ -120,7 +124,7 @@ class Stargate(HAInterface):
             self._last_input_map_high = io_map
         else:
             self._last_input_map_low = io_map
-
+	
         self._logger.debug("Process digital input {iomap} {offset} {last_inputl} {last_inputh}".format(
                                              iomap=Conversions.int_to_hex(io_map),
                                              offset=offset,
