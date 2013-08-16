@@ -215,7 +215,7 @@ class UPB(HAInterface):
                 elif responseCode == 'PR':  # Register read response
                     self._processRegister(response, lastPacketHash)
         else:
-            self._logger.debug('Sleeping')
+#            self._logger.debug('Sleeping')
             #time.sleep(0.1)
             time.sleep(0.5)
 
