@@ -6,17 +6,27 @@ from apscheduler.scheduler import Scheduler
 
 # The actual Event class
 class PeriodicTimer(object):
-        
+    sched = None
+    
     def __init__(self, frequency=60, *args, **kwargs):
         # Start the scheduler
         self.frequency = frequency
-        self._sched = Scheduler()
+
+        self.scheduler_start()
+        
+        self._job = None
         self.is_stopped = Event()
         self.is_stopped.clear()
 
 #         self.interval = frequency
 #         self._timer = Timer(self.frequency, self._check_for_event, ())
         self.interval = frequency    
+
+    def scheduler_start(self):
+        if not PeriodicTimer.sched:
+            PeriodicTimer.sched = Scheduler()
+        if not PeriodicTimer.sched.running:
+            PeriodicTimer.sched.start()
 
     @property
     def interval(self):
@@ -25,10 +35,7 @@ class PeriodicTimer(object):
     @interval.setter
     def interval(self, frequency):
         self.frequency = frequency
-        self.stop()
-        self.dispose()
-        self._sched = Scheduler()
-        self._sched.add_interval_job(self._check_for_event, seconds = frequency, max_instances=10)
+        self.start()
         return self.frequency
 
     def action(self, action, *action_args, **kwargs):
@@ -37,23 +44,20 @@ class PeriodicTimer(object):
         self._action_kwargs = kwargs
 
     def start(self):
-        if self._sched.running:
-            self._sched.shutdown()
-        self._sched.start()
+#        if self._sched.running:
+#            self._sched.shutdown()
+        if not PeriodicTimer.sched:
+            return
+
+        self.stop()
+
+        self._job = PeriodicTimer.sched.add_interval_job(self._check_for_event, seconds = self.frequency, max_instances=10)
         self.is_stopped.clear()
 
     def stop(self):
-        self.is_stopped.set()
-        self._sched.shutdown()
-        
-    def dispose(self):
-        try:
-            if self._sched:
-                self._sched.shutdown()
-                del(self._sched)
-        except:
-            pass
-        
+        if self._job:
+            PeriodicTimer.sched.unschedule_job(self._job)
+        self.is_stopped.set()        
 
     def _check_for_event(self):
         if self.is_stopped.isSet():
