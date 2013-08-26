@@ -176,12 +176,9 @@ l_foyer = Light(
                 devices=(insteon, d_foyer,
                          m_foyer,
                          ph_standard),
-                 ignore=({
-                         Attribute.COMMAND: Command.DARK,
+                 ignore={
+                         Attribute.COMMAND: (Command.DARK, Command.STILL,)
                          },
-                         {
-                          Attribute.COMMAND: Command.STILL}
-            			 ),
                  time={
                        Attribute.TIME: '11:59pm',
                        Attribute.COMMAND: Command.OFF
@@ -208,16 +205,11 @@ l_front_porch = Light(
                              {
                               Attribute.COMMAND: Command.OFF,
                               Attribute.SECS: 0,
-                              Attribute.SOURCE: ph_standard,
-                              },
-                             {
-                              Attribute.COMMAND: Command.OFF,
-                              Attribute.SECS: 0,
-                              Attribute.SOURCE: web,
+                              Attribute.SOURCE: (ph_standard, web,)
                               },
                              ),
                        idle={
-                             Attribute.MAPPED:(Command.LEVEL, 40),
+                             Attribute.MAPPED:(Command.LEVEL, 30),
                              Attribute.SECS: 10*60,
                              },
                        time={
@@ -239,22 +231,22 @@ l_front_flood = Light(
                              {
                               Attribute.COMMAND: Command.OFF,
                               Attribute.SECS: 0,
-                              Attribute.SOURCE: ph_standard,
+                              Attribute.SOURCE: (ph_standard, web,)
                               },
-                             {
-                              Attribute.COMMAND: Command.OFF,
-                              Attribute.SECS: 0,
-                              Attribute.SOURCE: web,
-                              }
                              ),
                        idle={
-                             Attribute.MAPPED:(Command.LEVEL, 40),
+                             Attribute.MAPPED:(Command.LEVEL, 30),
                              Attribute.SECS: 5*60,
                              },
                        time={
                              Attribute.COMMAND: Command.OFF,
                              Attribute.TIME: '11:59pm',
                              },
+                      trigger={
+                               Attribute.COMMAND: Command.ON,
+                               Attribute.MAPPED: Command.OFF,
+                               Attribute.SECS: 10*60,
+                               },
                       name='Front Flood Light'
                       )
 
@@ -282,16 +274,11 @@ l_front_garage = Light(
                              {
                               Attribute.COMMAND: Command.OFF,
                               Attribute.SECS: 0,
-                              Attribute.SOURCE: ph_standard,
+                              Attribute.SOURCE: (ph_standard, web,)
                               },
-                             {
-                              Attribute.COMMAND: Command.OFF,
-                              Attribute.SECS: 0,
-                              Attribute.SOURCE: web,
-                              }
                              ),
                        idle={
-                             Attribute.MAPPED:(Command.LEVEL, 40),
+                             Attribute.MAPPED:(Command.LEVEL, 30),
                              Attribute.SECS: 10*60,
                              },
                        time={
@@ -302,21 +289,20 @@ l_front_garage = Light(
                       )
 
 l_garage = Light(
-#                      address=(49, 18), 
 	              address='20.8b.40',    
-                      devices=(insteon, m_garage, d_garage, d_garage_overhead, 
+                      devices=(insteon, m_garage, d_garage, d_garage_overhead, d_laundry, 
                                ph_standard, s_all_indoor_off),
                       delay=(
-				{
-                             Attribute.COMMAND: Command.OFF,
-                             Attribute.SECS: 5*60,
+                             {
+                                 Attribute.COMMAND: Command.OFF,
+                                 Attribute.SECS: 5*60,
                              },
-				{
-                             Attribute.COMMAND: Command.OFF,
-                             Attribute.SECS: 5*60,
-			     Attribute.SOURCE: web,
+                             {
+                                    Attribute.COMMAND: Command.OFF,
+                                    Attribute.SECS: 0,
+                                    Attribute.SOURCE: web,
                              },
-				),
+                             ),
                        time={
                              Attribute.COMMAND: Command.OFF,
                              Attribute.TIME: '11:59pm',
@@ -376,11 +362,6 @@ l_bed_hallway = Light(
                  name='Bed Hallway Light',
                  )
 
-l_garage_new = Light(
-                 address='20.8b.40',    
-                 devices=(insteon,),
-                 name='Garage New Light',
-                 )
 
 
 ##################### USER CODE ###############################
