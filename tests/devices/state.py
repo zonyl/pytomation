@@ -293,6 +293,30 @@ class StateTests(TestCase):
         self.assertEqual(s2.state, State.OFF)
         s1.on()
         self.assertEqual(s2.state, State.ON)
+
+    def test_idle_timer_then_trigger(self):
+        s1 = StateDevice()
+        s2 = StateDevice(devices=s1,
+                         trigger={
+                                Attribute.COMMAND: State.ON,
+                                Attribute.MAPPED: State.OFF,
+                                Attribute.SECS: 4,
+                                },
+                         idle={
+                               Attribute.MAPPED: State.UNKNOWN,
+                               Attribute.SECS: 2,
+                               }
+                         )
+        s1.on()
+        self.assertEqual(s2.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(s2.state, State.UNKNOWN)
+        time.sleep(5)
+        self.assertEqual(s2.state, State.OFF)
+#         s1.on()
+#         self.assertEqual(s2.state, State.ON)
+
+
         
     def test_idle_source(self):
         s1 = StateDevice()
@@ -648,6 +672,20 @@ class StateTests(TestCase):
         time.sleep(3)
         s.on()
         self.assertEqual(s2.state, State.ON)
+        
+    def test_ignore_multi_command(self):
+        s1 = StateDevice()
+        s2 = StateDevice(devices=s1,
+                         ignore={
+                                 Attribute.COMMAND: (Command.ON, Command.OFF,)
+                                 },
+                         )
+        self.assertEqual(s2.state, State.UNKNOWN)
+        s1.on()
+        self.assertEqual(s2.state, State.UNKNOWN)
+        s1.off()
+        self.assertEqual(s2.state, State.UNKNOWN)
+        
         
     def test_status_command(self):
         s = StateDevice()

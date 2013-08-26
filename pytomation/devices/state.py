@@ -34,6 +34,10 @@ class Attribute(object):
     SOURCE = 'source'
     START = 'start'
     END = 'end'
+
+class Property(object):
+    IDLE = 'idle'
+    DELAY = 'delay'
     
 class StateDevice(PytomationObject):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
@@ -96,6 +100,13 @@ class StateDevice(PytomationObject):
         # Lets process one command at a time please
         with self._command_lock:
             source = kwargs.get('source', None)
+            source_property = kwargs.get('source_property', None)
+#             if source_property == Property.DELAY:
+#                 pass
+#             if source_property == Property.IDLE:
+#                 pass
+#             if source_property == None:
+#                 pass
             if not self._is_ignored(command, source):
                 m_command = self._process_maps(*args, command=command, **kwargs)
                 if m_command != command:
@@ -125,7 +136,7 @@ class StateDevice(PytomationObject):
                                                               source=source.name if source else None,
                                                                                                                           ))
                             self.state = state
-                            self._cancel_delays(map_command, source, original=command)
+                            self._cancel_delays(map_command, source, original=command, source_property=source_property)
                             if self._automatic:
                                 self._idle_start(command=map_command, source=source, original_command=command)
                             self._previous_command = map_command
@@ -476,7 +487,7 @@ class StateDevice(PytomationObject):
                     m = mapped
                 timer = CTimer()
                 timer.interval=secs
-                timer.action(self.command, (m, ), source=self, original=source)
+                timer.action(self.command, (m, ), source=self, original=source, source_property=Property.DELAY)
                 self._delays.update({(command, source): {'mapped': m, 'secs': secs, 'timer': timer}})
         return True
 
@@ -498,8 +509,8 @@ class StateDevice(PytomationObject):
 
         return None       
     
-    def _cancel_delays(self, command, source, original=None):
-        if not self._get_delay(command, source, original):
+    def _cancel_delays(self, command, source, original=None, source_property=None):
+        if not self._get_delay(command, source, original) and source_property != Property.IDLE:
             for c, timer in self._delay_timers.iteritems():
                 self._logger.debug("{name} stopping an existing delay timer of '{interval}' secs for command: '{command}' because the same non-delayed command was now processed. From {source} original command {original}".format(
                                                                                            name=self.name,
@@ -519,7 +530,7 @@ class StateDevice(PytomationObject):
                 timer = CTimer()
             timer.stop()
             if delay['secs'] > 0:
-                timer.action(self.command, (delay['mapped'], ), source=self, original=source)
+                timer.action(self.command, (delay['mapped'], ), source=self, original=source, source_property=Property.DELAY)
                 timer.interval = delay['secs']
                 self._delay_timers.update({delay['mapped']: timer} )
                 timer.start()
@@ -544,7 +555,7 @@ class StateDevice(PytomationObject):
         if secs:
             timer = CTimer()
             timer.interval = secs
-            timer.action(self.command, (mapped, ), source=self, original=source)
+            timer.action(self.command, (mapped, ), source=self, original=source, source_property=Property.IDLE)
 #            self._idle_timer = timer
             self._idle_timer.update({(command, source): {Attribute.SECS: secs, 
                                                          Attribute.MAPPED: mapped,
@@ -566,7 +577,7 @@ class StateDevice(PytomationObject):
         if idle:
             if idle[Attribute.MAPPED] and source != self and self.state != State.OFF:
                 timer = idle['timer']
-                timer.action(self.command, (idle[Attribute.MAPPED], ), source=self, original=source)
+                timer.action(self.command, (idle[Attribute.MAPPED], ), source=self, original=source, source_property=Property.IDLE)
                 timer.start()
         
         
