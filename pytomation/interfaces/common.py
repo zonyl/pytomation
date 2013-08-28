@@ -36,6 +36,7 @@ import binascii
 import serial
 import hashlib
 import sys
+import urllib2
 
 from ..common.pytomation_object import PytomationObject
 
@@ -252,6 +253,31 @@ class Serial(Interface):
 class USB(Interface):
     def __init__(self, device):
         return None
+
+class HTTP(Interface):
+    def __init__(self, protocol='http', host=None):
+        super(HTTP, self).__init__()
+
+        self._protocol = protocol
+        self._host = host        
+        self._logger.debug("{name} HTTP Port created".format(
+                                                                                    name=self.name
+                                                                                                  ))
+
+    def request(self, path="", data=None, verb="GET"):
+        url = self._protocol + "://" + self._host + "/" + path
+        print url
+        response = urllib2.urlopen(url, data)
+        return response.read()
+
+    def read(self, path="", data=None, verb='GET', *args, **kwargs):
+        return self.request(path, data, verb)
+        
+    def write(self, path="", data=None, verb="POST", *args, **kwargs):
+        return self.request(path, data, verb)
+
+    def inWaiting(self):
+        return True
 
 
 class HADevice(object):

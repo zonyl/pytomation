@@ -6,6 +6,8 @@ from .named_pipe import *
 from .state_interface import *
 from .mochad import *
 from .mh_send import *
+from .http import *
+
 
 
 
