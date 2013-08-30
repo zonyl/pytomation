@@ -98,7 +98,10 @@ class Command(object):
     VACATE = 'vacate'
     STATUS = 'status'
     VOICE = 'voice'
-    
+    COOL = 'cool'
+    HEAT = 'heat'
+    VENTILATE = 'vent'
+
 class Interface(PytomationObject):
     def __init__(self):
         self._disabled = False

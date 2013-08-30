@@ -9,6 +9,8 @@ from .photocell import *
 from .scene import *
 from .attributes import *
 from .room import *
+from .thermostat import *
+
 
 
 

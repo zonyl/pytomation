@@ -24,6 +24,8 @@ class State(object):
     INACTIVE = 'deactivate'
     OCCUPIED = 'occupy'
     VACANT = 'vacate'
+    HEAT = 'heat'
+    COOL = 'cool'
 
 class Attribute(object):
     MAPPED = 'mapped'
