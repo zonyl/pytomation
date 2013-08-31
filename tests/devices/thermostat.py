@@ -36,3 +36,10 @@ class ThermostatTests(TestCase):
         self.device.level(72)
         self.assertEqual(self.device.state, (State.LEVEL, 72))
         self.interface.level.assert_called_with('192.168.1.3', 72)
+        
+    def test_circulate(self):
+        self.assertEqual(self.device.state, State.UNKNOWN)
+        self.device.circulate()
+        self.assertEqual(self.device.state, State.CIRCULATE)
+        self.interface.circulate.assert_called_with('192.168.1.3')
+
