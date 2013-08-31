@@ -36,7 +36,7 @@ import binascii
 import serial
 import hashlib
 import sys
-import urllib2
+import urllib, urllib2
 
 from ..common.pytomation_object import PytomationObject
 
@@ -100,7 +100,7 @@ class Command(object):
     VOICE = 'voice'
     COOL = 'cool'
     HEAT = 'heat'
-    VENTILATE = 'vent'
+    CIRCULATE = 'circulate'
 
 class Interface(PytomationObject):
     def __init__(self):
@@ -268,10 +268,33 @@ class HTTP(Interface):
                                                                                                   ))
 
     def request(self, path="", data=None, verb="GET"):
-        url = self._protocol + "://" + self._host + "/" + path
-        print url
-        response = urllib2.urlopen(url, data)
-        return response.read()
+        _path = None
+        _data = None
+        _verb = None
+        # If we are passed in all the params as a tuple in the first argument, decode
+        if isinstance(path, tuple):
+            try:
+                _path = path[0]
+                _data = path[1]
+                _verb = path[2]
+            except:
+                pass
+        else:
+            _path = path
+            _data = data
+            _verb = verb
+
+# Expect the consumer to encode to allow for raw data formats      
+#         if _data:
+#             encdata = urllib.urlencode(_data)
+#         else:
+#             encdata = None
+
+        url = self._protocol + "://" + self._host + "/" + _path
+        response_stream = urllib2.urlopen(url, _data)
+        response = response_stream.read()
+        #print url + ":" + str(_data) + ":" + str(response)
+        return response
 
     def read(self, path="", data=None, verb='GET', *args, **kwargs):
         return self.request(path, data, verb)
@@ -427,7 +450,12 @@ def convertStringFrequencyToSeconds(textFrequency):
 
 
 def hashPacket(packetData):
-    return hashlib.md5(packetData).hexdigest()
+    hash = None
+    try:
+        hash = hashlib.md5(packetData).hexdigest()
+    except:
+        hash = hashlib.md5(str(packetData)).hexdigest()
+    return hash
 
 # pylog replaces the "print" keyword to enable debugging and logging
 def pylog(src, s):

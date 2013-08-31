@@ -19,3 +19,6 @@ class HTTPTests(TestCase):
         response = self.interface.read()
         self.assertIn("google", response)
         
+    def test_write(self):
+        response = self.interface.write("", None, "POST")
+        self.assertIn("google", response)
