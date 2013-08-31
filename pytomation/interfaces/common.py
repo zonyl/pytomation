@@ -304,7 +304,10 @@ class HTTP(Interface):
 
     def inWaiting(self):
         return True
-
+    
+    @property
+    def host(self):
+        return self._host
 
 class HADevice(object):
 

@@ -27,17 +27,28 @@ class HW_Thermostat(HAInterface):
     def _init(self, *args, **kwargs):
         super(HW_Thermostat, self)._init(*args, **kwargs)
         self._last_temp = None
+        self._iteration = 0
+        self._poll_secs = kwargs.get('poll', 60)
+
+        try:
+            self._host = self._interface.host
+        except Exception, ex:
+            self.logger.debug('[HW Thermostat] Could not find host address: ' + str(ex))
         
     def _readInterface(self, lastPacketHash):
-        #check to see if there is anyting we need to read
-        responses = self._interface.read('tstat')
-        if len(responses) != 0:
-            for response in responses.split():
-                self._logger.debug("[HW Thermostat] Response> " + hex_dump(response))
-                self._process_current_temp(response)
+        # We need to dial back how often we check the thermostat.. Lets not bombard it!
+        if not self._iteration < self._poll_secs:
+            self._iteration = 0
+            #check to see if there is anyting we need to read
+            responses = self._interface.read('tstat')
+            if len(responses) != 0:
+                for response in responses.split():
+                    self._logger.debug("[HW Thermostat] Response> " + hex_dump(response))
+                    self._process_current_temp(response)
         else:
-            time.sleep(0.1)  # try not to adjust this 
-
+            self._iteration+=1
+            time.sleep(1) # one sec iteration
+    
     def heat(self, address):
         command = ('tstat', json.dumps({'tmode': 1}))
         commandExecutionDetails = self._sendInterfaceCommand(command)
@@ -84,5 +95,5 @@ class HW_Thermostat(HAInterface):
         except Exception, ex:
             self._logger.error('HW Thermostat couldnt decode status json: ' + str(ex))
         if temp and temp != self._last_temp:
-            self._onCommand(command=(Command.LEVEL, temp))
+            self._onCommand(command=(Command.LEVEL, temp),address=self._host)
         
