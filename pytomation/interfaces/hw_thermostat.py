@@ -22,6 +22,8 @@ from .ha_interface import HAInterface
 from .common import *
 
 class HW_Thermostat(HAInterface):
+    VERSION = '1.0.0'
+    
     def _init(self, *args, **kwargs):
         super(HW_Thermostat, self)._init(*args, **kwargs)
         self._last_temp = None
@@ -77,5 +79,5 @@ class HW_Thermostat(HAInterface):
         except Exception, ex:
             self._logger.error('HW Thermostat couldnt decode status json: ' + str(ex))
         if temp and temp != self._last_temp:
-            self._onCommand(command=temp)
+            self._onCommand(command=(Command.LEVEL, temp))
         
