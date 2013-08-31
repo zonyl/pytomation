@@ -1,10 +1,11 @@
 import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32, \
-                                    NamedPipe, StateInterface, Command, HTTPServer
+                                    NamedPipe, StateInterface, Command, HTTPServer, \
+                                    HTTP, HW_Thermostat
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
                                 Photocell, Generic, StateDevice, State, Attribute, \
-                                Room
+                                Room, Thermostat
 
 #from pytomation.common.system import *
 
@@ -36,6 +37,8 @@ sg.dio_invert(12)
 # My camera motion software will echo a "motion" to this pipe.
 pipe_front_yard_motion = StateInterface(NamedPipe('/tmp/front_yard_motion'))
 
+thermostat_upstairs = Thermostat(HW_Thermostat(HTTP(host='192.168.13.168'), poll=60), name='Thermostat Upstairs')
+thermostat_downstairs = Thermostat(HW_Thermostat(HTTP(host='192.168.13.210'), poll=60), name='Thermostat Downstairs')
 
 ###################### DEVICE CONFIG #########################
 
