@@ -78,9 +78,12 @@ class PytomationAPI(PytomationObject):
                 command = e[1]
 #        print 'Set Device' + str(command) + ":::" + str(levels)
         id = levels[1]
-        detail = pytomation_system.get_instances_detail()[id]
-        device = detail['instance']
-        device.command(command=command, source=source)
-        response =  PytomationAPI.get_device(levels)
+        try:
+            detail = pytomation_system.get_instances_detail()[id]
+            device = detail['instance']
+            device.command(command=command, source=source)
+            response =  PytomationAPI.get_device(levels)
+        except Exception, ex:
+            pass
 #        print 'res['+ str(response)
         return response
