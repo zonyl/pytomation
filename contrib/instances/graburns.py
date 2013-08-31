@@ -37,7 +37,7 @@ sg.dio_invert(12)
 # My camera motion software will echo a "motion" to this pipe.
 pipe_front_yard_motion = StateInterface(NamedPipe('/tmp/front_yard_motion'))
 
-thermostat_upstairs = Thermostat(HW_Thermostat(HTTP(host='192.168.13.168'), poll=60), name='Thermostat Upstairs')
+thermostat_upstairs = Thermostat(HW_Thermostat(HTTP(host='192.168.13.211'), poll=60), name='Thermostat Upstairs')
 thermostat_downstairs = Thermostat(HW_Thermostat(HTTP(host='192.168.13.210'), poll=60), name='Thermostat Downstairs')
 
 ###################### DEVICE CONFIG #########################
