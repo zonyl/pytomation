@@ -27,6 +27,7 @@ class State(object):
     HEAT = 'heat'
     COOL = 'cool'
     CIRCULATE = 'circulate'
+    AUTOMATIC = 'automatic'
 
 class Attribute(object):
     MAPPED = 'mapped'

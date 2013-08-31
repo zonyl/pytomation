@@ -66,7 +66,8 @@ logging_modules = {
                    #'UPB': 'DEBUG',
                    #"Light": "DEBUG",
                    #'Arduino': 'DEBUG',
-                   #'CM11a': 'DEBUG',                   
+                   #'CM11a': 'DEBUG',          
+                   'Thermostat': 'DEBUG',         
                    }
 
 # Logging file path
