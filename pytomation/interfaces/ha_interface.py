@@ -85,6 +85,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         self._interfaceRunningEvent.clear()
 
     def onCommand(self, callback=None, address=None, device=None):
+        # Register a device for notification of commands
         if not device:
             self._commandDelegates.append({
                                        'address': address,
@@ -94,6 +95,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
             self._devices.append(device)
     
     def _onCommand(self, command=None, address=None):
+        # Received command from interface and this will delegate to subscribers
         self._logger.debug("Received Command:" + str(address) + ":" + str(command))
         for commandDelegate in self._commandDelegates:
             if commandDelegate['address'] == None or \
@@ -197,7 +199,11 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                 bytesToSend = commandExecutionDetails['bytesToSend']
     
     #            self._logger.debug("Transmit>" + str(hex_dump(bytesToSend, len(bytesToSend))))
-                self._logger.debug("Transmit>" + Conversions.ascii_to_hex(bytesToSend))
+                try:
+                    self._logger.debug("Transmit>" + Conversions.ascii_to_hex(bytesToSend))
+                except:
+                    self._logger.debug("Transmit>" + str(bytesToSend))
+                    
                 self._interface.write(bytesToSend)
     
                 self._pendingCommandDetails[commandHash] = commandExecutionDetails
