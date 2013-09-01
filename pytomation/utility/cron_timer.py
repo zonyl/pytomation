@@ -33,6 +33,13 @@ class CronTimer(object):
         self.args = args
         self.kwargs = kwargs
 
+        self.secs = None
+        self.mins = None
+        self.hours = None
+        self.days = None
+        self.months = None
+        self.dow = None
+
         self.timer = PeriodicTimer(self.FREQUENCY)
         self.timer.action(self._check_for_event)
 
@@ -62,6 +69,8 @@ class CronTimer(object):
         self._action_args = action_args
 
     def start(self):
+        if not self.secs:
+            raise Exception('Shouldnt be starting without definition first')
         self.timer.start()
 
     def stop(self):
