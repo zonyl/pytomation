@@ -10,6 +10,6 @@ from .scene import *
 from .attributes import *
 from .room import *
 from .thermostat import *
-from .xmpp import *
+from .xmpp_client import *
 
 

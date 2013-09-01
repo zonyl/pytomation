@@ -6,7 +6,4 @@ mock
 pyephem
 pyserial
 twisted
-sleekxmpp
-pyasn1
-pyasn1-modules
-
+xmpppy
