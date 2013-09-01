@@ -5,13 +5,15 @@ from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf
                                     HTTP, HW_Thermostat
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
                                 Photocell, Generic, StateDevice, State, Attribute, \
-                                Room, Thermostat
+                                Room, Thermostat, XMPP
 
 #from pytomation.common.system import *
 
 ###################### INTERFACE CONFIG #########################
 web = HTTPServer()
-print "WWWWW" + str(web)
+
+xmpp = XMPP(id='jason@sharpee.com', password='password', server='talk.google.com', port=5222)
+
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
 #insteon = InsteonPLM(TCP('192.168.13.146', 9761))
@@ -52,6 +54,11 @@ d_basement = Door('D6', sg, name='Basement')
 d_master = Door('D4', sg, name='Master')
 d_crawlspace = Door('D10', sg, name='Crawlspace Door')
 d_pool = Door('D11', sg, name='Pool Door')
+
+xmpp.add_device(d_garage)
+xmpp.mapped(command=Command.OPEN,
+            mapped=(Command.MESSAGE, 'jason@sharpee.com', 'Garage door was opened!'),
+            )
 
 #general input
 i_laundry_security = Generic('D7', sg, name='Laundry Keypad')
