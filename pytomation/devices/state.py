@@ -28,6 +28,7 @@ class State(object):
     COOL = 'cool'
     CIRCULATE = 'circulate'
     AUTOMATIC = 'automatic'
+    
 
 class Attribute(object):
     MAPPED = 'mapped'
@@ -203,6 +204,9 @@ class StateDevice(PytomationObject):
                 state = (State.LEVEL, kwargs.get('sub_state', (0,))[0])
 #                m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
             m_command = self._state_to_command(state, m_command)
+        elif isinstance(command, tuple) and self._is_valid_command(command[0]) and command[0] != Command.LEVEL:
+            m_command = command
+            state = self._previous_state
         elif command == Command.PREVIOUS:
             state = self._previous_state
             m_command = self._state_to_command(state, m_command)            
