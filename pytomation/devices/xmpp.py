@@ -16,20 +16,20 @@ class XMPP(StateDevice):
 
     def _initial_vars(self, *args, **kwargs):
         super(XMPP, self)._initial_vars(*args, **kwargs)
-        self._id = kwargs.get('id',None)
+        self._xmpp_id = kwargs.get('id',None)
         self._password = kwargs.get('password', None)
         self._server = kwargs.get('server', None)
         self._port = kwargs.get('port', None)
 
         if not self._xmpp:
-            self._xmpp = ClientXMPP(self._id, self._password)
+            self._xmpp = ClientXMPP(self._xmpp_id, self._password)
     
             self._xmpp.add_event_handler("session_start", self._session_start)
             self._xmpp.add_event_handler("message", self._message)
             self._xmpp.add_event_handler("ssl_invalid_cert", self._invalid_cert)
     
             self._logger.info('Connecting to server for id:{id} ({server})'.format(
-                                                   id=self._xmpp._id,
+                                                   id=self._xmpp_id,
                                                    server=self._server,
                                                                                    ))
             status = None
