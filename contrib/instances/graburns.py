@@ -5,14 +5,14 @@ from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf
                                     HTTP, HW_Thermostat
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
                                 Photocell, Generic, StateDevice, State, Attribute, \
-                                Room, Thermostat, XMPP
+                                Room, Thermostat, XMPP_Client
 
 #from pytomation.common.system import *
 
 ###################### INTERFACE CONFIG #########################
 web = HTTPServer()
 
-xmpp = XMPP(id='jason@sharpee.com', password='password', server='talk.google.com', port=5222)
+xmpp = XMPP_Client(id='pytomation@sharpee.com', password='password', server='talk.google.com', port=5222)
 
 upb = UPB(Serial('/dev/ttyMI0', 4800))
 
@@ -48,7 +48,8 @@ thermostat_downstairs = Thermostat(devices=HW_Thermostat(HTTP(host='192.168.13.2
 d_foyer = Door('D1', sg, name='Foyer Door')
 d_laundry = Door('D2', sg, name='Laundry Door')
 d_garage = Door('D3', sg, name='Garage Door')
-d_garage_overhead = Door((49, 38, 'L'), upb, name='Garage Overhead')
+#d_garage_overhead = Door((49, 38, 'L'), upb, name='Garage Overhead')
+d_garage_overhead = Door("19.bc.06", insteon, name='Garage Overhead')
 d_porch = Door('D5', sg, name='Porch Door')
 d_basement = Door('D6', sg, name='Basement')
 d_master = Door('D4', sg, name='Master')
@@ -56,6 +57,7 @@ d_crawlspace = Door('D10', sg, name='Crawlspace Door')
 d_pool = Door('D11', sg, name='Pool Door')
 
 xmpp.add_device(d_garage)
+xmpp.add_device(d_garage_overhead)
 xmpp.mapped(command=Command.OPEN,
             mapped=(Command.MESSAGE, 'jason@sharpee.com', 'Garage door was opened!'),
             )
