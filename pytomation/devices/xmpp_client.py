@@ -30,13 +30,21 @@ class XMPP_Client(StateDevice):
             status = None
             jid = xmpp.JID(self._xmpp_id)
             self._xmpp = xmpp.Client(jid.getDomain())
-            status = self._xmpp.connect(server=('talk.google.com',5222))
+            self.connect()
             self._logger.info("Connection Result: {0}".format( status))
             result = self._xmpp.auth(re.match('(.*)\@.*', self._xmpp_id).group(1), self._password,'TESTING')
             #self._xmpp.sendInitPresence()   
             self._logger.debug('Processing' + str(result))
         else:
             self._logger.debug('Here twice?')
+
+    def connect(self):
+        status = None
+        if self._server:
+            status = self._xmpp.connect(server=(self._server,self._port))
+        else:
+            status = self._xmpp.connect()
+        return status
 
     def _delegate_command(self, command, *args, **kwargs):
         self._logger.debug('Delegating')
@@ -48,8 +56,16 @@ class XMPP_Client(StateDevice):
 #                                       mtype='chat')
             message = xmpp.Message( command[1] ,command[2]) 
             message.setAttr('type', 'chat')
-            self._xmpp.send(message )
-            time.sleep(5)
+            try:
+                self._xmpp.send(message )
+            except IOError, ex:
+                try:
+                    self.connect()
+                    self._xmpp.send(message )
+                except IOError, ex1:
+                    self._logger.error('Could not reconnect:' + str(ex1))
+                
+#            time.sleep(5)
         super(XMPP_Client, self)._delegate_command(command, *args, **kwargs)
 
         
