@@ -224,7 +224,7 @@ class UDP(AsynchronousInterface):
 class Serial(Interface):
     def __init__(self, serialDevicePath, serialSpeed=19200, serialTimeout=0.1, xonxoff=True, rtscts=False, dsrdtr=True):
         super(Serial, self).__init__()
-        print "Using %s for PLM communication" % serialDevicePath
+        print "Using %s for serial communication" % serialDevicePath
 #       self.__serialDevice = serial.Serial(serialDevicePath, 19200, timeout = 0.1) 
         try:
             self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout)
