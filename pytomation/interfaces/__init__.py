@@ -13,5 +13,7 @@ from .cm11a import *
 from .mochad import *
 from .mh_send import *
 from .hw_thermostat import *
+from .wemo import *
+
 
 
