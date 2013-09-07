@@ -184,7 +184,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
     def _writeInterface(self):
         #check to see if there are any outbound messages to deal with
         self._commandLock.acquire()
-        if (len(self._outboundQueue) > 0) and \
+        if self._outboundQueue and (len(self._outboundQueue) > 0) and \
             (time.time() - self._lastSendTime > self._intersend_delay):
             commandHash = self._outboundQueue.popleft()
 
@@ -217,10 +217,12 @@ class HAInterface(AsynchronousInterface, PytomationObject):
             self.logger.debug("Error trying to release unlocked lock %s" % (str(te)))
 
     def _readInterface(self, lastPacketHash):
+        response = None
         #check to see if there is anyting we need to read
-        response = self._interface.read()
+        if self._interface:
+            response = self._interface.read()
         try:
-            if len(response) != 0:
+            if response and len(response) != 0:
     #            self._logger.debug("[HAInterface-Serial] Response>\n" + hex_dump(response))
                 self._logger.debug("Response>" + hex_dump(response) + "<")
                 self._onCommand(command=response)
