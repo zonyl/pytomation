@@ -49,12 +49,17 @@ d_foyer = Door('D1', sg, name='Foyer Door')
 d_laundry = Door('D2', sg, name='Laundry Door')
 d_garage = Door('D3', sg, name='Garage Door')
 #d_garage_overhead = Door((49, 38, 'L'), upb, name='Garage Overhead')
-d_garage_overhead = Door("19.bc.06", insteon, name='Garage Overhead')
+#d_garage_overhead = Door("19.bc.06", insteon, name='Garage Overhead')
+d_garage_overhead = Door("23.d2.be", insteon, name='Garage Overhead')
 d_porch = Door('D5', sg, name='Porch Door')
 d_basement = Door('D6', sg, name='Basement')
 d_master = Door('D4', sg, name='Master')
 d_crawlspace = Door('D10', sg, name='Crawlspace Door')
 d_pool = Door('D11', sg, name='Pool Door')
+
+relay_garage_overhead = Generic(address="23.d2.be",
+                                devices=insteon, 
+                                name='Garage Overhead Relay')
 
 xmpp.add_device(d_garage)
 xmpp.add_device(d_garage_overhead)
