@@ -64,6 +64,10 @@ class XMPP_Client(StateDevice):
                     self._xmpp.send(message )
                 except IOError, ex1:
                     self._logger.error('Could not reconnect:' + str(ex1))
+                except Exception, ex1:
+                    self._logger.error('Could not reconnect error:' + str(ex1))
+            except Exception, ex:
+                self._logger.error('Unknown Error: ' + str(ex))
                 
 #            time.sleep(5)
         super(XMPP_Client, self)._delegate_command(command, *args, **kwargs)
