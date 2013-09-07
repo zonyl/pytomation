@@ -1,4 +1,4 @@
-#from miranda import upnp
+from pytomation.utility.miranda import upnp
 from .ha_interface import HAInterface
 from .common import *
 
@@ -14,4 +14,26 @@ resp = conn.sendSOAP('10.100.200.41:49153', 'urn:Belkin:service:basicevent:1',
 """
 
 class WeMo(HAInterface):
-    pass
+    def __init__(self, ip, port=None, *args, **kwargs):
+        self._ip = ip
+        self._port = port
+        super(WeMo, self).__init__(None, *args, **kwargs)
+    
+    def _setstate(self, state):
+        conn = upnp()
+        #print 'uuuuu - {0}:{1}'.format(self._ip, self._port)
+        try:
+            resp = conn.sendSOAP('{0}:{1}'.format(self._ip, self._port),
+                                'urn:Belkin:service:basicevent:1', 
+                                'http://{0}:{1}/upnp/control/basicevent1'.format(self._ip, self._port), 
+             'SetBinaryState', {'BinaryState': (state, 'Boolean')})
+        except Exception, ex:
+            self._logger.error('Error trying to send command: '+ str(ex))
+            
+        return resp
+
+    def on(self):
+        self._setstate(1)
+        
+    def off(self):
+        self._setstate(0)
