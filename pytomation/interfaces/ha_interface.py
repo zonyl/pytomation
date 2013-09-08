@@ -98,9 +98,20 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         # Received command from interface and this will delegate to subscribers
         self._logger.debug("Received Command:" + str(address) + ":" + str(command))
         self._logger.debug('Delegates for Command: ' + str(self._commandDelegates))
+        
+        addressC = address
+        try:
+            addressC = addressC.lower()
+        except:
+            pass
         for commandDelegate in self._commandDelegates:
+            addressD = commandDelegate['address']
+            try:
+                addressD = addressC
+            except:
+                pass
             if commandDelegate['address'] == None or \
-                commandDelegate['address'].lower() == address.lower():
+                addressD == addressC:
                     commandDelegate['callback'](
                                                 command=command,
                                                 address=address,
@@ -108,7 +119,12 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                                 )
         self._logger.debug('Devices for Command: ' + str(self._commandDelegates))
         for device in self._devices:
-            if device.address == None or device.address.lower() == address.lower():
+            addressD = device.address
+            try:
+                addressD = addressD.lower()
+            except:
+                pass
+            if device.address == None or addressC == addressD:
                 try:
                     device._on_command(
                                        command=command,
