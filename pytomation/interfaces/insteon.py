@@ -342,7 +342,7 @@ class InsteonPLM(HAInterface):
         try:
             if len(firstByte) == 1:
                 #got at least one byte.  Check to see what kind of byte it is (helps us sort out how many bytes we need to read now)
-    
+                
                 if firstByte[0] == '\x02':
                     #modem command (could be an echo or a response)
                     #read another byte to sort that out
@@ -359,7 +359,7 @@ class InsteonPLM(HAInterface):
                                 responseSize = self._modemExtCommands[modemCommand]['responseSize']
                             if self._modemExtCommands[modemCommand].has_key('callBack'):
                                 callBack = self._modemExtCommands[modemCommand]['callBack']
-    					
+
                     else:
                         # set the callback and response size expected for standard commands
                         modemCommand = binascii.hexlify(secondByte).upper()
@@ -478,9 +478,12 @@ class InsteonPLM(HAInterface):
         pass
 
     def _validResponseMessagesForCommandId(self, commandId):
+        self._logger.debug('ValidResponseCheck: ' + hex_dump(commandId))
         if self._insteonCommands.has_key(commandId):
             commandInfo = self._insteonCommands[commandId]
+            self._logger.debug('ValidResponseCheck2: ' + str(commandInfo))
             if commandInfo.has_key('validResponseCommands'):
+                self._logger.debug('ValidResponseCheck3: ' + str(commandInfo['validResponseCommands']))
                 return commandInfo['validResponseCommands']
 
         return False
@@ -532,6 +535,7 @@ class InsteonPLM(HAInterface):
                 validResponseMessages = self._validResponseMessagesForCommandId(originatingCommandId1)
                 if validResponseMessages and len(validResponseMessages):
                     #Check to see if this received command is one that this pending command is waiting for
+                    self._logger.debug('Valid Insteon Command COde: ' + str(insteonCommandCode))
                     if validResponseMessages.count(insteonCommandCode) == 0:
                         #this pending command isn't waiting for a response with this command code...  Move along
                         continue
@@ -578,6 +582,7 @@ class InsteonPLM(HAInterface):
             self._logger.warning("Unhandled packet (couldn't find any pending command to deal with it)")
             self._logger.warning("This could be a status message from a broadcast")
             # very few things cause this certainly a scene on or off will so that's what we assume
+            
             self._handle_StandardDirect_LightStatusResponse(responseBytes)
 
         if waitEvent and foundCommandHash:
@@ -708,28 +713,43 @@ class InsteonPLM(HAInterface):
         (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('BBBBBBBBBBB', messageBytes)
 
         destDeviceId = _byteIdToStringId(fromIdHigh, fromIdMid, fromIdLow).upper()
-
+        self._logger.debug('HandleStandDirect')
         isGrpCleanupAck = (messageFlags & 0x60) == 0x60
         isGrpBroadcast = (messageFlags & 0xC0) == 0xC0
         isGrpCleanupDirect = (messageFlags & 0x40) == 0x40
         # If we get an ack from a group command fire off a status request or we'll never know the on level
-        if isGrpCleanupAck | isGrpBroadcast | isGrpCleanupDirect:
-            self._logger.debug("Running status request..........")
+        if isGrpCleanupAck | isGrpBroadcast: #| isGrpCleanupDirect:
+            self._logger.debug("Running status request:{0}:{1}:{2}:..........".format(isGrpCleanupAck,
+                                                                                     isGrpBroadcast,
+                                                                                     isGrpCleanupDirect))
             time.sleep(0.1)
             self.lightStatusRequest(destDeviceId)
         else:   # direct command
-            self._logger.debug("Setting status..........")
+            
+            self._logger.debug("Setting status for:{0}:{1}:{2}..........".format(
+                                                                                 str(destDeviceId),
+                                                                                 str(command1),
+                                                                                 str(command2),
+                                                                                 ))
             # For now lets just handle on and off until the new state code is ready.
-            for d in self._devices:
-                if d.address.upper() == destDeviceId:
-                    # only run the command if the state is different than current
-                    if command2 < 0x02 and d.state != State.OFF:     # Never seen one not go to zero but...
-                        self._onCommand(address=destDeviceId, command=State.OFF)
-                    elif command2 > 0xFD and d.state != State.ON:   # some times these don't go to 0xFF
-                        self._onCommand(address=destDeviceId, command=State.ON)
-                    elif d.state != (State.LEVEL, command2):
-                        self._onCommand(address=destDeviceId, command=((State.LEVEL, command2)))
-        
+            if self._devices:
+                for d in self._devices:
+                    if d.address.upper() == destDeviceId:
+                        # only run the command if the state is different than current
+                        if (command1 == 0x13 or (command2 < 0x02 and not isGrpCleanupDirect )) and d.state != State.OFF:     # Never seen one not go to zero but...
+                            self._onCommand(address=destDeviceId, command=State.OFF)
+                        elif (command1 == 0x11 or (command2 > 0xFD and not isGrpCleanupDirect)) and d.state != State.ON:   # some times these don't go to 0xFF
+                            self._onCommand(address=destDeviceId, command=State.ON)
+                        elif d.state != (State.LEVEL, command2):
+                            self._onCommand(address=destDeviceId, command=((State.LEVEL, command2)))
+            else: # No devices to check state, so send anyway
+                if (command1 == 0x13 or (command2 < 0x02 and not isGrpCleanupDirect )):     # Never seen one not go to zero but...
+                    self._onCommand(address=destDeviceId, command=State.OFF)
+                elif (command1 == 0x11 or (command2 > 0xFD and not isGrpCleanupDirect)):   # some times these don't go to 0xFF
+                    self._onCommand(address=destDeviceId, command=State.ON)
+                elif d.state != (State.LEVEL, command2):
+                    self._onCommand(address=destDeviceId, command=((State.LEVEL, command2)))
+                
         self.statusRequest = False            
         return (True,None)
         # Old stuff, don't use this at the moment
