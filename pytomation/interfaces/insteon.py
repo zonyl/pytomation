@@ -834,6 +834,10 @@ class InsteonPLM(HAInterface):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '19', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
+    def relayStatusRequest(self, deviceId, timeout = None):
+        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '19', '01')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+
     def command(self, device, command, timeout=None):
         command = command.lower()
         if isinstance(device, InsteonDevice):
