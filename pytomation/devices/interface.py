@@ -60,10 +60,13 @@ class InterfaceDevice(StateDevice):
                                                                                                 command=command,
                                                                                                 interface=interface.name
                                                                                              ))
-                            if isinstance(command, tuple):
-                                getattr(interface, command[0])(self._address, *command[1:])
-                            else:
-                                getattr(interface, command)(self._address)
+                            self._send_command_to_interface(interface, self._address, command)
+#                             if isinstance(command, tuple):
+# #                                getattr(interface, command[0])(self._address, *command[1:])
+#                                 self._send_command_to_interface(interface, self._address, *command[1:])
+#                             else:
+# #                                getattr(interface, command)(self._address)
+#                                 self._send_command_to_interface(interface, self._address, command)
                         except Exception, ex:
                             self._logger.error("{name} Could not send command '{command}' to interface '{interface}.  Exception: {exc}'".format(
                                                                                                 name=self.name,
@@ -88,7 +91,14 @@ class InterfaceDevice(StateDevice):
                                                                                                 command=command,
                                                                                                                   ))
         return super(InterfaceDevice, self)._delegate_command(command, *args, **kwargs)
-        
+
+    def _send_command_to_interface(self, interface, address, command):
+        if isinstance(command, tuple):
+            getattr(interface, command[0])(self._address, *command[1:])
+        else:
+            getattr(interface, command)(self._address)
+            
+    
     def sync(self, value):
         self._sync = value
         if value:
