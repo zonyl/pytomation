@@ -102,7 +102,7 @@ class Command(object):
     HEAT = 'heat'
     CIRCULATE = 'circulate'
     HOLD = 'hold'
-    RUN = 'run'
+    SCHEDULE = 'schedule'
     MESSAGE = 'message'
 
 class Interface(PytomationObject):
@@ -120,16 +120,23 @@ class Interface(PytomationObject):
     def disabled(self):
         return self._disabled
 
-class AsynchronousInterface(threading.Thread, Interface):
+#class AsynchronousInterface(threading.Thread, Interface):
+class AsynchronousInterface(Interface):
     def __init__(self, *args, **kwargs):
         #threading.Thread.__init__(self)
+        print 'AAAA' + str(args) + " : " + str(kwargs)
         super(AsynchronousInterface,self).__init__()
         
+        self._logger.debug('Starting thread: ' + self.name)
+#        self._main_thread = threading.Thread(target=self.run, args=(None,))
+        self._main_thread = threading.Thread(target=self.run)
+#        self.start()
         self._init(*args, **kwargs)
-        self.start()
+        self._main_thread.start()
 
     def _init(self, *args, **kwargs):
-        self.setDaemon(True)
+#        self.setDaemon(True)
+        self._main_thread.setDaemon(True)
 
     def command(self,deviceId,command):
         raise NotImplementedError
@@ -137,7 +144,9 @@ class AsynchronousInterface(threading.Thread, Interface):
     def onCommand(self,callback):
         raise NotImplementedError
 
-
+    def run(self, *args, **kwargs):
+        pass
+    
 class TCP(Interface):
     def __init__(self, host, port):
         super(TCP, self).__init__()        
