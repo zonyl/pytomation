@@ -691,3 +691,14 @@ class StateTests(TestCase):
         s = StateDevice()
         s.status()
         self.assertTrue(True)
+        
+#     def test_invert_commands(self):
+#         s = StateDevice(invert=True)
+#         s.on()
+#         self.assertEqual(s.state, State.OFF)
+#         s.off()
+#         self.assertEqual(s.state, State.ON)
+#         s.invert(False)
+#         s.on()
+#         self.assertEqual(s.state, State.ON)
+        

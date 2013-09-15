@@ -79,21 +79,38 @@ class StateDevice(PytomationObject):
         self._devices = []
         self._automatic = True
         self._retrigger_delay = None
+#        self.invert(False)
+        
+        
+    def invert(self, *args, **karwgs):
+        if not self._maps.get((Command.ON, None), None):
+            if args[0]:
+                self.mapped(command=Command.ON, mapped=Command.OFF)
+            else:
+                self.mapped(command=Command.ON, mapped=Command.ON)
+        if not self._maps.get((Command.OFF, None), None):
+            if args[0]:
+                self.mapped(command=Command.OFF, mapped=Command.ON)
+            else:
+                self.mapped(command=Command.OFF, mapped=Command.OFF)
         
     @property
     def state(self):
-        return self._state
+        return self._get_state()
 
     @state.setter
     def state(self, value, *args, **kwargs):
+        return self._set_state(value, *args, **kwargs)
+
+    def _get_state(self):
+        return self._state
+    
+    def _set_state(self, value, *args, **kwargs):
         source = kwargs.get('source', None)
         if value != self._state:
             self._previous_state = self._state
         self._last_set = datetime.now()
         self._state = value
-#        if self._idle_timer:
-#            self._idle_timer.action(self.command, (self._state_to_command(value, None) ), source=self, original=source)
-#            self._idle_timer.start()
         return self._state
     
     def __getattr__(self, name):
@@ -140,7 +157,7 @@ class StateDevice(PytomationObject):
                                                               command=map_command,
                                                               source=source.name if source else None,
                                                                                                                           ))
-                            self.state = state
+                            self._set_state(state, source=source)
                             self._cancel_delays(map_command, source, original=command, source_property=source_property)
                             if self._automatic:
                                 self._idle_start(command=map_command, source=source, original_command=command)
