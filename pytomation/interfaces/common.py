@@ -124,7 +124,7 @@ class Interface(PytomationObject):
 class AsynchronousInterface(Interface):
     def __init__(self, *args, **kwargs):
         #threading.Thread.__init__(self)
-        print 'AAAA' + str(args) + " : " + str(kwargs)
+        #print 'AAAA' + str(args) + " : " + str(kwargs)
         super(AsynchronousInterface,self).__init__()
         
         self._logger.debug('Starting thread: ' + self.name)
