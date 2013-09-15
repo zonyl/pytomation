@@ -3,11 +3,17 @@ from pytomation.interfaces import Command
 
 class Thermostat(InterfaceDevice):
     STATES = [State.UNKNOWN, State.OFF, State.HEAT, State.COOL, State.LEVEL, State.CIRCULATE, State.AUTOMATIC]
-    COMMANDS = [Command.AUTOMATIC, Command.COOL, Command.HEAT, Command.HOLD, Command.RUN, Command.OFF, Command.LEVEL, Command.STATUS, Command.CIRCULATE, Command.STILL]
+    COMMANDS = [Command.AUTOMATIC, Command.COOL, Command.HEAT, Command.HOLD, Command.SCHEDULE, Command.OFF, Command.LEVEL, Command.STATUS, Command.CIRCULATE, Command.STILL]
 
     _level = None
     _setpoint = None
     _automatic = False
+    
+    def __init__(self, *args, **kwargs):
+        for level in range(32,100):
+            self.COMMANDS.append((Command.LEVEL, level))
+            
+        super(Thermostat, self).__init__(*args, **kwargs)
     
     def _send_command_to_interface(self, interface, address, command):
         try:
