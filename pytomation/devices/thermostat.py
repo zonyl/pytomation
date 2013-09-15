@@ -8,6 +8,7 @@ class Thermostat(InterfaceDevice):
     _level = None
     _setpoint = None
     _automatic = False
+    _current_mode = None
     
     def __init__(self, *args, **kwargs):
         for level in range(32,100):
@@ -27,9 +28,9 @@ class Thermostat(InterfaceDevice):
     def automatic_check(self):
         if self._automatic:
             if isinstance(self._state, tuple) and self._state[0] == State.LEVEL and self._state[1] != self._setpoint:
-                if self._state[1] < self._setpoint:
+                if self._state[1] < self._setpoint and self._current_mode != Command.HEAT:
                     self.heat(address=self._address, source=self)
-                else:
+                elif self._state[1] > self._setpoint and self._current_mode != Command.COOL:
                     self.cool(address=self._address, source=self)
 
     def command(self, command, *args, **kwargs):
@@ -43,9 +44,16 @@ class Thermostat(InterfaceDevice):
             primary_command=command[0]
             secondary_command=command[1]
         
-        if primary_command == State.LEVEL and (source != self or not source) and source not in self._interfaces:
+        if primary_command == Command.LEVEL and (source != self or not source) and source not in self._interfaces:
             self._setpoint = secondary_command
 
+        if primary_command == Command.HEAT:
+            self._current_mode = Command.HEAT
+        elif primary_command == Command.COOL:
+            self._current_mode = Command.COOL
+        elif primary_command == Command.OFF:
+            self._currect_mode = Command.OFF
+        
         result = super(Thermostat, self).command(command, *args, **kwargs)
         
         self.automatic_check()

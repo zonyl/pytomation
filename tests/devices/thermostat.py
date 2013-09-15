@@ -52,8 +52,25 @@ class ThermostatTests(TestCase):
         self.device.command(command=(Command.LEVEL, 76), source=self.interface, address='192.168.1.3')
         self.interface.cool.assert_called_with('192.168.1.3')
         self.interface.level.assert_called_with('192.168.1.3', 72)
-        self.interface.heat.assert_not_called()
+        assert not self.interface.heat.called
+        self.interface.heat.reset_mock()
+        self.interface.level.reset_mock()
         self.device.command(command=(Command.LEVEL, 54), source=self.interface, address='192.168.1.3')
         self.interface.heat.assert_called_with('192.168.1.3')
-        self.interface.level.assert_called_with('192.168.1.3', 72)
+        assert not self.interface.level.called
+        # Test that it does not repeat mode setting unnecessarily
+        self.interface.heat.reset_mock()
+        self.interface.level.reset_mock()
+        self.device.command(command=(Command.LEVEL, 58), source=self.interface, address='192.168.1.3')
+        assert not self.interface.heat.called
+        assert not self.interface.level.called
+        self.interface.heat.reset_mock()
+        self.interface.cool.reset_mock()
+        self.interface.level.reset_mock()
+        self.device.command(command=(Command.LEVEL, 98), source=self.interface, address='192.168.1.3')
+        self.interface.cool.assert_called_with('192.168.1.3')
+        assert not self.interface.heat.called
+        assert not self.interface.level.called
+        
+        
         
