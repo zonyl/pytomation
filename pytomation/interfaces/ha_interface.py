@@ -72,7 +72,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
             #wait 2 seconds for the interface to shut down
             self._interfaceRunningEvent.wait(2000)
 
-    def run(self):
+    def run(self, *args, **kwargs):
         self._interfaceRunningEvent.set()
 
         #for checking for duplicate messages received in a row
