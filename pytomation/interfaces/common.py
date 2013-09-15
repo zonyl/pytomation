@@ -101,6 +101,8 @@ class Command(object):
     COOL = 'cool'
     HEAT = 'heat'
     CIRCULATE = 'circulate'
+    HOLD = 'hold'
+    RUN = 'run'
     MESSAGE = 'message'
 
 class Interface(PytomationObject):
