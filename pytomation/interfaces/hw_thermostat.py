@@ -33,7 +33,7 @@ class HW_Thermostat(HAInterface):
         try:
             self._host = self._interface.host
         except Exception, ex:
-            self.logger.debug('[HW Thermostat] Could not find host address: ' + str(ex))
+            self._logger.debug('[HW Thermostat] Could not find host address: ' + str(ex))
         
     def _readInterface(self, lastPacketHash):
         # We need to dial back how often we check the thermostat.. Lets not bombard it!
@@ -59,7 +59,7 @@ class HW_Thermostat(HAInterface):
         commandExecutionDetails = self._sendInterfaceCommand(command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
 
-    def run(self, address):
+    def schedule(self, address):
         command = ('tstat', json.dumps({'tmode': 3, 'hold': 0}))
         commandExecutionDetails = self._sendInterfaceCommand(command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
