@@ -3,6 +3,7 @@ from unittest import TestCase
 from mock import Mock
 from pytomation.interfaces import HAInterface
 from pytomation.devices import Thermostat, State
+from pytomation.interfaces.common import *
 
 
 class ThermostatTests(TestCase):
@@ -42,4 +43,17 @@ class ThermostatTests(TestCase):
         self.device.circulate()
         self.assertEqual(self.device.state, State.CIRCULATE)
         self.interface.circulate.assert_called_with('192.168.1.3')
-
+        
+    def test_automatic_mode_for_device_that_does_not(self):
+        #Oddly enough the homewerks thermostat doesnt have an auto mode
+        self.interface.automatic = None
+        self.device.command((Command.LEVEL, 72))
+        self.device.command(Command.AUTOMATIC)
+        self.device.command(command=(Command.LEVEL, 76), source=self.interface, address='192.168.1.3')
+        self.interface.cool.assert_called_with('192.168.1.3')
+        self.interface.level.assert_called_with('192.168.1.3', 72)
+        self.interface.heat.assert_not_called()
+        self.device.command(command=(Command.LEVEL, 54), source=self.interface, address='192.168.1.3')
+        self.interface.heat.assert_called_with('192.168.1.3')
+        self.interface.level.assert_called_with('192.168.1.3', 72)
+        
