@@ -59,7 +59,7 @@ class HW_Thermostat(HAInterface):
         commandExecutionDetails = self._sendInterfaceCommand(command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
 
-    def automatic(self, address):
+    def run(self, address):
         command = ('tstat', json.dumps({'tmode': 3}))
         commandExecutionDetails = self._sendInterfaceCommand(command)
 #        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
