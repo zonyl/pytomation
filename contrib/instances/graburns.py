@@ -395,7 +395,10 @@ upb.update_status()
 def MainLoop(startup=False, *args, **kwargs):
     if startup:
         print 'Run once'
-        
+        thermostat_upstairs.level(72)
+        thermostat_upstairs.hold()
+        thermostat_upstairs.automatic()
+
 #    print 'Im in a main loop!'
 #    if l_foyer.state == State.ON:
 #        l_foyer.off()
