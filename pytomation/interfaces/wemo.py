@@ -32,8 +32,8 @@ class WeMo(HAInterface):
             
         return resp
 
-    def on(self):
+    def on(self, *args, **kwargs):
         self._setstate(1)
         
-    def off(self):
+    def off(self, *args, **kwargs):
         self._setstate(0)
