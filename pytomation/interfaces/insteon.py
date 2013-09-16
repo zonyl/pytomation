@@ -910,6 +910,9 @@ class InsteonPLM(HAInterface):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
+    def status(self, deviceId, timeout=None):
+        return self.lightStatusRequest(deviceId, timeout)
+
     # Activate scene with the address passed
     def active(self, address, timeout=None):
         commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '12', 'FF')

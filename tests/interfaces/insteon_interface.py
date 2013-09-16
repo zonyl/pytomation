@@ -119,5 +119,9 @@ class InsteonInterfaceTests(TestCase):
         if command == Command.ON:
             self._result = True
 
+    def test_insteon_status(self):
+        response = self.insteon.status('44.33.22')
+        self.assertEqual(response, True)
+
 if __name__ == '__main__':
     main()
