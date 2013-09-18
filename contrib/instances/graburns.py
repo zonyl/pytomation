@@ -39,8 +39,18 @@ sg.dio_invert(12)
 # My camera motion software will echo a "motion" to this pipe.
 pipe_front_yard_motion = StateInterface(NamedPipe('/tmp/front_yard_motion'))
 
-thermostat_upstairs = Thermostat(devices=HW_Thermostat(HTTP(host='192.168.13.211'), poll=60), name='Thermostat Upstairs')
-thermostat_downstairs = Thermostat(devices=HW_Thermostat(HTTP(host='192.168.13.210'), poll=60), name='Thermostat Downstairs')
+thermostat_upstairs = Thermostat(
+                                 devices=HW_Thermostat(HTTP(host='192.168.13.211'), 
+                                                       poll=60), 
+                                 name='Thermostat Upstairs',
+                                 automatic_delta=2
+                                 )
+thermostat_downstairs = Thermostat(
+                                   devices=HW_Thermostat(HTTP(host='192.168.13.210'),
+                                                         poll=60), 
+                                   name='Thermostat Downstairs',
+                                   automatic_delta=2
+                                   )
 
 ###################### DEVICE CONFIG #########################
 
@@ -398,6 +408,9 @@ def MainLoop(startup=False, *args, **kwargs):
         thermostat_upstairs.level(72)
         thermostat_upstairs.hold()
         thermostat_upstairs.automatic()
+        thermostat_downstairs.level(72)
+        thermostat_downstairs.hold()
+        thermostat_downstairs.automatic()
 
 #    print 'Im in a main loop!'
 #    if l_foyer.state == State.ON:
