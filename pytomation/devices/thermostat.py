@@ -9,6 +9,7 @@ class Thermostat(InterfaceDevice):
     _setpoint = None
     _automatic = False
     _current_mode = None
+    _automatic_delta = 0
     
     def __init__(self, *args, **kwargs):
         for level in range(32,100):
@@ -28,9 +29,9 @@ class Thermostat(InterfaceDevice):
     def automatic_check(self):
         if self._automatic:
             if isinstance(self._state, tuple) and self._state[0] == State.LEVEL and self._state[1] != self._setpoint:
-                if self._state[1] < self._setpoint and self._current_mode != Command.HEAT:
+                if self._state[1] < (self._setpoint - self._automatic_delta) and self._current_mode != Command.HEAT:
                     self.heat(address=self._address, source=self)
-                elif self._state[1] > self._setpoint and self._current_mode != Command.COOL:
+                elif self._state[1] > self._setpoint + self._automatic_delta and self._current_mode != Command.COOL:
                     self.cool(address=self._address, source=self)
 
     def command(self, command, *args, **kwargs):
@@ -58,3 +59,7 @@ class Thermostat(InterfaceDevice):
         
         self.automatic_check()
         return result
+    
+    def automatic_delta(self, value):
+        self._automatic_delta = value
+        

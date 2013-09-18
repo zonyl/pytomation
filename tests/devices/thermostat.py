@@ -71,6 +71,40 @@ class ThermostatTests(TestCase):
         self.interface.cool.assert_called_with('192.168.1.3')
         assert not self.interface.heat.called
         assert not self.interface.level.called
+        # Test the delta setting
+        self.device.automatic_delta(1)
+        self.interface.heat.reset_mock()
+        self.interface.cool.reset_mock()
+        self.interface.level.reset_mock()
+        self.device.command(command=(Command.LEVEL, 71), source=self.interface, address='192.168.1.3')
+        assert not self.interface.heat.called
+        assert not self.interface.level.called
+        self.device.command(command=(Command.LEVEL, 70), source=self.interface, address='192.168.1.3')
+        self.interface.heat.assert_called_with('192.168.1.3')
+        
+    def test_automatic_delta(self):
+        self.device = Thermostat(
+                       address='192.168.1.3',
+                       devices=self.interface,
+                       automatic_delta=2
+                       )
+        self.interface.automatic = None
+        self.device.command((Command.LEVEL, 72))
+        self.interface.level.assert_called_with('192.168.1.3', 72)
+        self.interface.level.reset_mock()
+        self.device.command(Command.AUTOMATIC)
+        self.device.command(command=(Command.LEVEL, 76), source=self.interface, address='192.168.1.3')
+        self.interface.cool.assert_called_with('192.168.1.3')
+        assert not self.interface.heat.called
+        self.interface.heat.reset_mock()
+        self.interface.cool.reset_mock()
+        self.interface.level.reset_mock()
+        self.device.command(command=(Command.LEVEL, 71), source=self.interface, address='192.168.1.3')
+        assert not self.interface.heat.called
+        
+        
+        
+        
         
         
         
