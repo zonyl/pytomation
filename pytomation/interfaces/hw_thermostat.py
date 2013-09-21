@@ -27,6 +27,11 @@ class HW_Thermostat(HAInterface):
     def _init(self, *args, **kwargs):
         super(HW_Thermostat, self)._init(*args, **kwargs)
         self._last_temp = None
+        self._mode = None
+        self._hold = False
+        self._fan = False
+        self._set_point = None
+        
         self._iteration = 0
         self._poll_secs = kwargs.get('poll', 60)
 
@@ -50,44 +55,37 @@ class HW_Thermostat(HAInterface):
             time.sleep(1) # one sec iteration
     
     def heat(self, address):
-        command = ('tstat', json.dumps({'tmode': 1}))
-        commandExecutionDetails = self._sendInterfaceCommand(command)
-#        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
+        self._mode = Command.HEAT
+        return self._send_state()
 
     def cool(self, address):
-        command = ('tstat', json.dumps({'tmode': 2}))
-        commandExecutionDetails = self._sendInterfaceCommand(command)
-#        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
+        self._mode = Command.COOL
+        return self._send_state()
 
     def schedule(self, address):
-        command = ('tstat', json.dumps({'tmode': 3, 'hold': 0}))
-        commandExecutionDetails = self._sendInterfaceCommand(command)
-#        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
+        self._mode = Command.SCHEDULE
+        self._hold = False
+        return self._send_state()
 
     def hold(self, address):
-        command = ('tstat', json.dumps({'hold': 1}))
-        commandExecutionDetails = self._sendInterfaceCommand(command)
-#        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
-                 
+        self._hold = True
+        return self._send_state()
+
     def circulate(self, address):
-        command = ('tstat', json.dumps({'fmode': 2}))
-        commandExecutionDetails = self._sendInterfaceCommand(command)
-#        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
+        self._fan = True
+        return self._send_state()
 
     def still(self, address):
-        command = ('tstat', json.dumps({'fmode': 0}))
-        commandExecutionDetails = self._sendInterfaceCommand(command)
-#        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
-
-    def off(self, address):
-        command = ('tstat', json.dumps({'fmode': 0, 'tmode': 0}))
-        commandExecutionDetails = self._sendInterfaceCommand(command)
-#        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
+        self._fan = False
+        return self._send_state()
     
-    def level(self, address, level):
-        command = ('tstat', json.dumps({'t_heat': level, 't_cool': level}))
-        commandExecutionDetails = self._sendInterfaceCommand(command)
-#        return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
+    def off(self, address):
+        self._mode = Command.OFF
+        return self._send_state()
+    
+    def level(self, address, level, timeout=2.0):
+        self._set_point = level
+        return self._send_state()
     
     def version(self):
         self._logger.info("HW Thermostat Pytomation driver version " + self.VERSION + '\n')
@@ -101,4 +99,19 @@ class HW_Thermostat(HAInterface):
             self._logger.error('HW Thermostat couldnt decode status json: ' + str(ex))
         if temp and temp != self._last_temp:
             self._onCommand(command=(Command.LEVEL, temp),address=self._host)
+
+    def _send_state(self):
+        modes = dict(zip([Command.OFF, Command.COOL, Command.HEAT, Command.SCHEDULE],
+                         range(0,4)))
+        command = ('tstat', json.dumps({
+                                        't_heat': self._set_point, 
+                                        't_cool': self._set_point,
+                                        'fmode': 1 if self._fan else 0,
+                                        'tmode': modes[self._mode],
+                                        'hold': 1 if self._hold or self._mode != Command.SCHEDULE else 0,
+                                        })
+                   )
+        commandExecutionDetails = self._sendInterfaceCommand(command)
+        return True
+        #return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
         
