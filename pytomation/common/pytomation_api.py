@@ -2,6 +2,7 @@ from .pytomation_object import PytomationObject
 #from .pytomation_system import *
 import pytomation_system
 import json
+import urllib
 #from collections import OrderedDict
 
 class PytomationAPI(PytomationObject):
@@ -18,6 +19,15 @@ class PytomationAPI(PytomationObject):
         response = None
         method = method.lower()
         levels = path.split('/')
+        if data:
+            if isinstance(data, list):
+                tdata = []
+                for i in data:
+                    tdata.append(urllib.unquote(i).decode('utf8'))
+                data = tdata
+            else:
+                data = urllib.unquote(data).decode('utf8')
+
 #        print 'pizz:' + path + "l:" + levels[0] + "DDD"+ str(data)
 #	print "eeeeee" + str(source)
         type = type.lower() if type else self.JSON
@@ -78,6 +88,17 @@ class PytomationAPI(PytomationObject):
                 command = e[1]
 #        print 'Set Device' + str(command) + ":::" + str(levels)
         id = levels[1]
+        if ',' in command:
+            e = command.split(',')
+            l = []
+            for i in e:
+                t = i
+                try:
+                    t = int(i)
+                except:
+                    pass
+                l.append(t)
+            command = tuple(l)
         try:
             detail = pytomation_system.get_instances_detail()[id]
             device = detail['instance']

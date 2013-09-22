@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from pytomation.common.pytomation_api import PytomationAPI
-from pytomation.devices import StateDevice, State
+from pytomation.devices import StateDevice, State, Light
 from pytomation.interfaces import Command
 
 class PytomationAPITests(TestCase):
@@ -35,3 +35,10 @@ class PytomationAPITests(TestCase):
         self.assertEqual(d.state, State.ON)
         self.assertTrue('"name": "device_test_1"' in response)
         
+    def test_device_level_encoded(self):
+        d=Light(name='device_test_1')
+        d.off()
+        self.assertEqual(d.state, State.OFF)
+        response = self.api.get_response(method='POST', path="device/" + str(d.type_id), data=['command=level%2C72'])
+        self.assertEqual(d.state, (State.LEVEL, 72))
+        self.assertTrue('"name": "device_test_1"' in response)
