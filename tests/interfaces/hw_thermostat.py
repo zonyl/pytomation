@@ -19,3 +19,7 @@ class HW_ThermostatInterfaceTests(TestCase):
         self.interface.off(self.host)
         time.sleep(5)
         self.interface.circulate(self.host)
+    
+    def test_setpoint(self):
+        self.interface.level(address=self.host, level=72)
+        
