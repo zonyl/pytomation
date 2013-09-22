@@ -43,8 +43,23 @@ thermostat_upstairs = Thermostat(
                                  devices=HW_Thermostat(HTTP(host='192.168.13.211'), 
                                                        poll=60), 
                                  name='Thermostat Upstairs',
-                                 automatic_delta=2
+                                 automatic_delta=2,
+                                 time = (
+                                             { 
+                                             Attribute.TIME: '10:00pm',
+                                             Attribute.COMMAND: (Command.LEVEL, 70),
+                                              },
+                                             {
+                                              Attribute.TIME: (0, 30, 5,'*','*', (1,2,3,4,5)),
+                                             Attribute.COMMAND: (Command.LEVEL, 72),
+                                             },
+                                             {
+                                              Attribute.TIME: (0, 0, 8,'*','*', (0,6)),
+                                             Attribute.COMMAND: (Command.LEVEL, 72),
+                                             },
+                                         )
                                  )
+
 thermostat_downstairs = Thermostat(
                                    devices=HW_Thermostat(HTTP(host='192.168.13.210'),
                                                          poll=60), 
