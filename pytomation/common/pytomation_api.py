@@ -88,9 +88,11 @@ class PytomationAPI(PytomationObject):
                 command = e[1]
 #        print 'Set Device' + str(command) + ":::" + str(levels)
         id = levels[1]
+        # look for tuples in the command and make it a tuple
         if ',' in command:
             e = command.split(',')
             l = []
+            # lets convert any strings to int's if we can
             for i in e:
                 t = i
                 try:
