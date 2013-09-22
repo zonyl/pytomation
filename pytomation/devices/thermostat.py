@@ -67,13 +67,7 @@ class Thermostat(InterfaceDevice):
         
         self.automatic_check()
         return result
-    
-    def automatic(self, *args, **kwargs):
-        if args and args[0]:
-            self._automatic_mode = True
-
-        super(Thermostat, self).automatic(*args, **kwargs)
-    
+        
     def automatic_delta(self, value):
         self._automatic_delta = value
         
