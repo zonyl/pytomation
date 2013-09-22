@@ -103,14 +103,18 @@ class HW_Thermostat(HAInterface):
     def _send_state(self):
         modes = dict(zip([Command.OFF, Command.COOL, Command.HEAT, Command.SCHEDULE],
                          range(0,4)))
-        command = ('tstat', json.dumps({
-                                        't_heat': self._set_point, 
-                                        't_cool': self._set_point,
-                                        'fmode': 1 if self._fan else 0,
-                                        'tmode': modes[self._mode],
-                                        'hold': 1 if self._hold or self._mode != Command.SCHEDULE else 0,
-                                        })
-                   )
+        try:
+            command = ('tstat', json.dumps({
+                                            't_heat': self._set_point, 
+                                            't_cool': self._set_point,
+                                            'fmode': 1 if self._fan else 0,
+                                            'tmode': modes[self._mode],
+                                            'hold': 1 if self._hold or self._mode != Command.SCHEDULE else 0,
+                                            })
+                    )
+        except Exception, ex:
+            self._logger.error('Could not formulate command to send: ' + str(ex))
+
         commandExecutionDetails = self._sendInterfaceCommand(command)
         return True
         #return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
