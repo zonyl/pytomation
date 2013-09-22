@@ -7,7 +7,7 @@ class Thermostat(InterfaceDevice):
 
     _level = None
     _setpoint = None
-    _automatic = False
+    _automatic_mode = False
     _current_mode = None
     _automatic_delta = 0
     
@@ -23,12 +23,16 @@ class Thermostat(InterfaceDevice):
         except AttributeError, ex:
             if command == Command.AUTOMATIC:
                 #Thermostat doesnt have Automatic mode
-                self._automatic = True
+                self._automatic_mode = True
                 self.automatic_check()
     
     def automatic_check(self):
-        if self._automatic:
-            if isinstance(self._state, tuple) and self._state[0] == State.LEVEL and self._state[1] != self._setpoint:
+        if self._automatic_mode:
+            if self._state and \
+                self._setpoint and \
+                isinstance(self._state, tuple) and \
+                self._state[0] == State.LEVEL and \
+                self._state[1] != self._setpoint:
                 if self._state[1] < (self._setpoint - self._automatic_delta) and self._current_mode != Command.HEAT:
                     self.heat(address=self._address, source=self)
                 elif self._state[1] > self._setpoint + self._automatic_delta and self._current_mode != Command.COOL:
@@ -45,7 +49,9 @@ class Thermostat(InterfaceDevice):
             primary_command=command[0]
             secondary_command=command[1]
         
-        if primary_command == Command.LEVEL and (source != self or not source) and source not in self._interfaces:
+        if primary_command == Command.LEVEL and \
+            (source != self or not source) and \
+            source not in self._interfaces:
             self._setpoint = secondary_command
 
         if primary_command == Command.HEAT:
@@ -54,11 +60,19 @@ class Thermostat(InterfaceDevice):
             self._current_mode = Command.COOL
         elif primary_command == Command.OFF:
             self._currect_mode = Command.OFF
+        elif primary_command == Command.AUTOMATIC:
+            self._automatic_mode = True
         
         result = super(Thermostat, self).command(command, *args, **kwargs)
         
         self.automatic_check()
         return result
+    
+    def automatic(self, *args, **kwargs):
+        if args and args[0]:
+            self._automatic_mode = True
+
+        super(Thermostat, self).automatic(*args, **kwargs)
     
     def automatic_delta(self, value):
         self._automatic_delta = value

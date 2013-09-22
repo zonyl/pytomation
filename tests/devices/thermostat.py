@@ -103,6 +103,30 @@ class ThermostatTests(TestCase):
         assert not self.interface.heat.called
         
         
+    def test_automatic_delta_setpoint_switchover(self):
+        self.device = Thermostat(
+                       address='a',
+                       devices=self.interface,
+                       automatic_delta=2
+                       )
+        self.interface.automatic = None
+        self.device.command(command=(Command.LEVEL, 76), source=self.interface, address='a')
+        self.device.command((Command.LEVEL, 70))
+        # we are not in automatic mode yet
+        assert not self.interface.cool.called
+        self.device.command(Command.AUTOMATIC)
+        self.device.command(command=(Command.LEVEL, 76), source=self.interface, address='a')
+        self.interface.cool.assert_called_with('a')
+        self.device.command(command=(Command.LEVEL, 71), source=self.interface, address='a')
+        self.interface.heat.reset_mock()
+        self.interface.cool.reset_mock()
+        self.interface.level.reset_mock()
+        # reset set point within delta
+        self.device.command((Command.LEVEL, 72))
+        assert not self.interface.heat.called
+        self.device.command(command=(Command.LEVEL, 69), source=self.interface, address='a')
+        self.interface.heat.assert_called_with('a')
+
         
         
         
