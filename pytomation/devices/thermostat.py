@@ -3,13 +3,14 @@ from pytomation.interfaces import Command
 
 class Thermostat(InterfaceDevice):
     STATES = [State.UNKNOWN, State.OFF, State.HEAT, State.COOL, State.LEVEL, State.CIRCULATE, State.AUTOMATIC]
-    COMMANDS = [Command.AUTOMATIC, Command.COOL, Command.HEAT, Command.HOLD, Command.SCHEDULE, Command.OFF, Command.LEVEL, Command.STATUS, Command.CIRCULATE, Command.STILL]
+    COMMANDS = [Command.AUTOMATIC, Command.MANUAL, Command.COOL, Command.HEAT, Command.HOLD, Command.SCHEDULE, Command.OFF, Command.LEVEL, Command.STATUS, Command.CIRCULATE, Command.STILL,]
 
     _level = None
     _setpoint = None
     _automatic_mode = False
     _current_mode = None
     _automatic_delta = 0
+    _last_temp = None
     
     def __init__(self, *args, **kwargs):
         for level in range(32,100):
@@ -28,15 +29,17 @@ class Thermostat(InterfaceDevice):
     
     def automatic_check(self):
         if self._automatic_mode:
-            if self._state and \
-                self._setpoint and \
-                isinstance(self._state, tuple) and \
-                self._state[0] == State.LEVEL and \
-                self._state[1] != self._setpoint:
-                if self._state[1] < (self._setpoint - self._automatic_delta) and self._current_mode != Command.HEAT:
-                    self.heat(address=self._address, source=self)
-                elif self._state[1] > self._setpoint + self._automatic_delta and self._current_mode != Command.COOL:
-                    self.cool(address=self._address, source=self)
+            if self._state and self._setpoint and isinstance(self._state, tuple) and self._state[0] == State.LEVEL and self._state[1] != self._setpoint:
+                previous_temp = self._state[1]
+                if self._state[1] < (self._setpoint - self._automatic_delta):
+                    # If the current mode isnt already heat or for some wild reason we are heading in the wrong dir
+                    if self._current_mode != Command.HEAT or (self._last_temp and self._last_temp > self._state[1]):
+                        self.heat(address=self._address, source=self)
+                elif self._state[1] > self._setpoint + self._automatic_delta:
+                    # If the current mode isnt already cool or for some wild reason we are heading in the wrong dir
+                    if self._current_mode != Command.COOL or (self._last_temp and self._last_temp < self._state[1]):
+                        self.cool(address=self._address, source=self)
+                self._last_temp = previous_temp
 
     def command(self, command, *args, **kwargs):
         source = kwargs.get('source', None)
@@ -62,6 +65,8 @@ class Thermostat(InterfaceDevice):
             self._currect_mode = Command.OFF
         elif primary_command == Command.AUTOMATIC:
             self._automatic_mode = True
+        elif primary_command == Command.MANUAL:
+            self._automatic_mode = False
         
         result = super(Thermostat, self).command(command, *args, **kwargs)
         
