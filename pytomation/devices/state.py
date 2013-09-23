@@ -28,6 +28,7 @@ class State(object):
     COOL = 'cool'
     CIRCULATE = 'circulate'
     AUTOMATIC = 'automatic'
+    HOLD = 'hold'
     
 
 class Attribute(object):
