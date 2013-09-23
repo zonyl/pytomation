@@ -127,6 +127,11 @@ class ThermostatTests(TestCase):
         self.device.command(command=(Command.LEVEL, 69), source=self.interface, address='a')
         self.interface.heat.assert_called_with('a')
 
+    def test_hold(self):
+        assert not self.interface.hold.called
+        self.device.command(Command.HOLD)
+        self.interface.hold.assert_called_with('192.168.1.3')
+        
         
         
         
