@@ -28,8 +28,8 @@ class HW_Thermostat(HAInterface):
         super(HW_Thermostat, self)._init(*args, **kwargs)
         self._last_temp = None
         self._mode = None
-        self._hold = False
-        self._fan = False
+        self._hold = None
+        self._fan = None
         self._set_point = None
         
         self._iteration = 0
@@ -54,32 +54,32 @@ class HW_Thermostat(HAInterface):
             self._iteration+=1
             time.sleep(1) # one sec iteration
     
-    def heat(self, address):
+    def heat(self, *args, **kwargs):
         self._mode = Command.HEAT
         return self._send_state()
 
-    def cool(self, address):
+    def cool(self, *args, **kwargs):
         self._mode = Command.COOL
         return self._send_state()
 
-    def schedule(self, address):
+    def schedule(self, *args, **kwargs):
         self._mode = Command.SCHEDULE
         self._hold = False
         return self._send_state()
 
-    def hold(self, address):
+    def hold(self, *args, **kwargs):
         self._hold = True
         return self._send_state()
 
-    def circulate(self, address):
+    def circulate(self, *args, **kwargs):
         self._fan = True
         return self._send_state()
 
-    def still(self, address):
+    def still(self, *args, **kwargs):
         self._fan = False
         return self._send_state()
     
-    def off(self, address):
+    def off(self, *args, **kwargs):
         self._mode = Command.OFF
         return self._send_state()
     
@@ -101,7 +101,7 @@ class HW_Thermostat(HAInterface):
             self._onCommand(command=(Command.LEVEL, temp),address=self._host)
 
     def _send_state(self):
-        modes = dict(zip([Command.OFF, Command.COOL, Command.HEAT, Command.SCHEDULE],
+        modes = dict(zip([Command.OFF, Command.HEAT, Command.COOL, Command.SCHEDULE],
                          range(0,4)))
         try:
             attributes = {}

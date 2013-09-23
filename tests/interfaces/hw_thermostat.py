@@ -17,9 +17,14 @@ class HW_ThermostatInterfaceTests(TestCase):
         
     def test_circulate(self):
         self.interface.off(self.host)
-        time.sleep(5)
+        time.sleep(2)
         self.interface.circulate(self.host)
     
     def test_setpoint(self):
         self.interface.level(address=self.host, level=72)
+        
+    def test_cool(self):
+        self.interface.cool()
+        time.sleep(2)
+        self.assertIn(('tstat', '{"tmode": 2}'), self.i.query_write_data())
         
