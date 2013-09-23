@@ -28,6 +28,15 @@ class Thermostat(InterfaceDevice):
                 self.automatic_check()
     
     def automatic_check(self):
+        self._logger.debug('Automatic Check a:{0} ad:{1} set:{2} state:{3} ltemp:{4} mode:{5}'.format(
+                                                                                 self._automatic_mode,
+                                                                                 self._automatic_delta,
+                                                                                 self._setpoint,
+                                                                                 str(self._state),
+                                                                                 self._last_temp,
+                                                                                 self._current_mode,
+                                                                                 ))
+
         if self._automatic_mode:
             if self._state and self._setpoint and isinstance(self._state, tuple) and self._state[0] == State.LEVEL and self._state[1] != self._setpoint:
                 previous_temp = self._state[1]
