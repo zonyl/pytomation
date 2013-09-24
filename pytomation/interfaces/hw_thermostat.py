@@ -131,8 +131,10 @@ class HW_Thermostat(HAInterface):
         try:
             attributes = {}
             if self._set_point <> None:
-                attributes['t_heat'] = self._set_point
-                attributes['t_cool'] = self._set_point
+                if self._mode == Command.HEAT or self._mode == None:
+                    attributes['t_heat'] = self._set_point
+                elif self._mode == Command.COOL:
+                    attributes['t_cool'] = self._set_point
             if self._fan <> None:
                 attributes['fmode'] = 1 if self._fan else 0
             if self._mode <> None:

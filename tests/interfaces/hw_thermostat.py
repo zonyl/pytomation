@@ -21,7 +21,14 @@ class HW_ThermostatInterfaceTests(TestCase):
         self.interface.circulate(self.host)
     
     def test_setpoint(self):
+        #no prior mode, then default to heat
         self.interface.level(address=self.host, level=72)
+        time.sleep(2)
+        self.assertIn(('tstat', '{"t_heat": 72}'), self.i.query_write_data())
+        self.i.clear_write_data()
+        self.interface.cool()
+        time.sleep(2)
+        self.assertIn(('tstat', '{"tmode": 2, "t_cool": 72}'), self.i.query_write_data())
         
     def test_cool(self):
         self.interface.cool()
