@@ -50,6 +50,12 @@ class HW_Thermostat(HAInterface):
                 for response in responses.split():
                     self._logger.debug("[HW Thermostat] Response> " + hex_dump(response))
                     self._process_current_temp(response)
+                    status = []
+                    try:
+                        status = json.loads(response)
+                    except Exception, ex:
+                        self._logger.error('Could not decode status request' + str(ex))
+                    self._process_mode(status)
         else:
             self._iteration+=1
             time.sleep(1) # one sec iteration
@@ -99,6 +105,23 @@ class HW_Thermostat(HAInterface):
             self._logger.error('HW Thermostat couldnt decode status json: ' + str(ex))
         if temp and temp != self._last_temp:
             self._onCommand(command=(Command.LEVEL, temp),address=self._host)
+
+    def _process_mode(self, response):
+        self._logger.debug("HW - process mode" + str(response))
+        mode = response['tmode']
+        command = None
+        if mode == 0:
+            command = Command.OFF
+        elif mode == 1:
+            command = Command.HEAT
+        elif mode == 2:
+            command = Command.COOL
+        elif mode == 3:
+            command = Command.SCHEDULE
+        self._logger.debug('HW Status mode = ' + str(command))
+        self._onCommand(command=command,address=self._host)
+            
+        
 
     def _send_state(self):
         modes = dict(zip([Command.OFF, Command.HEAT, Command.COOL, Command.SCHEDULE],
