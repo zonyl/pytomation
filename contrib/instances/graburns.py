@@ -420,9 +420,11 @@ upb.update_status()
 def MainLoop(startup=False, *args, **kwargs):
     if startup:
         print 'Run once'
+        thermostat_upstairs.circulate()
         thermostat_upstairs.automatic()
         thermostat_upstairs.level(72)
         thermostat_upstairs.hold()
+        thermostat_downstairs.circulate()
         thermostat_downstairs.automatic()
         thermostat_downstairs.level(72)
         thermostat_downstairs.hold()
