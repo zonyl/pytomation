@@ -119,7 +119,9 @@ class HW_Thermostat(HAInterface):
         elif mode == 3:
             command = Command.SCHEDULE
         self._logger.debug('HW Status mode = ' + str(command))
-        self._onCommand(command=command,address=self._host)
+        if command != self._mode:
+            self._mode = command
+            self._onCommand(command=command,address=self._host)
             
         
 
