@@ -5,17 +5,18 @@ class Thermostat(InterfaceDevice):
     STATES = [State.UNKNOWN, State.OFF, State.HEAT, State.COOL, State.LEVEL, State.CIRCULATE, State.AUTOMATIC, State.HOLD]
     COMMANDS = [Command.AUTOMATIC, Command.MANUAL, Command.COOL, Command.HEAT, Command.HOLD, Command.SCHEDULE, Command.OFF, Command.LEVEL, Command.STATUS, Command.CIRCULATE, Command.STILL,]
 
-    _level = None
-    _setpoint = None
-    _automatic_mode = False
-    _current_mode = None
-    _automatic_delta = 0
-    _last_temp = None
+
     
     def __init__(self, *args, **kwargs):
         for level in range(32,100):
             self.COMMANDS.append((Command.LEVEL, level))
             
+        self._level = None
+        self._setpoint = None
+        self._automatic_mode = False
+        self._automatic_delta = 0
+        self._current_mode = None
+        self._last_temp = None
         super(Thermostat, self).__init__(*args, **kwargs)
     
     def _send_command_to_interface(self, interface, address, command):
@@ -71,9 +72,9 @@ class Thermostat(InterfaceDevice):
         elif primary_command == Command.COOL:
             self._current_mode = Command.COOL
         elif primary_command == Command.OFF:
-            self._currect_mode = Command.OFF
+            self._current_mode = Command.OFF
         elif primary_command == Command.AUTOMATIC:
-            self._automatic_mode = True
+            self._current_mode = Command.AUTOMATIC
         elif primary_command == Command.MANUAL:
             self._automatic_mode = False
         
