@@ -136,7 +136,7 @@ class HW_Thermostat(HAInterface):
                 elif self._mode == Command.COOL:
                     attributes['t_cool'] = self._set_point
             if self._fan <> None:
-                attributes['fmode'] = 1 if self._fan else 0
+                attributes['fmode'] = 2 if self._fan else 1
             if self._mode <> None:
                 attributes['tmode'] = modes[self._mode]
             if self._hold <> None:
