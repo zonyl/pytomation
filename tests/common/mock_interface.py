@@ -9,7 +9,7 @@ class Mock_Interface(object):
         self._write_data = []
         
     def read(self, count=None):
-        print 'Reading for {0} bytes'.format(count)
+        #print 'Reading for {0} bytes'.format(count)
         if count:
             data = self._read_data[:count]
             self._read_data = self._read_data[count:]
@@ -17,7 +17,7 @@ class Mock_Interface(object):
             data = self._read_data
             self._read_data = ""
             
-        print 'Returning data hhhh:' + hex_dump(data) + ":"
+        #print 'Returning data hhhh:' + hex_dump(data) + ":"
         return data
 
     def write(self, data=None, **kwargs):
