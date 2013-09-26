@@ -22,7 +22,7 @@ class Thermostat(InterfaceDevice):
     def _send_command_to_interface(self, interface, address, command):
         try:
             super(Thermostat, self)._send_command_to_interface(interface, address, command)
-        except AttributeError, ex:
+        except (AttributeError, TypeError) as ex:
             if command == Command.AUTOMATIC:
                 #Thermostat doesnt have Automatic mode
                 self._automatic_mode = True
