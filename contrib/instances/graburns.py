@@ -333,7 +333,13 @@ l_front_garage = Light(
 l_garage = Light(
 	              address='20.8b.40',    
                       devices=(insteon, m_garage, d_garage, d_garage_overhead, d_laundry, 
-                               ph_standard, s_all_indoor_off),
+                               #ph_standard, 
+                               s_all_indoor_off),
+#                      trigger={
+#                               Attribute.COMMAND: Command.ON,
+#                               Attribute.MAPPED: Command.OFF,
+#                               Attribute.SECS: 5*60,
+#                               },
                       delay=(
                              {
                                  Attribute.COMMAND: Command.OFF,
