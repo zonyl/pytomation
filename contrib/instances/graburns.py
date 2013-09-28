@@ -45,16 +45,8 @@ thermostat_upstairs = Thermostat(
                                  name='Thermostat Upstairs',
                                  automatic_delta=2,
                                  time = (
-                                             { 
-                                             Attribute.TIME: '10:00pm',
-                                             Attribute.COMMAND: (Command.LEVEL, 70),
-                                              },
                                              {
                                               Attribute.TIME: (0, 30, 5,'*','*', (1,2,3,4,5)),
-                                             Attribute.COMMAND: (Command.LEVEL, 72),
-                                             },
-                                             {
-                                              Attribute.TIME: (0, 0, 8,'*','*', (0,6)),
                                              Attribute.COMMAND: (Command.LEVEL, 72),
                                              },
                                          )
