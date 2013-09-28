@@ -132,6 +132,39 @@ class ThermostatTests(TestCase):
         self.device.command(Command.HOLD)
         self.interface.hold.assert_called_with('192.168.1.3')
         
+    def test_away_mode(self):
+        self.device = Thermostat(
+                       address='a',
+                       devices=self.interface,
+                       automatic_delta=2,
+                       away_delta=10,
+                       )
+        self.interface.automatic = None
+        self.device.command((Command.LEVEL, 72))
+        self.device.command(Command.AUTOMATIC)
+        self.device.command(Command.VACATE)
+#        time.sleep(2)
+        self.interface.vacate.assert_called_with('a')
+        self.device.command(command=(Command.LEVEL, 76), source=self.interface, address='a')
+        assert not self.interface.cool.called
+        self.device.command(command=(Command.LEVEL, 83), source=self.interface, address='a')
+        self.interface.cool.assert_called_with('a')
+
+        self.device.command(command=(Command.LEVEL, 67), source=self.interface, address='a')
+        assert not self.interface.heat.called
+        self.device.command(command=(Command.LEVEL, 61), source=self.interface, address='a')
+        self.interface.heat.assert_called_with('a')
+
+                
+        self.interface.heat.reset_mock()
+        self.interface.cool.reset_mock()
+        self.device.command(command=(Command.LEVEL, 68), source=self.interface, address='a')
+        assert not self.interface.heat.called
+        self.device.command(Command.OCCUPY)
+        self.device.command(command=(Command.LEVEL, 68), source=self.interface, address='a')
+        self.interface.occupy.assert_called_with('a')
+        self.interface.heat.assert_called_with('a')
+
         
         
         
