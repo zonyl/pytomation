@@ -14,6 +14,11 @@ from .mochad import *
 from .mh_send import *
 from .hw_thermostat import *
 from .wemo import *
+from .insteon_message import *
+from .insteon_command import *
+from .insteon2 import *
 
-
-
+try:
+    from .rpi_input import *
+except:
+    pass

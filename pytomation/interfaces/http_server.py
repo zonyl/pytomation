@@ -3,8 +3,8 @@ import BaseHTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from pytomation.common import config
 #import pytomation.common.config 
-from ..common.pyto_logging import PytoLogging
-from ..common.pytomation_api import PytomationAPI
+from pytomation.common.pyto_logging import PytoLogging
+from pytomation.common.pytomation_api import PytomationAPI
 from .ha_interface import HAInterface
 
 file_path = "/tmp"

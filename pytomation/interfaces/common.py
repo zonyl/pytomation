@@ -38,7 +38,7 @@ import hashlib
 import sys
 import urllib, urllib2
 
-from ..common.pytomation_object import PytomationObject
+from pytomation.common.pytomation_object import PytomationObject
 
 
 class Lookup(dict):

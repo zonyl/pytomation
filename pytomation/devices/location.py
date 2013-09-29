@@ -5,7 +5,7 @@ from datetime import datetime
 from time import strftime
 from .state import StateDevice, State
 from pytomation.utility import CronTimer
-from ..interfaces import Command
+from pytomation.interfaces import Command
 
 class Location(StateDevice):
     STATES = [State.LIGHT, State.DARK]

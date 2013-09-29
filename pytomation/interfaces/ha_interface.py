@@ -30,7 +30,7 @@ import sys
 from collections import deque
 
 from .common import *
-from ..common.pytomation_object import PytomationObject
+from pytomation.common.pytomation_object import PytomationObject
 
 class HAInterface(AsynchronousInterface, PytomationObject):
     "Base protocol interface"
@@ -119,12 +119,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                                 )
         self._logger.debug('Devices for Command: ' + str(self._commandDelegates))
         for device in self._devices:
-            addressD = device.address
-            try:
-                addressD = addressD.lower()
-            except:
-                pass
-            if device.address == None or addressC == addressD:
+            if device.addressMatches(address):
                 try:
                     device._on_command(
                                        command=command,
@@ -232,7 +227,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         try:
             self._commandLock.release()
         except Exception, te:
-            self.logger.debug("Error trying to release unlocked lock %s" % (str(te)))
+            self._logger.debug("Error trying to release unlocked lock %s" % (str(te)))
 
     def _readInterface(self, lastPacketHash):
         response = None

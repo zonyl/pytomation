@@ -1,4 +1,4 @@
-from ..interfaces import Command
+from pytomation.interfaces import Command
 from .interface import InterfaceDevice
 from .state import State
 

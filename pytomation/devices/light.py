@@ -1,6 +1,6 @@
 from .interface import InterfaceDevice
 from .state import State
-from ..interfaces import Command
+from pytomation.interfaces import Command
 
 class Light(InterfaceDevice):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]

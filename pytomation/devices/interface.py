@@ -2,8 +2,8 @@ import random
 
 from pytomation.utility.timer import Timer as CTimer
 from .state import StateDevice, State
-from ..interfaces import Command
-from ..common import config
+from pytomation.interfaces import Command
+from pytomation.common import config
 
 class InterfaceDevice(StateDevice):
     
@@ -30,6 +30,9 @@ class InterfaceDevice(StateDevice):
         self._address = value
         return self._address
     
+    def addressMatches(self, address):
+        return self.address == None or self.address == address
+
     def _add_device(self, device):
         try:
             device.onCommand(device=self) # Register with the interface to receive events
