@@ -6,24 +6,23 @@ from unittest import TestCase, main
 from mock import Mock
 
 from tests.common import MockInterface, Mock_Interface, Command
-from pytomation.interfaces import InsteonPLM, Serial, HACommand, \
+from pytomation.interfaces import InsteonPLM2, Serial, HACommand, \
                                     TCP, Conversions
 
 
-class InsteonInterfaceTests(TestCase):
+class InsteonInterface2Tests(TestCase):
     useMock = True
 
     def setUp(self):
-        self.ms = MockInterface()
-        if self.useMock:  # Use Mock Serial Port
-            self.insteon = InsteonPLM(self.ms)
-        else:
+        self.ms = Mock_Interface()
+        self.insteon = InsteonPLM2(self.ms)
+
 # If we are running live, the insteon interface doesnt like to be bombarded with requests
 #            time.sleep(3)
 #            self.serial = Serial('/dev/ttyUSB0', 4800)
 #            self.insteon = InsteonPLM(self.serial)
-            self.tcp = TCP('192.168.13.146', 9761)
-            self.insteon = InsteonPLM(self.tcp)
+#            self.tcp = TCP('192.168.13.146', 9761)
+#            self.insteon = InsteonPLM2(self.tcp)
 
         #self.insteon.start()
 
@@ -40,18 +39,6 @@ class InsteonInterfaceTests(TestCase):
         self.assertIsNotNone(self.insteon,
                              'Insteon interface could not be instantiated')
 
-    def test_get_firmware_version(self):
-        """
-        >0000   02 60    .`
-        <0000   02 60 16 F9 EC 03 05 92 06    .`.......
-        """
-        self.ms.add_response({Conversions.hex_to_ascii('0260'):
-                                  Conversions.hex_to_ascii('026016F9EC03059206')})
-
-        info = self.insteon.getPLMInfo()
-#        self.assertEqual(info['firmwareVersion'], "92")
-        #select.select([], [], [])
-
     def test_device_on(self):
         """
         Transmit>
@@ -59,21 +46,24 @@ class InsteonInterfaceTests(TestCase):
         <  0000   02 62 19 05 7B 0F 11 FF 06    .b..{....
         <  0000   02 50 19 05 7B 16 F9 EC 2B 11 FF    .P..{...+..
         """
-        self.ms.add_response({Conversions.hex_to_ascii('026219057B0F11FF'):
-                              Conversions.hex_to_ascii('026219057B0F11FF06') + \
-                              Conversions.hex_to_ascii('025019057B16F9EC2B11FF')})
+#        self.ms.add_response({Conversions.hex_to_ascii('026219057B0F11FF'):
+#                              Conversions.hex_to_ascii('026219057B0F11FF06') + \
+#                              Conversions.hex_to_ascii('025019057B16F9EC2B11FF')})
         response = self.insteon.on('19.05.7b')
-        #time.sleep(4000)
-        self.assertEqual(response, True)
+        self.assertIn(Conversions.hex_to_ascii('026219057B0F11FF'), self.ms.query_write_data())
+        self.ms.put_read_data(Conversions.hex_to_ascii('026219057B0F11FF06'))
+        self.ms.put_read_data(Conversions.hex_to_ascii('025019057B16F9EC2B11FF'))
+        #time.sleep(2)
+        #self.assertEqual(response, True)
         
     def test_insteon_level2(self):
-        m = Mock()
-        m.disabled.return_value = False
-        i = InsteonPLM(m)
-        i.level('12.20.B0', 50)
+        self.ms.disabled = False
+        
+        self.insteon.level('12.20.B0', 50)
         #todo: figure out how to really deal with this race condition
         time.sleep(3)
-        m.write.assert_called_with(unhexlify('02621220b00f117f'))
+        self.assertIn(unhexlify('02621220b00f117f'), self.ms.query_write_data())
+#        self.ms.write.assert_called_with(unhexlify('02621220b00f117f'))
 
     def test_insteon_receive_status(self):
         """
@@ -101,15 +91,12 @@ class InsteonInterfaceTests(TestCase):
         global logging_default_level
         ## Default logging level
         #logging_default_level = "DEBUG"
-        m = Mock_Interface()
-#        m.diabled.return_value = False
-        i = InsteonPLM(m)
         self._result = False
-        i.onCommand(self._insteon_receive_status_callback, '23.D2.BE')
-        m.put_read_data(Conversions.hex_to_ascii('025023D2BE000001CB1100'))
+        self.insteon.onCommand(self._insteon_receive_status_callback, '23.D2.BE')
+        self.ms.put_read_data(Conversions.hex_to_ascii('025023D2BE000001CB1100'))
         time.sleep(1)
         # Transmits: 026223d2be0f1900
-        m.put_read_data(Conversions.hex_to_ascii('025023D2BE22FF5B411101'))
+        self.ms.put_read_data(Conversions.hex_to_ascii('025023D2BE22FF5B411101'))
         time.sleep(3)
         self.assertEqual(self._result, True)
 
