@@ -2,7 +2,7 @@ import select
 
 from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32, \
                                     NamedPipe, StateInterface, Command, HTTPServer, \
-                                    HTTP, HW_Thermostat, WeMo
+                                    HTTP, HW_Thermostat, WeMo, InsteonPLM2
 from pytomation.devices import Motion, Door, Light, Location, InterfaceDevice, \
                                 Photocell, Generic, StateDevice, State, Attribute, \
                                 Room, Thermostat, XMPP_Client
