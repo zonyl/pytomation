@@ -30,7 +30,8 @@ class SceneDeviceTests(TestCase):
                       update=True,
                       )
         self.assertIsNotNone(scene)
-        scene.activate()
+        #scene.activate()
+        scene.on()
         
         self.assertTrue(interface.update_scene.called)
         self.assertTrue(interface.activate.called)
