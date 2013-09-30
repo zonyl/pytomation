@@ -76,6 +76,7 @@ class InsteonPLM2(HAInterface):
     
     commands = {
         Command.ON: lambda : InsteonStandardCommand([0x11, 0xff]),
+        Command.LEVEL: lambda : InsteonStandardCommand([0x11,]),
         Command.OFF: lambda : InsteonStandardCommand([0x13, 0x00]),
         Command.STATUS: lambda : InsteonStandardCommand([0x19, 0x00]),
         "ledstatus": lambda : InsteonExtendedCommand([0x2E, 0x00])
@@ -144,33 +145,52 @@ class InsteonPLM2(HAInterface):
         s = ' '.join(hex(x) for x in data)
         self._logger.debug(message + ">" + s + " <")	
 
-    def command(self, device, command, timeout=None):
-        command = command.lower()
-#        deviceType = 'insteon' if isinstance(device, InsteonDevice) else 'x10'
-        isScene = isinstance(device, Scene)
+    def command(self, deviceId, command, timeout=None):
+        isScene = False
+        level = 100
         
-        commands = self.sceneCommands if isScene else self.commands
+        if isinstance(command, tuple):
+            level = command[1]
+            command = command[0].lower()
+        else:
+            command = command.lower()
         
         try:
-            haCommand = commands[command]()
+            device = self._getDevice(deviceId)
+        except:
+            pass
+#        deviceType = 'insteon' if isinstance(device, InsteonDevice) else 'x10'
+
+        if device:
+            isScene = isinstance(device, Scene)
             
+        commands = self.sceneCommands if isScene else self.commands
+            
+        try:
+            haCommand = commands[command]()
+            if command == Command.LEVEL:
+                percent_level = int((level / 100 ) * 255)
+                haCommand.setSecondaryData([level,])
             # flags = 207 if isScene else 15
         
-            haCommand.setAddress(array.array('B', _stringIdToByteIds(device.address)))
+            haCommand.setAddress(array.array('B', _stringIdToByteIds(deviceId)))
             # haCommand.setFlags(flags)
             commandExecutionDetails = self._sendInterfaceCommand(haCommand.getBytes(),
-                extraCommandDetails={'destinationDevice': device.deviceId, 'command' : haCommand})
+                extraCommandDetails={'destinationDevice': deviceId, 'command' : haCommand})
             
             return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
-        except:
-            self._logger.exception('Error executing command')
+        except Exception, ex:
+            self._logger.exception('Error executing command: ' + str(ex))
             return None
         
     def on(self, deviceId, fast=None, timeout=None):
-        self.command(self._getDevice(deviceId), Command.ON)
+        return self.command(deviceId, Command.ON)
 
     def off(self, deviceId, fast=None, timeout=None):
-        self.command(self._getDevice(deviceId), Command.OFF)
+        return self.command(deviceId, Command.OFF)
+    
+    def level(self, deviceId, value=100, fast=None, timeout=None):
+        return self.command(deviceId, (Command.LEVEL, value))
 
     def update_status(self):
         for d in self._devices:

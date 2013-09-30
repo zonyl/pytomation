@@ -38,7 +38,8 @@ class InsteonCommand(object):
 class InsteonStandardCommand(InsteonCommand):
     def __init__(self, data, *args, **kwargs):
         super(InsteonStandardCommand, self).__init__(data, *args, **kwargs)
-        self._data = [0x62,0,0,0,0x0F] + self._data
+        self._data = [0x62,0,0,0,0x0F]
+        self.setPrimaryData(data)
         self._minAckLength = 10
         self._ackCommand = 0x50
 
@@ -50,8 +51,11 @@ class InsteonStandardCommand(InsteonCommand):
         
     def setFlags(self, data):
         self._data[4] = data
-        
-    def setSecondary(self,data):
+    
+    def setPrimaryData(self, data):
+        self._data[5:] = data
+    
+    def setSecondaryData(self,data):
         self._data[6:] = data
 
     def isAck(self, message):
