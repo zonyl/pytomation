@@ -7,6 +7,7 @@ class Mock_Interface(object):
         super(Mock_Interface, self).__init__(*args, **kwargs)
         self._read_data = ""
         self._write_data = []
+        self._disabled = False
         
     def read(self, count=None):
         #print 'Reading for {0} bytes'.format(count)
@@ -34,3 +35,11 @@ class Mock_Interface(object):
 
     def clear_write_data(self):
         self._write_data = []
+        
+    @property
+    def disabled(self):
+        return self._disabled
+    
+    @disabled.setter
+    def disabled(self, value):
+        self._disabled = value
