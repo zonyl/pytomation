@@ -11,14 +11,14 @@ Pytomation currently has support for the following hardware interfaces with
 more planned in the future.
 
    - [Insteon](http://www.insteon.com/) / X10 (2412N, 2412S)
-   - [UPB] http://www.pulseworx.com/products/products_.htm (Universal Powerline Bus) (Serial PIM)
-   - [Belkin] WeMo Wifi Switches http://www.belkin.com/us/Products/home-automation/c/wemo-home-automation
+   - [UPB](http://www.pulseworx.com/products/products_.htm) Universal Powerline Bus (Serial PIM)
+   - [Belkin WeMo](http://www.belkin.com/us/Products/home-automation/c/wemo-home-automation)  WeMo Wifi Switches 
    - [JDS Stargate](http://www.jdstechnologies.com/stargate.html) (RS232 / RS485)
-   - [Radio Thermostat] WiFi Enabled Thermostat http://www.radiothermostat.com/ (CT30)
+   - [Radio Thermostat](http://www.radiothermostat.com/ ) WiFi Enabled Thermostat (CT30)
    - [Weeder](http://www.weedtech.com/) Digital I/O board (Wtdio/RS232)
-   - [WG Labs] W800RF32 X10 RF receiver (W800/RS232)
+   - [WGL Designs](http://wgldesigns.com/w800.html) W800RF32 X10 RF receiver (W800/RS232)
    - [Arduino](http://www.arduino.cc) Uno board (USB)
-   - [X10] CM11a (RS232)
+   - X10 CM11a (RS232)
    - Mochad X10 CM15 (USB) and CM19 (USB)
    - [Misterhouse](http://misterhouse.sourceforge.net/) Voice Commands MHSend (TCP)
 
