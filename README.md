@@ -18,7 +18,7 @@ more planned in the future.
    - [Weeder](http://www.weedtech.com/) Digital I/O board (Wtdio/RS232)
    - [WGL Designs](http://wgldesigns.com/w800.html) W800RF32 X10 RF receiver (W800/RS232)
    - [Arduino](http://www.arduino.cc) Uno board (USB)
-   - X10 CM11a (RS232)
+   - [X10](http://x10pro-usa.com/x10-home/controllers/wired-controllers/cm11a.html) CM11a (RS232)
    - Mochad X10 CM15 (USB) and CM19 (USB)
    - [Misterhouse](http://misterhouse.sourceforge.net/) Voice Commands MHSend (TCP)
 
