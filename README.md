@@ -21,11 +21,11 @@ more planned in the future.
    - [X10](http://x10pro-usa.com/x10-home/controllers/wired-controllers/cm11a.html) CM11a (RS232)
    - Mochad X10 CM15 (USB) and CM19 (USB)
    - [Misterhouse](http://misterhouse.sourceforge.net/) Voice Commands MHSend (TCP)
+   - [Spark I/O](http://www.spark.io) WiFi devices
 
 ### Future
    - Z-Wave (Aeon Labs) DSA02203-ZWUS
    - Weeder Analog I/O board (Wtaio/RS232)
-   - Smart I/O devices
    - Ube Wifi Devices
    - CoralStar WiFi Devices
 
