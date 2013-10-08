@@ -7,6 +7,7 @@ Description:
         
         For more information regarding the technical details of the PLM:
                 http://www.smarthome.com/manuals/2412sdevguide.pdf
+                http://www.insteon.com/pdf/insteondetails.pdf (message flags)
                 http://www.madreporite.com/insteon/commands.htm
 
 Author(s): 
@@ -717,8 +718,8 @@ class InsteonPLM(HAInterface):
         isGrpCleanupAck = (messageFlags & 0x60) == 0x60
         isGrpBroadcast = (messageFlags & 0xC0) == 0xC0
         isGrpCleanupDirect = (messageFlags & 0x40) == 0x40
-        # If we get an ack from a group command fire off a status request or we'll never know the on level
-        if isGrpCleanupAck | isGrpBroadcast: #| isGrpCleanupDirect:
+        # If we get an ack from a group command fire off a status request or we'll never know the on level (not off)
+        if isGrpCleanupAck | isGrpBroadcast and command1 != 0x13: #| isGrpCleanupDirect: 
             self._logger.debug("Running status request:{0}:{1}:{2}:..........".format(isGrpCleanupAck,
                                                                                      isGrpBroadcast,
                                                                                      isGrpCleanupDirect))

@@ -98,17 +98,45 @@ class InsteonInterfaceTests(TestCase):
         # Transmits: 026223d2be0f1900
         self.ms.put_read_data(Conversions.hex_to_ascii('025023D2BE22FF5B411101'))
         time.sleep(3)
-        self.assertEqual(self._result, True)
+        self.assertEqual(self._result, Command.ON)
 
     def _insteon_receive_status_callback(self, *args, **kwargs):
         command = kwargs.get('command', None)
         print 'command:' + command
-        if command == Command.ON:
-            self._result = True
+        self._result = command
 
     def test_insteon_status(self):
         response = self.insteon.status('44.33.22')
         self.assertEqual(response, True)
+        
+    def test_insteon_receive_status2(self):
+        """
+Receive Broadcast OFF command from a remote device
+[2013/10/07 20:37:42] [DEBUG] [InsteonPLM] Receive< 0000   02 50 23 D2 BE 00 00 01 CB 13 00    .P#........
+Message Flags = CB = 1100 1011
+b1 = broadcast
+b2 = group
+b3 = ack
+b4 = extended
+b56 = hops left
+b78 = max hops
+[2013/10/07 20:37:40] [DEBUG] [InsteonPLM] Running status request:False:True:True:..........
+[2013/10/07 20:37:40] [DEBUG] [InsteonPLM] Command: 23.D2.BE 19 00
+[2013/10/07 20:37:42] [DEBUG] [InsteonPLM] Transmit>026223d2be0f1900
+[2013/10/07 20:37:42] [DEBUG] [InsteonPLM] Receive< 0000   02 50 23 D2 BE 22 FF 5B 41 13 01    .P#..".[A..
+1079120c278d439fdc0c998fe6af970e
+
+[2013/10/07 20:37:42] [DEBUG] [InsteonPLM] ValidResponseCheck: 0000   53 44 31 39                SD19
+[2013/10/07 20:37:42] [DEBUG] [InsteonPLM] Setting status for:23.D2.BE:19:1..........
+[2013/10/07 20:37:42] [DEBUG] [InsteonPLM] Received Command:23.D2.BE:off
+
+        """
+        self._result = None
+        self.insteon.onCommand(self._insteon_receive_status_callback, '23.D2.BE')
+        self.ms.put_read_data(Conversions.hex_to_ascii('025023D2BE000001CB1300'))
+        time.sleep(1)
+        # Transmits: 026223d2be0f1900
+        self.assertEqual(self._result, Command.OFF)
 
 if __name__ == '__main__':
     main()
