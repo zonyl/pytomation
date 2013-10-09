@@ -15,6 +15,7 @@ jason@sharpee.com
 import json
 import re
 import time
+import urllib
 
 from .ha_interface import HAInterface
 from .common import *
@@ -24,6 +25,9 @@ class SparkIO(HAInterface):
     
     def _init(self, *args, **kwargs):
         super(SparkIO, self)._init(*args, **kwargs)
+        self._iteration = 0
+        self._poll_secs = kwargs.get('poll', 60)
+
         try:
             self._host = self._interface.host
         except Exception, ex:
@@ -34,7 +38,7 @@ class SparkIO(HAInterface):
         if not self._iteration < self._poll_secs:
             self._iteration = 0
             #check to see if there is anyting we need to read
-            responses = self._interface.read('api')
+            responses = self._interface.read('v1/:id/events')
             if len(responses) != 0:
                 for response in responses.split():
                     self._logger.debug("[Spark Devices] Response> " + hex_dump(response))
@@ -51,17 +55,29 @@ class SparkIO(HAInterface):
     
     def version(self):
         self._logger.info("SparkIO Devices Pytomation driver version " + self.VERSION + '\n')
+    
+    def on(self, address=None, timeout=None, *args, **kwargs):
+        return self._set_pin(address, Command.ON, timeout=timeout)
+    
+    def off(self, address=None, timeout=None, *args, **kwargs):
+        return self._set_pin(address, Command.ON, timeout=timeout)
 
-    def _send_state(self):
-        try:
-            attributes = {}
-                
-            command = ('api', json.dumps(attributes)
-                        )
-        except Exception, ex:
-            self._logger.error('Could not formulate command to send: ' + str(ex))
+    def _set_pin(self, address, command, timeout=2.0):
+        pin_state = {
+                     Command.ON: 'HIGH',
+                     Command.OFF: 'LOW',
+                     }
+        url = ('v1/devices/' + address[0])
+        attributes = {}
+        attributes['pin'] = address[1]
+        attributes['level'] = pin_state[command]
 
+#        command = (url, json.dumps(attributes))
+        command = (url, urllib.urlencode(attributes))
+        
         commandExecutionDetails = self._sendInterfaceCommand(command)
         return True
+
         #return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
+                   
         

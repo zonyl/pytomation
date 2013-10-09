@@ -8,14 +8,34 @@ from pytomation.interfaces import HTTP, SparkIO
 class SparkIOTests(TestCase):
     def setUp(self):
         self.host = 'api.sprk.io'
-#        self.i = HTTP('http', self.host)
-        self.i = Mock_Interface()
+        self.i = HTTP('https', self.host)
+#        self.i = Mock_Interface()
         self.interface = SparkIO(self.i, self.host)
 
     def test_instantiation(self):
         self.assertIsInstance(self.interface, SparkIO)
 
-#         
+    def test_on(self):
+        # Address = (:id, pin)
+        result = self.interface.on(('elroy', 'D0'))
+        self.assertEqual(result, True)
+        time.sleep(10)
+        
+"""
+## Initially this was working
+jason@x120:~/projects/pytomation$ curl https://api.sprk.io/v1/devices/elroy -d pin=D0 -d level=HIGH
+{
+  "ok": true
+}
+## However, now the API is giving me an auth error now!  Not sure what is going on over there
+jason@x120:~/projects/pytomation$ curl https://api.sprk.io/v1/devices/elroy -d pin=D0 -d level=HIGH
+{
+  "code": 400,
+  "error": "invalid_request",
+  "error_description": "The access token was not found"
+}
+"""
+        #         
 #     def test_circulate(self):
 #         self.interface.off(self.host)
 #         time.sleep(2)
