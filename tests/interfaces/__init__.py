@@ -11,6 +11,8 @@ from .http import *
 from .hw_thermostat import *
 from .wemo import *
 from .sparkio import *
+from .nest_thermostat import *
+
 
 
 

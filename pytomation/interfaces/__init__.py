@@ -18,6 +18,8 @@ from .insteon_message import *
 from .insteon_command import *
 from .insteon2 import *
 from .sparkio import *
+from .nest_thermostat import *
+
 try:
     from .rpi_input import *
 except:

@@ -7,3 +7,7 @@ pyephem
 pyserial
 twisted
 xmpppy
+#for nest
+eusful==0.6
+pyenest
+
