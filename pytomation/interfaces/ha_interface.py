@@ -217,7 +217,9 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                 except:
                     self._logger.debug("Transmit>" + str(bytesToSend))
                     
-                self._interface.write(bytesToSend)
+#                result = self._interface.write(bytesToSend)
+                result = self._writeInterfaceFinal(bytesToSend)
+                self._logger.debug("TransmitResult>" + str(result))
     
                 self._pendingCommandDetails[commandHash] = commandExecutionDetails
                 del self._outboundCommandDetails[commandHash]
@@ -228,6 +230,9 @@ class HAInterface(AsynchronousInterface, PytomationObject):
             self._commandLock.release()
         except Exception, te:
             self._logger.debug("Error trying to release unlocked lock %s" % (str(te)))
+
+    def _writeInterfaceFinal(self, data):
+        return self._interface.write(data)
 
     def _readInterface(self, lastPacketHash):
         response = None
