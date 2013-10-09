@@ -15,6 +15,7 @@ more planned in the future.
    - [Belkin WeMo](http://www.belkin.com/us/Products/home-automation/c/wemo-home-automation)  WeMo Wifi Switches 
    - [JDS Stargate](http://www.jdstechnologies.com/stargate.html) (RS232 / RS485)
    - [Radio Thermostat](http://www.radiothermostat.com/ ) WiFi Enabled Thermostat (CT30)
+   - Nest Labs - Nest thermostat
    - [Weeder](http://www.weedtech.com/) Digital I/O board (Wtdio/RS232)
    - [WGL Designs](http://wgldesigns.com/w800.html) W800RF32 X10 RF receiver (W800/RS232)
    - [Arduino](http://www.arduino.cc) Uno board (USB)
