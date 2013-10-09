@@ -303,8 +303,16 @@ class HTTP(Interface):
 #             encdata = None
 
         url = self._protocol + "://" + self._host + "/" + _path
-        response_stream = urllib2.urlopen(url, _data)
-        response = response_stream.read()
+        #print url + ":::" + _data
+        r = urllib2.Request(url=url)
+        r.add_data(_data)
+        response = False
+        try:
+            response_stream = urllib2.urlopen(r)
+    #        response_stream = urllib2.urlopen(url, _data)
+            response = response_stream.read()
+        except Exception, ex:
+            self._logger.error('Could not request: ' + str(ex))
         #print url + ":" + str(_data) + ":" + str(response)
         return response
 
