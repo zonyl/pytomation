@@ -19,7 +19,7 @@ class SparkIOTests(TestCase):
         # Address = (:id, pin)
         result = self.interface.on(('elroy', 'D0'))
         self.assertEqual(result, True)
-        time.sleep(10)
+        time.sleep(5)
         
 """
 ## Initially this was working
