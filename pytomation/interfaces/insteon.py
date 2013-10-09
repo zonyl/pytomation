@@ -724,7 +724,7 @@ class InsteonPLM(HAInterface):
                                                                                      isGrpBroadcast,
                                                                                      isGrpCleanupDirect))
             time.sleep(0.1)
-            self.lightStatusRequest(destDeviceId)
+            self.lightStatusRequest(destDeviceId, async=True)
         else:   # direct command
             
             self._logger.debug("Setting status for:{0}:{1}:{2}..........".format(
@@ -831,9 +831,11 @@ class InsteonPLM(HAInterface):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '03', '00', )
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
-    def lightStatusRequest(self, deviceId, timeout = None):
+    def lightStatusRequest(self, deviceId, timeout = None, async = False):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '19', '00')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        if not async:
+            return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        return
 
     def relayStatusRequest(self, deviceId, timeout = None):
         commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '19', '01')
