@@ -117,7 +117,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                                 address=address,
                                                 source=self
                                                 )
-        self._logger.debug('Devices for Command: ' + str(self._commandDelegates))
+        self._logger.debug('Devices for Command: ' + str(self._devices))
         for device in self._devices:
             if device.addressMatches(address):
                 try:
