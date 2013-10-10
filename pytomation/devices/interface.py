@@ -31,8 +31,14 @@ class InterfaceDevice(StateDevice):
         return self._address
     
     def addressMatches(self, address):
-        return self.address == None or self.address == address
-
+        match = self.address == None or self.address == address
+        if not match:
+            try:
+                match = self.address.lower() == address.lower()
+            except Exception, ex:
+                pass
+        return match
+            
     def _add_device(self, device):
         try:
             device.onCommand(device=self) # Register with the interface to receive events

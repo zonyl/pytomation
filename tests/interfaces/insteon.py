@@ -8,7 +8,7 @@ from mock import Mock
 from tests.common import MockInterface, Mock_Interface, Command
 from pytomation.interfaces import InsteonPLM, Serial, HACommand, \
                                     TCP, Conversions
-
+from pytomation.devices import Door, Light, State
 
 class InsteonInterfaceTests(TestCase):
     useMock = True
@@ -67,26 +67,43 @@ class InsteonInterfaceTests(TestCase):
 
     def test_insteon_receive_status(self):
         """
-        [2013/09/07 15:24:51] [DEBUG] [InsteonPLM] Receive< 0000   02 50 23 D2 BE 00 00 01 CB 11 00    .P#........
-        d395e51a11bb096e20f9ae84b47f8884
-        
-        [2013/09/07 15:24:51] [WARNING] [InsteonPLM] Unhandled packet (couldn't find any pending command to deal with it) 
-        [2013/09/07 15:24:51] [WARNING] [InsteonPLM] This could be a status message from a broadcast
-        [2013/09/07 15:24:51] [DEBUG] [InsteonPLM] Running status request..........
-        [2013/09/07 15:24:51] [DEBUG] [InsteonPLM] Command: 23.D2.BE 19 00
-        [2013/09/07 15:24:51] [DEBUG] [InsteonPLM] Queued bff1ddfd362ac6ef71555d959edbb90a
-        [2013/09/07 15:24:53] [DEBUG] [InsteonPLM] Timed out for bff1ddfd362ac6ef71555d959edbb90a - Requeueing (already had 0 retries)
-        [2013/09/07 15:24:53] [DEBUG] [InsteonPLM] Interesting.  timed out for bff1ddfd362ac6ef71555d959edbb90a, but there are no pending com$
-        [2013/09/07 15:24:53] [DEBUG] [InsteonPLM] Removing Lock <thread.lock object at 0x1a7f030>
-        [2013/09/07 15:24:53] [DEBUG] [InsteonPLM] Transmit>026223d2be0f1900
-        [2013/09/07 15:24:53] [DEBUG] [InsteonPLM] Receive< 0000   02 50 23 D2 BE 22 FF 5B 41 11 01    .P#..".[A..
-        4996cf7dd3a4b4722f120dc9c0fe5b17
-        
-        [2013/09/07 15:24:53] [WARNING] [InsteonPLM] Unhandled packet (couldn't find any pending command to deal with it)
-        [2013/09/07 15:24:53] [WARNING] [InsteonPLM] This could be a status message from a broadcast
-        [2013/09/07 15:24:53] [DEBUG] [InsteonPLM] Running status request..........
-        [2013/09/07 15:24:53] [DEBUG] [InsteonPLM] Command: 23.D2.BE 19 00
-        
+[2013/10/09 19:56:54] [DEBUG] [InsteonPLM] Receive< 0000   02 50 23 D2 BE 00 00 01 CB 11 00    .P#........
+d395e51a11bb096e20f9ae84b47f8884
+
+[2013/10/09 19:56:54] [WARNING] [InsteonPLM] Unhandled packet (couldn't find any pending command to deal with it)
+[2013/10/09 19:56:54] [WARNING] [InsteonPLM] This could be a status message from a broadcast
+[2013/10/09 19:56:54] [DEBUG] [InsteonPLM] HandleStandDirect
+[2013/10/09 19:56:54] [DEBUG] [InsteonPLM] Running status request:False:True:True:..........
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Command: 23.D2.BE 19 00
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Queued bff1ddfd362ac6ef71555d959edbb90a
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Transmit>026223d2be0f1900
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] TransmitResult>8
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Receive< 0000   02 50 23 D2 BE 22 FF 5B 41 11 01    .P#..".[A..
+4996cf7dd3a4b4722f120dc9c0fe5b17
+
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] ValidResponseCheck: 0000   53 44 31 39                SD19
+
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] ValidResponseCheck2: {'callBack': <bound method InsteonPLM._handle_StandardDirect_LightSta$
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] ValidResponseCheck3: ['SD19']
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Valid Insteon Command COde: SD11
+[2013/10/09 19:56:55] [WARNING] [InsteonPLM] Unhandled packet (couldn't find any pending command to deal with it)
+[2013/10/09 19:56:55] [WARNING] [InsteonPLM] This could be a status message from a broadcast
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] HandleStandDirect
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Setting status for:23.D2.BE:17:1..........
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Received Command:23.D2.BE:on
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Delegates for Command: []
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Devices for Command: []
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Received Command:23.D2.BE:on
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Delegates for Command: []
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Devices for Command: []
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Received a Modem NAK! Resending command, loop time 0.400000
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Queued bff1ddfd362ac6ef71555d959edbb90a
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Received a Modem NAK! Resending command, loop time 0.600000
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Transmit>026223d2be0f1900
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] TransmitResult>8
+[2013/10/09 19:56:55] [DEBUG] [InsteonPLM] Receive< 0000   02 50 23 D2 BE 11 01 01 CB 06 00    .P#........
+0e3a2974df58ef76268f23a48ec650a9
+
         """
         global logging_default_level
         ## Default logging level
@@ -137,6 +154,16 @@ b78 = max hops
         time.sleep(1)
         # Transmits: 026223d2be0f1900
         self.assertEqual(self._result, Command.OFF)
+
+    def test_door_light_delgate_caseinsensitive(self):
+        d = Door(address='23.d2.bE', 
+                 devices=self.insteon)
+        d.close()
+        self.ms.put_read_data(Conversions.hex_to_ascii('025023D2BE000001CB1100'))
+        time.sleep(3)
+        self.ms.put_read_data(Conversions.hex_to_ascii('025023D2BE22FF5B411101'))
+        time.sleep(3)
+        self.assertEqual(d.state, State.OPEN)
 
 if __name__ == '__main__':
     main()
