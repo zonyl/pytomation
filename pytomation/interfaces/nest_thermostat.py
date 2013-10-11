@@ -55,7 +55,7 @@ class NestThermostat(HAInterface):
         if not self._iteration < self._poll_secs:
             self._iteration = 0
             #check to see if there is anyting we need to read
-            status = self._interface.simple_status
+            status = self.interface.simple_status
         else:
             self._iteration+=1
             time.sleep(1) # one sec iteration
