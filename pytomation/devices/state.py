@@ -291,20 +291,23 @@ class StateDevice(PytomationObject):
         for k, v in kwargs.iteritems():
             if k.lower() != 'devices':
                 attribute = getattr(self, k)
-                try:
-                    attribute(**v)
-                except Exception, ex:
-                    if callable(attribute):
-                        if isinstance(v, tuple):
-                            for v1 in v:
-                                try:
-                                    attribute(**v1)
-                                except Exception, ex:
-                                    attribute(v1)
+                if not attribute:
+                    self._logger.error('Keyword: "{0}" not found in object construction.'.format(k))
+                else:
+                    try:
+                        attribute(**v)
+                    except Exception, ex:
+                        if callable(attribute):
+                            if isinstance(v, tuple):
+                                for v1 in v:
+                                    try:
+                                        attribute(**v1)
+                                    except Exception, ex:
+                                        attribute(v1)
+                            else:
+                                    attribute(v)
                         else:
-                                attribute(v)
-                    else:
-                        attribute = v
+                            attribute = v
                 
             
     def _process_maps(self, *args, **kwargs):

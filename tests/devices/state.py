@@ -692,6 +692,13 @@ class StateTests(TestCase):
         s.status()
         self.assertTrue(True)
         
+    def test_invalid_constructor_keyword(self):
+        s1 = StateDevice()
+        s2 = StateDevice(device=s1) #invalid keyword device
+        #If I had implemented a DI framework I could automatically test for an error debug statement.
+        # alas I do not.  Need to manually verify this one
+        self.assertTrue(True)
+        
 #     def test_invert_commands(self):
 #         s = StateDevice(invert=True)
 #         s.on()
