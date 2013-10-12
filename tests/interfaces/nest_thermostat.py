@@ -4,6 +4,7 @@ from unittest import TestCase
 
 from tests.common import MockInterface, Mock_Interface
 from pytomation.interfaces import NestThermostat
+from pytomation.devices import Thermostat
 
 class NestThermostatTests(TestCase):
     def setUp(self):
@@ -26,5 +27,9 @@ class NestThermostatTests(TestCase):
         #Address = (Structure ID, Device ID)
         address = (123, 34)
         self.interface.circulate(address)
+        
+    def test_thermostat_setpoint(self):
+        d = Thermostat(address=(123,123), devices=self.interface, name='Thermo1')
+        d.level(74)
 
         
