@@ -53,9 +53,19 @@ class NestThermostat(HAInterface):
     def _readInterface(self, lastPacketHash):
         # We need to dial back how often we check the thermostat.. Lets not bombard it!
         if not self._iteration < self._poll_secs:
+            self._logger.debug('Retrieving status from thermostat.')
             self._iteration = 0
             #check to see if there is anyting we need to read
-            status = self.interface.simple_status
+            try:
+                status = self.interface.simple_status
+                for structure in status.structures:
+                    for device in structure.devices:
+                        temp = status.structures[structure].devices[device].temperature
+                        if self._last_temp != temp:
+                            self._onCommand((Command.LEVEL, temp), (structure, device))
+            except Exception, ex:
+                self._logger.error('Could not process data from API: '+ str(ex))
+
         else:
             self._iteration+=1
             time.sleep(1) # one sec iteration
@@ -84,7 +94,11 @@ class NestThermostat(HAInterface):
         try:
             self.interface.change_temperature(address[0], address[1], level)
         except Exception, ex:
-            self._logger.error('Error setting temperature' + str(ex))
+            self._logger.error('Error setting temperature {0} for device= {1},{2}: {3} '.format(
+                                                                                        level,
+                                                                                        address[0],
+                                                                                        address[1],
+                                                                                        str(ex)))
         return 
     
     def version(self):
