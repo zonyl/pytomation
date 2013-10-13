@@ -1,23 +1,19 @@
 """
 Nest Thermostat Pytomation Interface
 
-API:
-https://github.com/eae/pyenest/blob/master/pyenest/__init__.py
-
-
 Author(s):
 Jason Sharpee
 jason@sharpee.com
 
 Library used from:
-Eugene Efremov
-https://github.com/eae/pyenest/tree/master/pyenest
+Jeffrey C. Ollie
+https://github.com/jcollie/pyenest
 
 """
 import json
 import re
 import time
-from pyenest import Nest
+from pyjnest import Connection
 
 from .ha_interface import HAInterface
 from .common import *
@@ -43,7 +39,7 @@ class NestThermostat(HAInterface):
         self._poll_secs = kwargs.get('poll', 60)
         
 
-        self.interface = Nest(self._user_name, self._password)
+        self.interface = Connection(self._user_name, self._password)
         try:
             self.interface.login()
         except Exception, ex:
@@ -57,12 +53,10 @@ class NestThermostat(HAInterface):
             self._iteration = 0
             #check to see if there is anyting we need to read
             try:
-                status = self.interface.simple_status
-                for structure in status.structures:
-                    for device in structure.devices:
-                        temp = status.structures[structure].devices[device].temperature
-                        if self._last_temp != temp:
-                            self._onCommand((Command.LEVEL, temp), (structure, device))
+                self.interface.update_status()
+                for device in self.interface.devices.values():
+                    print device
+                    self._onCommand((Command.LEVEL, device.current_temperature), device.device_id)
             except Exception, ex:
                 self._logger.error('Could not process data from API: '+ str(ex))
 
@@ -73,26 +67,26 @@ class NestThermostat(HAInterface):
     def circulate(self, address, *args, **kwargs):
         self._fan = True
         try:
-            self.interface.toggle_fan(address[0], address[1])
+            self.interface.devices[address].toggle_fan()
         except Exception, ex:
             self._logger.error('Could not toggle fan' + str(ex))
 
     def still(self, address, *args, **kwargs):
         self._fan = False
-        self.interface.toggle_fan(address[0], address[1])
+        self.interface.devices[address].toggle_fan()
     
-    def occupy(self, address, *args, **kwargs):
-        self._away = False
-        self.interface.toggle_away(address[0], address[1])
+    #def occupy(self, address, *args, **kwargs):
+    #    self._away = False
+    #    self.interface.toggle_away(address[0], address[1])
 
-    def vacate(self, address, *args, **kwargs):
-        self._away = True
-        self.interface.toggle_away(address[0], address[1])
+    #def vacate(self, address, *args, **kwargs):
+    #    self._away = True
+    #    self.interface.toggle_away(address[0], address[1])
 
     def level(self, address, level, timeout=2.0):
         self._set_point = level
         try:
-            self.interface.change_temperature(address[0], address[1], level)
+            self.interface.devices[address].change_temperature(level)
         except Exception, ex:
             self._logger.error('Error setting temperature {0} for device= {1},{2}: {3} '.format(
                                                                                         level,
