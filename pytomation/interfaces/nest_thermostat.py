@@ -55,12 +55,14 @@ class NestThermostat(HAInterface):
         if not self._iteration < self._poll_secs:
             self._logger.debug('Retrieving status from thermostat.')
             self._iteration = 0
-            #check to see if there is anyting we need to read
+            #check to see if there is anything we need to read
             try:
                 status = self.interface.simple_status
                 for structure in status.structures:
                     for device in structure.devices:
-                        temp = status.structures[structure].devices[device].temperature
+                        c_temp = status.structures[structure].devices[device].temperature
+                        # convert to Fahrenheit.  Lets let the Thermostat class change the units there if needed in C
+                        temp = int(9.0/5.0 * c_temp + 32)
                         if self._last_temp != temp:
                             self._onCommand((Command.LEVEL, temp), (structure, device))
             except Exception, ex:
