@@ -10,4 +10,5 @@ xmpppy
 #for nest
 #eusful==0.6
 #pyenest
+requests
 -e git://github.com/jcollie/pyjnest.git#egg=pyjnest
