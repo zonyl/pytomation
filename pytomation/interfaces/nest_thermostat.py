@@ -13,7 +13,10 @@ https://github.com/jcollie/pyenest
 import json
 import re
 import time
-from pyjnest import Connection
+try:
+    from pyjnest import Connection
+except Exception, ex:
+    pass
 
 from .ha_interface import HAInterface
 from .common import *
@@ -71,21 +74,23 @@ class NestThermostat(HAInterface):
     def circulate(self, address, *args, **kwargs):
         self._fan = True
         try:
-            self.interface.devices[address].toggle_fan()
+            self.interface.devices[address].fan_mode = 'on'
         except Exception, ex:
             self._logger.error('Could not toggle fan' + str(ex))
 
     def still(self, address, *args, **kwargs):
         self._fan = False
-        self.interface.devices[address].toggle_fan()
+        self.interface.devices[address].fan_mode = 'auto'
     
-    #def occupy(self, address, *args, **kwargs):
-    #    self._away = False
-    #    self.interface.toggle_away(address[0], address[1])
+    def occupy(self, address, *args, **kwargs):
+        self._away = False
+        for structure in self.interface.structures:
+            self.interface.structures[structure].away = False
 
-    #def vacate(self, address, *args, **kwargs):
-    #    self._away = True
-    #    self.interface.toggle_away(address[0], address[1])
+    def vacate(self, address, *args, **kwargs):
+        self._away = True
+        for structure in self.interface.structures:
+            self.interface.structures[structure].away = True
 
     def level(self, address, level, timeout=2.0):
         self._set_point = level
@@ -101,31 +106,4 @@ class NestThermostat(HAInterface):
     
     def version(self):
         self._logger.info("HW Thermostat Pytomation driver version " + self.VERSION + '\n')
-        
-    def _process_current_temp(self, response):
-        temp = None
-        try:
-            status = json.loads(response)
-            temp = status['temp']
-        except Exception, ex:
-            self._logger.error('HW Thermostat couldnt decode status json: ' + str(ex))
-        if temp and temp != self._last_temp:
-            self._onCommand(command=(Command.LEVEL, temp),address=self._host)
-
-    def _process_mode(self, response):
-        self._logger.debug("HW - process mode" + str(response))
-        mode = response['tmode']
-        command = None
-        if mode == 0:
-            command = Command.OFF
-        elif mode == 1:
-            command = Command.HEAT
-        elif mode == 2:
-            command = Command.COOL
-        elif mode == 3:
-            command = Command.SCHEDULE
-        self._logger.debug('HW Status mode = ' + str(command))
-        if command != self._mode:
-            self._mode = command
-            self._onCommand(command=command,address=self._host)
         
