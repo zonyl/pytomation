@@ -391,6 +391,7 @@ class InsteonPLM(HAInterface):
                         
                 elif firstByte[0] == '\x15':
                     self.spinTime += 0.2
+                    self._logger.debug("first byte %s" % binascii.hexlify(firstByte[0]))
                     self._logger.debug("Received a Modem NAK! Resending command, loop time %f" % (self.spinTime))
                     if self.spinTime < 12.0:
                         self._sendInterfaceCommand(self.currentCommand[0], self.currentCommand[1], self.currentCommand[2])
