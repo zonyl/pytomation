@@ -290,10 +290,12 @@ l_front_outlet = Light(
                       address=(49, 21), 
                       devices=(upb, ph_civil),
                       initial=ph_civil,
-#                      time_off='10:30pm',
-# Im usually working on the code at this time of night, so lets send multiple off signals
-# just in case I am not running pyto during its designated time.
-#                      time_off=(0, 30, [22,23,0,01]),
+                        time = (
+                            {
+                             Attribute.TIME: '10:30pm',
+                            Attribute.COMMAND: Command.OFF,
+                            },
+                        ),
                       name='Front Outlet Light'
                       )
 
