@@ -288,8 +288,8 @@ l_front_flood = Light(
 #  secs=allMatch, min=allMatch, hour=allMatch, day=allMatch, month=allMatch, dow=allMatch
 l_front_outlet = Light(
                       address=(49, 21), 
-                      devices=(upb, ph_civil),
-                      initial=ph_civil,
+                      devices=(upb, ph_standard),
+                      initial=ph_standard,
                         time = (
                             {
                              Attribute.TIME: '10:30pm',
