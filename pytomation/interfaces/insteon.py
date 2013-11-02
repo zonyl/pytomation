@@ -491,8 +491,13 @@ class InsteonPLM(HAInterface):
         return False
 
     def _process_InboundStandardInsteonMessage(self, responseBytes):
-        (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('BBBBBBBBBBB', responseBytes)        
 
+        if len(responseBytes) != 11:
+            self._logger.error("responseBytes< " + hex_dump(responseBytes, len(responseBytes)) + "\n")
+            self._logger.error("Command incorrect length. Expected 11, Received %s\n" % len(responseBytes))
+            return
+
+        (modemCommand, insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('BBBBBBBBBBB', responseBytes)
         foundCommandHash = None
         waitEvent = None
 
