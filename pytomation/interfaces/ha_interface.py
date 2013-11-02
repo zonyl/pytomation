@@ -78,10 +78,13 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         #for checking for duplicate messages received in a row
 
         while not self._shutdownEvent.isSet():
-            self._writeInterface()
-
-            self._readInterface(self._lastPacketHash)
-
+            try:
+                self._writeInterface()
+    
+                self._readInterface(self._lastPacketHash)
+            except Exception, ex:
+                self._logger.error("Problem with interface: " + str(ex))
+                
         self._interfaceRunningEvent.clear()
 
     def onCommand(self, callback=None, address=None, device=None):
