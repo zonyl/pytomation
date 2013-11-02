@@ -557,13 +557,17 @@ class Conversions(object):
     ## http://code.activestate.com/recipes/142812/ }}}
     @staticmethod
     def hex_dump(src, length=8):
-        N=0; result=''
-        while src:
-            s,src = src[:length],src[length:]
-            hexa = ' '.join(["%02X"%ord(x) for x in s])
-            s = s.translate(FILTER)
-            result += "%04X   %-*s   %s\n" % (N, length*3, hexa, s)
-            N+=length
+        result = ''
+        try:
+            N=0;
+            while src:
+                s,src = src[:length],src[length:]
+                hexa = ' '.join(["%02X"%ord(x) for x in s])
+                s = s.translate(FILTER)
+                result += "%04X   %-*s   %s\n" % (N, length*3, hexa, s)
+                N+=length
+        except Exception, ex:
+            pass
         return result
 
     @staticmethod
