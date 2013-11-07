@@ -144,7 +144,7 @@ class InsteonPLM(HAInterface):
     spinTime = 0.1   		# _readInterface loop time
     extendedCommand = False	# if extended command ack expected from PLM
     statusRequest = False   # Set to True when we do a status request
-
+    lastUnit = ""		# last seen X10 unit code
 
     
     plmAddress = ""
@@ -269,6 +269,12 @@ class InsteonPLM(HAInterface):
                                         'callBack' : self._handle_StandardDirect_AckCompletesCommand,
                                         'validResponseCommands' : ['SD2E']
                                     },
+
+				    #X10 Commands
+                                    'XD03': {        #Light Status Response
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
+                                        'validResponseCommands' : ['XD03']
+                                    },
                                     
                                     #Broadcast Messages/Responses
                                     'SB01': {
@@ -328,6 +334,25 @@ class InsteonPLM(HAInterface):
                              '8',
                              '2',
                              '10'
+                             ),xrange(0x0,0xF)))
+
+        self._x10Commands = Lookup(zip((
+                             'allUnitsOff',
+                             'allLightsOn',
+                             'on',
+                             'off',
+                             'dim',
+                             'bright',
+                             'allLightsOff',
+                             'ext1',
+                             'hail',
+                             'hailAck',
+                             'ext3',
+                             'unused1',
+                             'ext2',
+                             'statusOn',
+                             'statusOff',
+                             'statusReq'
                              ),xrange(0x0,0xF)))
 
         self._allLinkDatabase = dict()
@@ -682,12 +707,21 @@ class InsteonPLM(HAInterface):
         #TODO not implemented
         unitCode = None
         commandCode = None
+        (byteB, byteC) = struct.unpack('xxBB', responseBytes)        
         self._logger.debug("X10> " + hex_dump(responseBytes, len(responseBytes)))
-             #       (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('xBBBBBBBBBB', responseBytes)        
-#        houseCode =     (int(responseBytes[4:6],16) & 0b11110000) >> 4 
- #       houseCodeDec = X10_House_Codes.get_key(houseCode)
-#        keyCode =       (int(responseBytes[4:6],16) & 0b00001111)
-#        flag =          int(responseBytes[6:8],16)
+        houseCode =     (byteB & 0b11110000) >> 4 
+        houseCodeDec = self._x10HouseCodes.get_key(houseCode)
+	self._logger.debug("X10> HouseCode " + houseCodeDec )
+	unitCmd = (byteC & 0b10000000) >> 7
+	if unitCmd == 0 :
+		unitCode = (byteB & 0b00001111)
+		unitCodeDec = self._x10UnitCodes.get_key(unitCode)
+		self._logger.debug("X10> UnitCode " + unitCodeDec )
+		self.lastUnit = unitCodeDec
+	else:
+                commandCode = (byteB & 0b00001111)
+		commandCodeDec = self._x10Commands.get_key(commandCode)
+		self._logger.debug("X10> Command: house: " + houseCodeDec + " unit: " + self.lastUnit + " command: " + commandCodeDec  )
 
     #insteon message handlers
     def _handle_StandardDirect_IgnoreAck(self, messageBytes):
