@@ -299,6 +299,8 @@ class HTTP(Interface):
             _data = data
             _verb = verb
 
+        if _verb == None:
+            _verb = "GET"
 # Expect the consumer to encode to allow for raw data formats      
 #         if _data:
 #             encdata = urllib.urlencode(_data)
