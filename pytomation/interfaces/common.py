@@ -37,6 +37,7 @@ import serial
 import hashlib
 import sys
 import urllib, urllib2
+import requests
 
 from pytomation.common.pytomation_object import PytomationObject
 
@@ -270,11 +271,13 @@ class USB(Interface):
         return None
 
 class HTTP(Interface):
-    def __init__(self, protocol='http', host=None):
+    def __init__(self, protocol='http', host=None, username=None, password=None):
         super(HTTP, self).__init__()
 
         self._protocol = protocol
         self._host = host        
+        self._username = username
+        self._password = password
         self._logger.debug("{name} HTTP Port created".format(
                                                                                     name=self.name
                                                                                                   ))
@@ -303,18 +306,31 @@ class HTTP(Interface):
 #             encdata = None
 
         url = self._protocol + "://" + self._host + "/" + _path
-        #print url + ":::" + _data
-        r = urllib2.Request(url=url)
-        r.add_data(_data)
+        r = getattr(requests, _verb.lower())
+        
         response = False
-        try:
-            response_stream = urllib2.urlopen(r)
-    #        response_stream = urllib2.urlopen(url, _data)
-            response = response_stream.read()
-        except Exception, ex:
-            self._logger.error('Could not request: ' + str(ex))
-        #print url + ":" + str(_data) + ":" + str(response)
-        return response
+        if self._username:
+            response = r(url,
+              data=_data,
+              auth=requests.auth.HTTPBasicAuth(self._username, self._password))
+        else:
+            response = r(url,
+              data=_data,
+              )
+            
+        return response.text
+# #         #print url + ":::" + _data
+# #         r = urllib2.Request(url=url)
+# #         r.add_data(_data)
+# #         response = False
+# #         try:
+# #             response_stream = urllib2.urlopen(r)
+# #     #        response_stream = urllib2.urlopen(url, _data)
+# #             response = response_stream.read()
+# #         except Exception, ex:
+# #             self._logger.error('Could not request: ' + str(ex))
+# #         #print url + ":" + str(_data) + ":" + str(response)
+# #         return response
 
     def read(self, path="", data=None, verb='GET', *args, **kwargs):
         return self.request(path, data, verb)
