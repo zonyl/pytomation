@@ -722,6 +722,20 @@ class InsteonPLM(HAInterface):
                 commandCode = (byteB & 0b00001111)
 		commandCodeDec = self._x10Commands.get_key(commandCode)
 		self._logger.debug("X10> Command: house: " + houseCodeDec + " unit: " + self.lastUnit + " command: " + commandCodeDec  )
+		destDeviceId = houseCodeDec.upper() + self.lastUnit
+ 	        if self._devices:
+			for d in self._devices:
+			    if d.address.upper() == destDeviceId:
+				# only run the command if the state is different than current
+				if (commandCode == 0x03 and d.state != State.OFF):     # Never seen one not go to zero but...
+				    self._onCommand(address=destDeviceId, command=State.OFF)
+				elif (commandCode == 0x02 and d.state != State.ON):   # some times these don't go to 0xFF
+				    self._onCommand(address=destDeviceId, command=State.ON)
+		else: # No devices to check state, so send anyway
+			if (commandCode == 0x03 ):     # Never seen one not go to zero but...
+			    self._onCommand(address=destDeviceId, command=State.OFF)
+			elif (commandCode == 0x02):   # some times these don't go to 0xFF
+			    self._onCommand(address=destDeviceId, command=State.ON)
 
     #insteon message handlers
     def _handle_StandardDirect_IgnoreAck(self, messageBytes):
