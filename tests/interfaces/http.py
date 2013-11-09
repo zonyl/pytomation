@@ -22,3 +22,7 @@ class HTTPTests(TestCase):
     def test_write(self):
         response = self.interface.write("", None, "POST")
         self.assertIn("google", response)
+        
+    def test_write_tuple(self):
+        command = 'path', 'data',
+        self.interface.write(command)

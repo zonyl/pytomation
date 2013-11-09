@@ -338,7 +338,11 @@ class HTTP(Interface):
         return self.request(path, data, verb)
         
     def write(self, path="", data=None, verb="POST", *args, **kwargs):
-        return self.request(path, data, verb)
+        if isinstance(path, tuple):
+            _path = path[0]
+            _data = path[1]
+            _verb = 'POST'
+        return self.request(_path, _data, _verb)
 
     def inWaiting(self):
         return True
