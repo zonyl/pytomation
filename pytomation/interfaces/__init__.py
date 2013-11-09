@@ -19,6 +19,7 @@ from .insteon_command import *
 from .insteon2 import *
 from .sparkio import *
 from .nest_thermostat import *
+from .tomato import *
 
 try:
     from .rpi_input import *

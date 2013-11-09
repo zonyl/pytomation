@@ -37,6 +37,7 @@ import serial
 import hashlib
 import sys
 import urllib, urllib2
+import requests
 
 from pytomation.common.pytomation_object import PytomationObject
 
@@ -270,11 +271,13 @@ class USB(Interface):
         return None
 
 class HTTP(Interface):
-    def __init__(self, protocol='http', host=None):
+    def __init__(self, protocol='http', host=None, username=None, password=None):
         super(HTTP, self).__init__()
 
         self._protocol = protocol
         self._host = host        
+        self._username = username
+        self._password = password
         self._logger.debug("{name} HTTP Port created".format(
                                                                                     name=self.name
                                                                                                   ))
@@ -296,6 +299,8 @@ class HTTP(Interface):
             _data = data
             _verb = verb
 
+        if _verb == None:
+            _verb = "GET"
 # Expect the consumer to encode to allow for raw data formats      
 #         if _data:
 #             encdata = urllib.urlencode(_data)
@@ -303,24 +308,41 @@ class HTTP(Interface):
 #             encdata = None
 
         url = self._protocol + "://" + self._host + "/" + _path
-        #print url + ":::" + _data
-        r = urllib2.Request(url=url)
-        r.add_data(_data)
+        r = getattr(requests, _verb.lower())
+        
         response = False
-        try:
-            response_stream = urllib2.urlopen(r)
-    #        response_stream = urllib2.urlopen(url, _data)
-            response = response_stream.read()
-        except Exception, ex:
-            self._logger.error('Could not request: ' + str(ex))
-        #print url + ":" + str(_data) + ":" + str(response)
-        return response
+        if self._username:
+            response = r(url,
+              data=_data,
+              auth=requests.auth.HTTPBasicAuth(self._username, self._password))
+        else:
+            response = r(url,
+              data=_data,
+              )
+            
+        return response.text
+# #         #print url + ":::" + _data
+# #         r = urllib2.Request(url=url)
+# #         r.add_data(_data)
+# #         response = False
+# #         try:
+# #             response_stream = urllib2.urlopen(r)
+# #     #        response_stream = urllib2.urlopen(url, _data)
+# #             response = response_stream.read()
+# #         except Exception, ex:
+# #             self._logger.error('Could not request: ' + str(ex))
+# #         #print url + ":" + str(_data) + ":" + str(response)
+# #         return response
 
     def read(self, path="", data=None, verb='GET', *args, **kwargs):
         return self.request(path, data, verb)
         
     def write(self, path="", data=None, verb="POST", *args, **kwargs):
-        return self.request(path, data, verb)
+        if isinstance(path, tuple):
+            _path = path[0]
+            _data = path[1]
+            _verb = 'POST'
+        return self.request(_path, _data, _verb)
 
     def inWaiting(self):
         return True
@@ -426,12 +448,16 @@ FILTER=''.join([(len(repr(chr(x)))==3) and chr(x) or '.' for x in range(256)])
 
 def hex_dump(src, length=8):
     N=0; result=''
-    while src:
-        s,src = src[:length],src[length:]
-        hexa = ' '.join(["%02X"%ord(x) for x in s])
-        s = s.translate(FILTER)
-        result += "%04X   %-*s   %s\n" % (N, length*3, hexa, s)
-        N+=length
+    try:
+        while src:
+            s,src = src[:length],src[length:]
+            hexa = ' '.join(["%02X"%ord(x) for x in s])
+            s = s.translate(FILTER)
+            result += "%04X   %-*s   %s\n" % (N, length*3, hexa, s)
+            N+=length
+    except Exception, ex:
+        print 'Exception in Hexdump: ' + str(ex)
+        result = src
     return result
 
 ## end of http://code.activestate.com/recipes/142812/ }}}
