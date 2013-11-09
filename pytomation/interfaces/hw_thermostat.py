@@ -142,7 +142,7 @@ class HW_Thermostat(HAInterface):
             if self._hold <> None:
                 attributes['hold'] = 1 if self._hold or self._mode != Command.SCHEDULE else 0
                 
-            command = ('tstat', json.dumps(attributes)
+            command = ('tstat', json.dumps(attributes),
                     )
         except Exception, ex:
             self._logger.error('Could not formulate command to send: ' + str(ex))
