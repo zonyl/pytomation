@@ -144,7 +144,7 @@ class InsteonPLM(HAInterface):
     spinTime = 0.1   		# _readInterface loop time
     extendedCommand = False	# if extended command ack expected from PLM
     statusRequest = False   # Set to True when we do a status request
-
+    lastUnit = ""		# last seen X10 unit code
 
     
     plmAddress = ""
@@ -269,6 +269,12 @@ class InsteonPLM(HAInterface):
                                         'callBack' : self._handle_StandardDirect_AckCompletesCommand,
                                         'validResponseCommands' : ['SD2E']
                                     },
+
+				    #X10 Commands
+                                    'XD03': {        #Light Status Response
+                                        'callBack' : self._handle_StandardDirect_AckCompletesCommand,
+                                        'validResponseCommands' : ['XD03']
+                                    },
                                     
                                     #Broadcast Messages/Responses
                                     'SB01': {
@@ -328,6 +334,25 @@ class InsteonPLM(HAInterface):
                              '8',
                              '2',
                              '10'
+                             ),xrange(0x0,0xF)))
+
+        self._x10Commands = Lookup(zip((
+                             'allUnitsOff',
+                             'allLightsOn',
+                             'on',
+                             'off',
+                             'dim',
+                             'bright',
+                             'allLightsOff',
+                             'ext1',
+                             'hail',
+                             'hailAck',
+                             'ext3',
+                             'unused1',
+                             'ext2',
+                             'statusOn',
+                             'statusOff',
+                             'statusReq'
                              ),xrange(0x0,0xF)))
 
         self._allLinkDatabase = dict()
@@ -678,16 +703,37 @@ class InsteonPLM(HAInterface):
     
     def _process_InboundX10Message(self, responseBytes):
         "Receive Handler for X10 Data"
-        #X10 sends commands fully in two separate messages. Not sure how to handle this yet
-        #TODO not implemented
         unitCode = None
         commandCode = None
+        (byteB, byteC) = struct.unpack('xxBB', responseBytes)        
         self._logger.debug("X10> " + hex_dump(responseBytes, len(responseBytes)))
-             #       (insteonCommand, fromIdHigh, fromIdMid, fromIdLow, toIdHigh, toIdMid, toIdLow, messageFlags, command1, command2) = struct.unpack('xBBBBBBBBBB', responseBytes)        
-#        houseCode =     (int(responseBytes[4:6],16) & 0b11110000) >> 4 
- #       houseCodeDec = X10_House_Codes.get_key(houseCode)
-#        keyCode =       (int(responseBytes[4:6],16) & 0b00001111)
-#        flag =          int(responseBytes[6:8],16)
+        houseCode =     (byteB & 0b11110000) >> 4 
+        houseCodeDec = self._x10HouseCodes.get_key(houseCode)
+	self._logger.debug("X10> HouseCode " + houseCodeDec )
+	unitCmd = (byteC & 0b10000000) >> 7
+	if unitCmd == 0 :
+		unitCode = (byteB & 0b00001111)
+		unitCodeDec = self._x10UnitCodes.get_key(unitCode)
+		self._logger.debug("X10> UnitCode " + unitCodeDec )
+		self.lastUnit = unitCodeDec
+	else:
+                commandCode = (byteB & 0b00001111)
+		commandCodeDec = self._x10Commands.get_key(commandCode)
+		self._logger.debug("X10> Command: house: " + houseCodeDec + " unit: " + self.lastUnit + " command: " + commandCodeDec  )
+		destDeviceId = houseCodeDec.upper() + self.lastUnit
+ 	        if self._devices:
+			for d in self._devices:
+			    if d.address.upper() == destDeviceId:
+				# only run the command if the state is different than current
+				if (commandCode == 0x03 and d.state != State.OFF):     # Never seen one not go to zero but...
+				    self._onCommand(address=destDeviceId, command=State.OFF)
+				elif (commandCode == 0x02 and d.state != State.ON):   # some times these don't go to 0xFF
+				    self._onCommand(address=destDeviceId, command=State.ON)
+		else: # No devices to check state, so send anyway
+			if (commandCode == 0x03 ):     # Never seen one not go to zero but...
+			    self._onCommand(address=destDeviceId, command=State.OFF)
+			elif (commandCode == 0x02):   # some times these don't go to 0xFF
+			    self._onCommand(address=destDeviceId, command=State.ON)
 
     #insteon message handlers
     def _handle_StandardDirect_IgnoreAck(self, messageBytes):
@@ -826,26 +872,40 @@ class InsteonPLM(HAInterface):
             return False
 
     def idRequest(self, deviceId, timeout = None):
-        commandExecutionDetails = self._sendExtendedP2PInsteonCommand(deviceId, '10', '00', '0')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        if len(deviceId) != 2: #insteon device address
+		commandExecutionDetails = self._sendExtendedP2PInsteonCommand(deviceId, '10', '00', '0')
+		return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+	return
 
     def getInsteonEngineVersion(self, deviceId, timeout = None):
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '0D', '00')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        if len(deviceId) != 2: #insteon device address
+		commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '0D', '00')
+		return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+	# X10 device,  command not supported,  just return
+	return
 
     def getProductData(self, deviceId, timeout = None):
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '03', '00', )
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        if len(deviceId) != 2: #insteon device address
+		commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '03', '00', )
+		return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+	# X10 device,  command not supported,  just return
+	return
 
     def lightStatusRequest(self, deviceId, timeout = None, async = False):
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '19', '00')
-        if not async:
-            return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
-        return
+        if len(deviceId) != 2: #insteon device address
+		commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '19', '00')
+		if not async:
+		    return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+		return
+	# X10 device,  command not supported,  just return
+	return
 
     def relayStatusRequest(self, deviceId, timeout = None):
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '19', '01')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        if len(deviceId) != 2: #insteon device address
+		commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '19', '01')
+		return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+	# X10 device,  command not supported,  just return
+	return
 
     def command(self, device, command, timeout=None):
         command = command.lower()
@@ -912,24 +972,39 @@ class InsteonPLM(HAInterface):
                     return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
 
     def level_up(self, deviceId, timeout=None):
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '15', '00')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        if len(deviceId) != 2: #insteon device address
+		commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '15', '00')
+		return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+	# X10 device,  command not supported,  just return
+	return
 
     def level_down(self, deviceId, timeout=None):
-        commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        if len(deviceId) != 2: #insteon device address
+		commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
+		return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+	# X10 device,  command not supported,  just return
+	return
 
     def status(self, deviceId, timeout=None):
-        return self.lightStatusRequest(deviceId, timeout)
+        if len(deviceId) != 2: #insteon device address
+		return self.lightStatusRequest(deviceId, timeout)
+	# X10 device,  command not supported,  just return
+	return
 
     # Activate scene with the address passed
     def active(self, address, timeout=None):
-        commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '12', 'FF')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        if len(deviceId) != 2: #insteon device address
+		commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '12', 'FF')
+		return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+	# X10 device,  command not supported,  just return
+	return
         
     def inactive(self, address, timeout=None):
-        commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '14', '00')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        if len(deviceId) != 2: #insteon device address
+		commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '14', '00')
+		return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+	# X10 device,  command not supported,  just return
+	return
 
     def update_status(self):
         for d in self._devices:
