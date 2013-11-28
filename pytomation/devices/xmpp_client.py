@@ -1,6 +1,9 @@
 import ssl
 
-import xmpp
+try:
+    import xmpp
+except:
+    pass
 import re
 import time
 
