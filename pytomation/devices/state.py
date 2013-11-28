@@ -682,11 +682,13 @@ class StateDevice(PytomationObject):
         return item
 
     def trigger(self, *args, **kwargs):
-        commands = kwargs.get('command', None)
-        sources = kwargs.get('source', None)
-        mapped = kwargs.get('mapped', None)
-        secs = kwargs.get('secs', None)
-
+        commands = kwargs.get(Attribute.COMMAND, None)
+        sources = kwargs.get(Attribute.SOURCE, None)
+        mapped = kwargs.get(Attribute.MAPPED, None)
+        secs = kwargs.get(Attribute.SECS, None)
+        start = kwargs.get(Attribute.START, None)
+        end = kwargs.get(Attribute.END, None)
+        
         if not isinstance(commands, tuple):
             commands = (commands, )
         if not isinstance(sources, tuple):
@@ -699,7 +701,11 @@ class StateDevice(PytomationObject):
                     m = command
                 else:
                     m = mapped
-                self._triggers.update({(command, source): {'secs': secs, 'mapped': m}})
+                self._triggers.update({(command, source): {Attribute.SECS: secs, 
+                                                           Attribute.MAPPED: m,
+                                                           Attribute.START: CronTimer.to_cron(start),
+                                                           Attribute.END: CronTimer.to_cron(end),
+                                                           }})
         
 #        timer = CTimer()
 #        timer.interval=secs
@@ -715,23 +721,24 @@ class StateDevice(PytomationObject):
             trigger = self._triggers.get((command, None), None)
         if not trigger:
             trigger = self._triggers.get((original_command, None), None)
-            
-        if trigger:
-            timer = self._trigger_timers.get(trigger['mapped'], None)
+##       trigger = self._match_condition(command, source, self._triggers)
+        
+        if trigger and self._match_condition_item(trigger):
+            timer = self._trigger_timers.get(trigger[Attribute.MAPPED], None)
             if not timer:
                 timer = CTimer()
             timer.stop()
-            if trigger['secs'] > 0:
-                timer.action(self.command, (trigger['mapped'], ), source=self, original=source)
-                timer.interval = trigger['secs']
-                self._trigger_timers.update({trigger['mapped']: timer} )
+            if trigger[Attribute.SECS] > 0:
+                timer.action(self.command, (trigger[Attribute.MAPPED], ), source=self, original=source)
+                timer.interval = trigger[Attribute.SECS]
+                self._trigger_timers.update({trigger[Attribute.MAPPED]: timer} )
                 timer.start()
                 self._logger.debug('{name} command "{command}" from source "{source}" trigger started, mapped to "{mapped}" waiting {secs} secs. '.format(
                                                                                       name=self.name,
                                                                                       source=source.name if source else None,
                                                                                       command=command,
-                                                                                      mapped=trigger['mapped'],
-                                                                                      secs=trigger['secs'],
+                                                                                      mapped=trigger[Attribute.MAPPED],
+                                                                                      secs=trigger[Attribute.SECS],
                                                                                 ))  
             
         

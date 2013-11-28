@@ -454,7 +454,42 @@ class StateTests(TestCase):
         self.assertEqual(s1.state, State.ON)
         time.sleep(3)
         self.assertEqual(s1.state, State.OFF)
-        
+
+    def test_trigger_time_range(self):
+        (s_h, s_m, s_s) = datetime.now().timetuple()[3:6]
+        e_h = s_h
+        e_m = s_m
+        e_s = s_s + 2
+        s = StateDevice()
+        s2 = StateDevice(devices=s,
+                         trigger={
+                                Attribute.COMMAND: Command.ON,
+                                Attribute.MAPPED: Command.OFF,
+                                Attribute.SECS: 1,
+                                 Attribute.START: '{h}:{m}:{s}'.format(
+                                                                      h=s_h,
+                                                                      m=s_m,
+                                                                      s=s_s,
+                                                                      ),
+                                 Attribute.END: '{h}:{m}:{s}'.format(
+                                                                      h=e_h,
+                                                                      m=e_m,
+                                                                      s=e_s,
+                                                                      ),
+                                 },
+                         
+                         )
+        self.assertEqual(s2.state, State.UNKNOWN)
+        s.on()
+        self.assertEqual(s2.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(s2.state, State.OFF)
+        ##
+        time.sleep(2)
+        s.on()
+        time.sleep(3)
+        self.assertEqual(s2.state, State.ON)
+      
     def test_initial_attribute(self):
         d = StateDevice(
                          name='pie'
