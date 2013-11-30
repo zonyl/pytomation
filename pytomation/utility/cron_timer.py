@@ -98,6 +98,9 @@ class CronTimer(object):
                 
     @staticmethod
     def to_cron(string):
+        if string == None:
+            return None
+
         date_object = None
         try: # Hours / Minutes
             try:
@@ -139,7 +142,7 @@ class CronTimer(object):
                     allMatch,
                     allMatch,
                     )
-            except:
-                pass
+            except Exception, ex:
+                raise ex
 #        date_object = datetime.strptime(string, '%b %d %Y %I:%M%p')
         return None

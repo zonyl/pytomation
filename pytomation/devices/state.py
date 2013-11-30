@@ -296,6 +296,8 @@ class StateDevice(PytomationObject):
                 else:
                     try:
                         attribute(**v)
+                    except ValueError, ex:
+                        raise ex
                     except Exception, ex:
                         if callable(attribute):
                             if isinstance(v, tuple):

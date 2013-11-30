@@ -743,4 +743,20 @@ class StateTests(TestCase):
 #         s.invert(False)
 #         s.on()
 #         self.assertEqual(s.state, State.ON)
+
+    def test_time_range_invalid(self):
+        try:
+            s1 = StateDevice(
+                             ignore={
+                                     Attribute.COMMAND: Command.ON,
+                                     Attribute.START: '10:56 am',
+                                     Attribute.END: '11.02 am',
+                                     }
+                             )
+            self.assertTrue(False)
+        except AssertionError, ex:
+            raise ex
+        except Exception, ex:
+            pass
         
+
