@@ -69,6 +69,7 @@ class HTTPServer(HAInterface):
     def __init__(self, address=None, port=None, path=None, *args, **kwargs):
         super(HTTPServer, self).__init__(address, *args, **kwargs)
         self._handler_instances = []
+        self.unrestricted = True # To override light object restrictions
     
     def _init(self, *args, **kwargs):
         super(HTTPServer, self)._init(*args, **kwargs)

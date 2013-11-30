@@ -89,6 +89,27 @@ class LightTests(TestCase):
         motion.motion()
         self.assertEqual(light.state, State.ON)
 
+    def test_light_unrestricted(self):
+        photo = Photocell('D1', initial=State.LIGHT)
+        self.assertEqual(photo.state, State.LIGHT)
+        motion = Motion('D1', initial=State.STILL)
+        light = Light('D2', devices=(motion, photo),
+                       initial=photo)
+        self.assertEqual(light.state, State.OFF)
+        motion.motion()
+        self.assertEqual(light.state, State.OFF)
+        motion.unrestricted = True
+        motion.motion()
+        self.assertEqual(light.state, State.ON)
+        
+#         photo.dark()
+#         self.assertEqual(light.state, State.ON)
+#         light.off()
+#         self.assertEqual(light.state, State.OFF)
+#         motion.motion()
+#         self.assertEqual(light.state, State.ON)
+        
+
     def test_delay_normal(self):
         # Door Open events retrigger delay
         # Instead of turning off in 2 secs should be 4
