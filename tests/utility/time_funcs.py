@@ -17,7 +17,13 @@ class TimeFuncsTests(TestCase):
         end = CronTimer.to_cron("4:55pm")
         now = CronTimer.to_cron("5:54pm")
         self.assertFalse(crontime_in_range(now, start, end))
-        
+
+    def test_timefuncs_out_range2(self):
+        start = CronTimer.to_cron("12:01am")
+        end = CronTimer.to_cron("8:00am")
+        now = CronTimer.to_cron("5:54pm")
+        self.assertFalse(crontime_in_range(now, start, end))
+    
     def test_timefuncs_in_range_flip(self):
         start = CronTimer.to_cron("10:03pm")
         end = CronTimer.to_cron("4:55am")
