@@ -680,7 +680,9 @@ class StateDevice(PytomationObject):
                                                                   m=now[1],
                                                                   s=now[2],
                                                                   ))
-                return crontime_in_range(now_cron, start, end) 
+                result = crontime_in_range(now_cron, start, end)
+                self._logger.debug("Compare Time Range:("+ str(result) +")->" + str(now_cron) +"-" + str(start) + "-"+ str(end))
+                return result 
         return item
 
     def trigger(self, *args, **kwargs):

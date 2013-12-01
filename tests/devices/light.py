@@ -416,6 +416,77 @@ class LightTests(TestCase):
         time.sleep(3)
         self.assertEqual(l.state, State.OFF)
         
+    def test_trigger_in_range_gc(self):
+        (s_h, s_m, s_s) = datetime.now().timetuple()[3:6]
+        e_h = s_h
+        e_m = s_m
+        e_s = s_s + 2
+        d1 = StateDevice()
+        d2 = Light(
+                   devices=d1,
+                   trigger={
+                            Attribute.COMMAND: Command.ON,
+                            Attribute.MAPPED: Command.OFF,
+                            Attribute.SECS: 2,
+                            Attribute.START: '{h}:{m}:{s}'.format(
+                                                                 h=s_h,
+                                                                 m=s_m,
+                                                                 s=s_s,
+                                                                 ),
+                            Attribute.END: '{h}:{m}:{s}'.format(
+                                                                 h=e_h,
+                                                                 m=e_m,
+                                                                 s=e_s,
+                                                                 ),
+                            }
+                   )
+        self.assertEqual(d2.state, State.UNKNOWN)
+        d1.on()
+        self.assertEqual(d2.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(d2.state, State.OFF)
+ 
+        #Out range
+        d2.off()
+        self.assertEqual(d2.state, State.OFF)
+        d1.on()
+        self.assertEqual(d2.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(d2.state, State.ON)
+
+    def test_trigger_out_range_gc(self):
+        (s_h, s_m, s_s) = datetime.now().timetuple()[3:6]
+        e_h = s_h
+        e_m = s_m
+        e_s = s_s + 2
+        d1 = StateDevice()
+        d2 = Light(
+                   devices=d1,
+                   trigger={
+                            Attribute.COMMAND: Command.ON,
+                            Attribute.MAPPED: Command.OFF,
+                            Attribute.SECS: 2,
+                            Attribute.START: '{h}:{m}:{s}'.format(
+                                                                 h=s_h,
+                                                                 m=s_m,
+                                                                 s=s_s,
+                                                                 ),
+                            Attribute.END: '{h}:{m}:{s}'.format(
+                                                                 h=e_h,
+                                                                 m=e_m,
+                                                                 s=e_s,
+                                                                 ),
+                            }
+                   )
+
+        time.sleep(3)
+        self.assertEqual(d2.state, State.UNKNOWN)
+        d1.on()
+        self.assertEqual(d2.state, State.ON)
+        time.sleep(3)
+        self.assertEqual(d2.state, State.ON)
+        
+        
         
 if __name__ == '__main__':
-    main() 
+	main() 
