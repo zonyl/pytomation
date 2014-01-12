@@ -6,9 +6,11 @@ mock
 pyephem
 pyserial
 twisted
-xmpppy
+#xmpppy
 #for nest
 #eusful==0.6
 #pyenest
 requests
 -e git://github.com/jcollie/pyjnest.git#egg=pyjnest
+-e git+https://github.com/zonyl/pyharmony.git#egg=pyharmony
+
