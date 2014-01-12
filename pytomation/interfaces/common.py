@@ -152,7 +152,7 @@ class TCP(Interface):
     def __init__(self, host, port):
         super(TCP, self).__init__()        
         self.__s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print"connect %s:%s" % (host, port)
+        print "connect %s:%s" % (host, port)
         self.__s.connect((host, port))
 
     def write(self,data):
