@@ -20,6 +20,8 @@ from .insteon2 import *
 from .sparkio import *
 from .nest_thermostat import *
 from .tomato import *
+from .harmony_hub import *
+
 
 try:
     from .rpi_input import *
