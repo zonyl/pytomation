@@ -82,28 +82,29 @@ class Location(StateDevice):
         time_now = self.local_time.replace(second=0, microsecond=0)
         if (self._sunrise > self._sunset and self._sunset != time_now) or \
             self._sunrise == time_now:
-#            self.state = State.LIGHT
-#            self._set_state(State.LIGHT, self.state, self)
             if self.state <> Command.LIGHT:
-#                self.command(Command.LIGHT, source=self)
                 self.light()
+            else:
+                self._logger.info("{name} Location did not flip state as it already is light".format(
+                                                                                                     name=self.name
+                                                                                                     ))
         else:
-#            self.state = State.DARK
-#            self._set_state(State.DARK, self.state, self)
             if self.state <> Command.DARK:
-#                self.command(Command.DARK, source=self)
-                self.dark()           
-        # Setup trigger for next transition
-        sunset_t = self._sunset_timer
-#        sunset_t.stop()
-        sunset_t.interval(*CronTimer.to_cron(strftime("%H:%M:%S", self.sunset.timetuple())))
-        sunset_t.action(self._recalc)
-        sunset_t.start()
+                self.dark()
+            else:
+                self._logger.info("{name} Location did not flip state as it already is dark".format(
+                                                                                                     name=self.name
+                                                                                                     ))
 
-#        self._sunrise_timer.stop()
+                         
+        # Setup trigger for next transition
+        self._sunset_timer.interval(*CronTimer.to_cron(strftime("%H:%M:%S", self.sunset.timetuple())))
+        self._sunset_timer.action(self._recalc)
+        self._sunset_timer.start()
+
         self._sunrise_timer.interval(*CronTimer.to_cron(strftime("%H:%M:%S", self.sunrise.timetuple())))
-        self._sunrise_timer.action(self._recalc, ())
-        self._sunrise_timer.start()    
+        self._sunrise_timer.action(self._recalc)
+        self._sunrise_timer.start()
         
 
     @property
