@@ -11,5 +11,7 @@ from .attributes import *
 from .room import *
 from .thermostat import *
 from .xmpp_client import *
+from .google_voice import *
+
 
 
