@@ -652,7 +652,7 @@ class StateDevice(PytomationObject):
         if match:
             return True
         else:
-            if self._is_restricted():
+            if self._is_restricted(command):
                 self._logger.debug("{name} Restricted. ignoring".format(
                                                                      name=self.name,
                                                                      ))
@@ -664,6 +664,7 @@ class StateDevice(PytomationObject):
     def restriction(self, *args, **kwargs):
         states = kwargs.get(Attribute.STATE, None)
         sources = kwargs.get(Attribute.SOURCE, None)
+        targets = kwargs.get(Attribute.TARGET, None)
         start = kwargs.get(Attribute.START, None)
         end = kwargs.get(Attribute.END, None)
 
@@ -671,27 +672,31 @@ class StateDevice(PytomationObject):
             states = (states, )
         if not isinstance(sources, tuple):
             sources = (sources, )
-
+        if not isinstance(targets, tuple):
+            targets = (targets, )
+        
         for state in states:
             for source in sources:
-                self._restrictions.update({
-                                      (state, source): {
-                                                          Attribute.START: CronTimer.to_cron(start),
-                                                         Attribute.END: CronTimer.to_cron(end),
-                                                     }
-                                      })
-                self._logger.debug("{name} add restriction for {state} from {source}".format(
-                                                name=self.name,
-                                                state=state,
-                                                source=source.name if source else None,
-                                                ));
+                for target in targets:
+                    self._restrictions.update({
+                                          (state, source, target): {
+                                                              Attribute.START: CronTimer.to_cron(start),
+                                                             Attribute.END: CronTimer.to_cron(end),
+                                                         }
+                                          })
+                    self._logger.debug("{name} add restriction for {state} from {source} on {target}".format(
+                                                    name=self.name,
+                                                    state=state,
+                                                    target=target,
+                                                    source=source.name if source else None,
+                                                    ));
 
-    def _is_restricted(self):
+    def _is_restricted(self, command):
         if self._restrictions:
-            for state, source in self._restrictions:
+            for state, source, target in self._restrictions:
                 c_state = source.state
-                if (state == c_state):
-                    if (self._match_condition_item(self._restrictions.get((state, source)))):
+                if (state == c_state and (target==None or target==command)):
+                    if (self._match_condition_item(self._restrictions.get((state, source, target)))):
                         return True
 
         return False

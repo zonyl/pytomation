@@ -785,5 +785,23 @@ class StateTests(TestCase):
         s1.on()
         self.assertEqual(State.ON, s2.state)
         
+    def test_restriction_specific_state(self):
+        # Dark = ON
+        # light = OFF
+        sr = StateDevice()
+        s2 = StateDevice(
+                         devices=(sr),
+                         restriction={
+                                      Attribute.SOURCE: sr,
+                                      Attribute.STATE: State.OFF,
+                                      Attribute.TARGET: Command.ON,
+                                      }
+                         )
+                                      
+        # Restrict
+        sr.on()
+        self.assertEqual(State.ON, s2.state)
+        sr.off()
+        self.assertEqual(State.OFF, s2.state)        
         
         
