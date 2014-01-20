@@ -34,6 +34,7 @@ class State(object):
 class Attribute(object):
     MAPPED = 'mapped'
     COMMAND = 'command'
+    STATE = 'state'
     TARGET = 'target'
     TIME = 'time'
     SECS = 'secs'
@@ -75,6 +76,7 @@ class StateDevice(PytomationObject):
         self._triggers = {}
         self._trigger_timers = {}
         self._ignores = {}
+        self._restrictions = {}
         self._idle_timer = {}
         self._idle_command = None
         self._devices = []
@@ -639,18 +641,61 @@ class StateDevice(PytomationObject):
         
     def _is_ignored(self, command, source):
         is_ignored = False
+        self._logger.debug("{name} check ignore for {command} from {source}".format(
+                                        name=self.name,
+                                        command=command,
+                                        source=source.name if source else None,
+                                        ));
+
+        
         match = self._match_condition(command, source, self._ignores)
         if match:
             return True
         else:
-            return False
+            if self._is_restricted():
+                self._logger.debug("{name} Restricted. ignoring".format(
+                                                                     name=self.name,
+                                                                     ))
+                return True
+            else:
+                return False
         
-        self._logger.debug("{name} check ignore for {command} from {source}".format(
-        								name=self.name,
-        								command=command,
-        								source=source.name if source else None,
-        								));
 
+    def restriction(self, *args, **kwargs):
+        states = kwargs.get(Attribute.STATE, None)
+        sources = kwargs.get(Attribute.SOURCE, None)
+        start = kwargs.get(Attribute.START, None)
+        end = kwargs.get(Attribute.END, None)
+
+        if not isinstance(states, tuple):
+            states = (states, )
+        if not isinstance(sources, tuple):
+            sources = (sources, )
+
+        for state in states:
+            for source in sources:
+                self._restrictions.update({
+                                      (state, source): {
+                                                          Attribute.START: CronTimer.to_cron(start),
+                                                         Attribute.END: CronTimer.to_cron(end),
+                                                     }
+                                      })
+                self._logger.debug("{name} add restriction for {state} from {source}".format(
+                                                name=self.name,
+                                                state=state,
+                                                source=source.name if source else None,
+                                                ));
+
+    def _is_restricted(self):
+        if self._restrictions:
+            for state, source in self._restrictions:
+                c_state = source.state
+                if (state == c_state):
+                    if (self._match_condition_item(self._restrictions.get((state, source)))):
+                        return True
+
+        return False
+    
     def _match_condition(self, command, source, d):
         # Specific match first
         cond = self._match_condition_item(d.get((command, source), None))

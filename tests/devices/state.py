@@ -760,3 +760,30 @@ class StateTests(TestCase):
             pass
         
 
+    def test_restriction(self):
+        sr = StateDevice()
+        s1 = StateDevice()
+        s2 = StateDevice(
+                         devices=(s1),
+                         restriction={
+                                      Attribute.SOURCE: sr,
+                                      Attribute.STATE: State.ON,
+                                      }
+                                      
+                         )
+        self.assertEqual(State.UNKNOWN, s2.state)
+        s1.on()
+        self.assertEqual(State.ON, s2.state)
+        s1.off()
+        self.assertEqual(State.OFF, s2.state)
+        # Restrict
+        sr.on()
+        s1.on()
+        self.assertEqual(State.OFF, s2.state)
+        s1.off()
+        sr.off()
+        s1.on()
+        self.assertEqual(State.ON, s2.state)
+        
+        
+        
