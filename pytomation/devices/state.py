@@ -147,6 +147,10 @@ class StateDevice(PytomationObject):
                     self._automatic = False
                 elif map_command == Command.AUTOMATIC:
                     self._automatic = True
+                
+                if self._is_restricted(map_command, source):
+                    state = None
+                    map_command = None
         
                 if state and map_command and self._is_valid_state(state):
                     if not self._filter_retrigger_delay(command=map_command, source=source, new_state=state, original_state=self.state, original=command):
@@ -652,13 +656,7 @@ class StateDevice(PytomationObject):
         if match:
             return True
         else:
-            if self._is_restricted(command):
-                self._logger.debug("{name} Restricted. ignoring".format(
-                                                                     name=self.name,
-                                                                     ))
-                return True
-            else:
-                return False
+            return False
         
 
     def restriction(self, *args, **kwargs):
@@ -691,12 +689,15 @@ class StateDevice(PytomationObject):
                                                     source=source.name if source else None,
                                                     ));
 
-    def _is_restricted(self, command):
-        if self._restrictions:
+    def _is_restricted(self, command, source):
+        if self._restrictions and source != self:
             for state, source, target in self._restrictions:
                 c_state = source.state
                 if (state == c_state and (target==None or target==command)):
                     if (self._match_condition_item(self._restrictions.get((state, source, target)))):
+                        self._logger.debug("{name} Restricted. ignoring".format(
+                                                                             name=self.name,
+                                                                             ))
                         return True
 
         return False
