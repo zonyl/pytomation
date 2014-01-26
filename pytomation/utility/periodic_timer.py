@@ -51,7 +51,7 @@ class PeriodicTimer(object):
 
         self.stop()
 
-        self._job = PeriodicTimer.sched.add_interval_job(self._check_for_event, seconds = self.frequency, max_instances=10)
+        self._job = PeriodicTimer.sched.add_interval_job(self._check_for_event, seconds = self.frequency, max_instances=10, misfire_grace_time=10, coalesce=False)
         self.is_stopped.clear()
 
     def stop(self):
