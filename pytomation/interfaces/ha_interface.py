@@ -239,9 +239,16 @@ class HAInterface(AsynchronousInterface, PytomationObject):
 
     def _readInterface(self, lastPacketHash):
         response = None
-        #check to see if there is anyting we need to read
+        #check to see if there is anything we need to read
         if self._interface:
-            response = self._interface.read()
+            try:
+                response = self._interface.read()
+            except Exception, ex:
+                self._logger.debug("Error reading from interface {interface} exception: {ex}".format(
+                                                                                     interaface=str(self._interface),
+                                                                                     ex=str(ex)
+                                                                                     )
+                                   )
         try:
             if response and len(response) != 0:
     #            self._logger.debug("[HAInterface-Serial] Response>\n" + hex_dump(response))

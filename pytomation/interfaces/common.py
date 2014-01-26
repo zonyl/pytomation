@@ -150,7 +150,7 @@ class AsynchronousInterface(Interface):
     
 class TCP(Interface):
     def __init__(self, host, port):
-        super(TCP, self).__init__()        
+        super(TCP, self).__init__()
         self.__s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print "connect %s:%s" % (host, port)
         self.__s.connect((host, port))
@@ -160,11 +160,11 @@ class TCP(Interface):
         self.__s.send(data) 
         return None
 
-    def read(self,bufferSize):
+    def read(self, bufferSize=4096):
         "Read raw data"
         data = ''
         try:
-            data = self.__s.recv(bufferSize,socket.MSG_DONTWAIT)
+            data = self.__s.recv(bufferSize, socket.MSG_DONTWAIT)
         except socket.error, ex:
             pass
         except Exception, ex:
