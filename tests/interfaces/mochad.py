@@ -9,6 +9,7 @@ class MochadTests(TestCase):
     
     def setUp(self):
 #        self.tcp = TCP('127.0.0.1', 1099)
+#        self.tcp = TCP('www.yahoo.com', 80)
         self.tcp = Mock()
         self.mochad = Mochad(self.tcp)
         self.assertIsNotNone(self.mochad)
