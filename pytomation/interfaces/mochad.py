@@ -13,4 +13,4 @@ class Mochad(HAInterface):
         super(Mochad, self)._onCommand(command=command, address=address)
     
     def __getattr__(self, command):
-        return lambda address: self._interface.write('pl ' + address + ' ' + command + "\x0D" ) 
+        return lambda address: self._interface.write('rf ' + address + ' ' + command + "\x0D" ) 
