@@ -10,7 +10,14 @@ from .scene import *
 from .attributes import *
 from .room import *
 from .thermostat import *
-from .xmpp_client import *
+try:
+    from .xmpp_client import *
+except:
+    print "Could not import xmpp"
 from .controller import *
-from .google_voice import *
+try:
+    from .google_voice import *
+except:
+    print "Could not import Google Voice"
+
 
