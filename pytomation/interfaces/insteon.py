@@ -356,6 +356,7 @@ class InsteonPLM(HAInterface):
                              ),xrange(0x0,0xF)))
 
         self._allLinkDatabase = dict()
+        self._intersend_delay = 0.85 #850ms between network sends
 
     def _sendInterfaceCommand(self, modemCommand, commandDataString = None, extraCommandDetails = None):
         self.currentCommand = [modemCommand, commandDataString, extraCommandDetails]
