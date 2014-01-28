@@ -13,17 +13,27 @@ from .cm11a import *
 from .mochad import *
 from .mh_send import *
 from .hw_thermostat import *
-from .wemo import *
+try:
+    from .wemo import *
+except:
+    print "Could not import WeMo"
 from .insteon_message import *
 from .insteon_command import *
 from .insteon2 import *
-from .sparkio import *
-from .nest_thermostat import *
+try:
+    from .sparkio import *
+except:
+    print "Could not import SparkIO library"
+try:
+    from .nest_thermostat import *
+except:
+    print "Could not import Nest Library"
 from .tomato import *
-from .harmony_hub import *
-
-
+try:
+    from .harmony_hub import *
+except:
+    print "Could not import Harmony Library"
 try:
     from .rpi_input import *
 except:
-    pass
+    print "Could not import RPI library"

@@ -342,6 +342,10 @@ class HTTP(Interface):
             _path = path[0]
             _data = path[1]
             _verb = 'POST'
+        else:
+            _path = path
+            _data = data
+            _verb = verb
         return self.request(_path, _data, _verb)
 
     def inWaiting(self):

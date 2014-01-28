@@ -702,21 +702,30 @@ class StateDevice(PytomationObject):
 
         return False
     
-    def _match_condition(self, command, source, d):
+    def _match_condition(self, command, source, conditions):
         # Specific match first
-        cond = self._match_condition_item(d.get((command, source), None))
+        cond = self._match_condition_item(self._get_condition(command, source, conditions))
         if cond:
             return cond
-        cond = self._match_condition_item(d.get((command, None), None))
+        cond = self._match_condition_item(self._get_condition(command, None, conditions))
         if cond:
             return cond
-        cond = self._match_condition_item(d.get((None, source), None))
+        cond = self._match_condition_item(self._get_condition(None, source, conditions))
         if cond:
             return cond
-        cond = self._match_condition_item(d.get((None, None), None))
+        cond = self._match_condition_item(self._get_condition(None, None, conditions))
         if cond:
             return cond
         
+    def _get_condition(self, command, source, conditions):
+        result = conditions.get((command, source), None)
+
+        if not result: # Check for substate matches as well (Command.LEVEL, etc)
+            if isinstance(command, tuple):
+                result = conditions.get((command[0], source), None)
+        return result
+                    
+    
     def _match_condition_item(self, item):
         if not item:
             return None

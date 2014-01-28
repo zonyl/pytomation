@@ -118,9 +118,9 @@ class LightTests(TestCase):
         light = Light(address='D1', 
                       devices=(self.interface, door),
                       delay={
-                             'command': Command.OFF,
-                             'secs': 3,
-                             'source': door}
+                             Attribute.COMMAND: Command.OFF,
+                             Attribute.SECS: 3,
+                             Attribute.SOURCE: door}
                        )
         door.open()
         self.assertEqual(light.state, State.ON)
@@ -144,13 +144,13 @@ class LightTests(TestCase):
         light = Light(address='D1', 
                       devices=(self.interface, motion),
                       trigger={
-                             'command': Command.ON,
-                             'mapped': Command.OFF,
-                             'secs': 3,
+                             Attribute.COMMAND: Command.ON,
+                             Attribute.MAPPED: Command.OFF,
+                             Attribute.SECS: 3,
                              },
                        ignore={
-                               'command': Command.STILL,
-                               'source': motion,
+                               Attribute.COMMAND: Command.STILL,
+                               Attribute.SOURCE: motion,
                                }
                        )
         motion.motion()
@@ -192,7 +192,11 @@ class LightTests(TestCase):
     def test_level(self):
         self.device.command((Command.LEVEL, 40))
         self.interface.level.assert_called_with('D1', 40)
-
+        
+    def test_level_direct(self):
+        self.device.level(50)
+        self.interface.level.assert_called_with('D1', 50)
+        
     def test_level_ramp(self):
         self.device.command((Command.LEVEL, 40, 20))
         self.interface.level.assert_called_with('D1', 40, 20)
@@ -201,8 +205,8 @@ class LightTests(TestCase):
     def test_time_cron(self):
         light = Light('a2',
                       time={
-                            'command': Command.OFF,
-                            'time':(0, 30, range(0,5), 0, 0)
+                            Attribute.COMMAND: Command.OFF,
+                            Attribute.TIME:(0, 30, range(0,5), 0, 0)
                             })
         self.assertIsNotNone(light)
         
@@ -485,7 +489,21 @@ class LightTests(TestCase):
         self.assertEqual(d2.state, State.ON)
         time.sleep(3)
         self.assertEqual(d2.state, State.ON)
-        
+
+    def test_ignore_subcommand_wildcard(self):
+        s1 = Light()
+        s2 = Light(devices = s1,
+                          ignore={
+                                  Attribute.COMMAND: Command.LEVEL,
+                                  },
+                          )
+        s1.on()
+        self.assertEqual(s2.state, State.ON)
+        s1.off()
+        self.assertEqual(s2.state, State.OFF)
+        s1.level(80)
+        self.assertEqual(s2.state, State.OFF)
+
         
         
 if __name__ == '__main__':

@@ -48,7 +48,7 @@ class StargateInterfaceTests(TestCase):
         # resend EchoMode to trigger response
         self.sg.echoMode()
         time.sleep(3)
-        self.assertEqual(self.__digital_input_params['kwargs']['address'].upper(), 'D1')
+        self.assertEqual(self.__digital_input_params['kwargs']['address'].upper(), 'D8')
 
     def test_digital_input_multiple(self):
         """

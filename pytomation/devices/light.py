@@ -68,3 +68,6 @@ class Light(InterfaceDevice):
     def restricted(self, value):
         self._restricted = value
         return self._restricted
+    
+    def level(self, value):
+        self.command((Command.LEVEL, value))
