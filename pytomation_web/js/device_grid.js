@@ -43,9 +43,9 @@ function reload_device_grid()
 					if (values['commands']) {
 						$.each(values['commands'], function(index, command){
 							if ('junk' == values['state']) {
-								commands.push("<button class='command btn btn-small' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</button>");
+								commands.push("<button class='command btn btn-sm' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</button>");
 							} else {
-								commands.push("<button class='command btn btn-primary btn-small' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</button>");
+								commands.push("<button class='command btn btn-primary btn-sm' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</button>");
 							}
 						});
 					}
