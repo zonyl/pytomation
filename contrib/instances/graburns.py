@@ -223,7 +223,7 @@ l_foyer = Light(
                                               Command.CLOSE, Command.LIGHT,
                                               ),
                          Attribute.MAPPED: Command.OFF,
-                         Attribute.SECS: 2*60,
+                         Attribute.SECS: 15*60,
                          },
 		 name='Foyer Light',
                 )
