@@ -70,8 +70,8 @@ class Mochad(HAInterface):
            return State.ON
 	    """
         self._logger.debug('Mochad Status called')
-        self._commandReturnData
-        return  
+        
+        return self._onCommand(command=Command.OFF, address=address)
     
     def update_status(self):
         self._logger.debug('Mochad update status called')
