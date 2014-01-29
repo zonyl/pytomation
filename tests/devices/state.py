@@ -70,8 +70,8 @@ class StateTests(TestCase):
         device = StateDevice(
                               time={
                                     
-                                    'command': Command.OFF,
-                                    'time': (trigger_time1, trigger_time2),
+                                    Attribute.COMMAND: Command.OFF,
+                                    Attribute.TIME: (trigger_time1, trigger_time2),
                                     }
                               )
         self.assertEqual(device.state, State.UNKNOWN)
@@ -124,9 +124,9 @@ class StateTests(TestCase):
         d1 = StateDevice()
         d2 = StateDevice()
         d3 = StateDevice(devices=(d1, d2),
-                          mapped={'command': Command.ON,
-                                   'mapped': Command.OFF,
-                                   'source': d2}
+                          mapped={Attribute.COMMAND: Command.ON,
+                                   Attribute.MAPPED: Command.OFF,
+                                   Attribute.SOURCE: d2}
                           )
         self.assertEqual(d3.state, State.UNKNOWN)
         d1.on()
@@ -137,10 +137,10 @@ class StateTests(TestCase):
     def test_delay(self):
         d1 = StateDevice()
         d2 = StateDevice(devices=d1,
-                          delay={'command': Command.OFF,
-                                 'mapped': (Command.LEVEL, 80),
-                                 'source': d1,
-                                 'secs': 2,
+                          delay={Attribute.COMMAND: Command.OFF,
+                                 Attribute.MAPPED: (Command.LEVEL, 80),
+                                 Attribute.SOURCE: d1,
+                                 Attribute.SECS: 2,
                                  })
         self.assertEqual(d2.state, State.UNKNOWN)
         d1.on()
@@ -200,8 +200,8 @@ class StateTests(TestCase):
                 
     def test_delay_single(self):
         d1 = StateDevice(
-                          delay={'command': Command.OFF,
-                                 'secs': 2,
+                          delay={Attribute.COMMAND: Command.OFF,
+                                 Attribute.SECS: 2,
                                  }
                           )
         self.assertEqual(d1.state, State.UNKNOWN)
@@ -344,8 +344,8 @@ class StateTests(TestCase):
         s1 = StateDevice()
         s2 = StateDevice(devices = s1,
                           ignore={
-                                  'command': Command.ON,
-                                  'source:': s1,
+                                  Attribute.COMMAND: Command.ON,
+                                  Attribute.SOURCE: s1,
                                   },
                           )
         s1.on()
@@ -445,9 +445,9 @@ class StateTests(TestCase):
     def test_trigger(self):
         s1 = StateDevice(
                           trigger={
-                                   'command': Command.ON,
-                                   'mapped': Command.OFF,
-                                   'secs': 2
+                                   Attribute.COMMAND: Command.ON,
+                                   Attribute.MAPPED: Command.OFF,
+                                   Attribute.SECS: 2
                                    }
                           )
         s1.on();

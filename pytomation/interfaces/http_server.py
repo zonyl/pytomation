@@ -1,4 +1,5 @@
 import BaseHTTPServer
+import base64
 
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from pytomation.common import config
@@ -26,7 +27,36 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
         path = file_path + path
         return path
 
+    def do_HEAD(self):
+        print "send header"
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
+    def do_AUTHHEAD(self):
+        print "send header"
+        self.send_response(401)
+        self.send_header('WWW-Authenticate', 'Basic realm=\"Test\"')
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
     def do_GET(self):
+        auth_credentials = base64.b64encode(config.admin_user + ":" + config.admin_password)
+        
+        if self.headers.getheader('Authorization') == None:
+            self.do_AUTHHEAD()
+            self.wfile.write('no auth header received')
+            return
+        elif self.headers.getheader('Authorization') == 'Basic ' + auth_credentials:
+#            self.do_HEAD()
+#            self.wfile.write(self.headers.getheader('Authorization'))
+#            self.wfile.write('authenticated!')
+            pass
+        else:
+            self.do_AUTHHEAD()
+            self.wfile.write(self.headers.getheader('Authorization'))
+            self.wfile.write('Not authenticated')
+            return
         self.route()
 
     def do_POST(self):
