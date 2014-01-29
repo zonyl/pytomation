@@ -1,10 +1,15 @@
 from .common import *
 from .ha_interface import HAInterface
 #from pytomation.devices import State
+'''
+http://sourceforge.net/apps/mediawiki/mochad/index.php?title=Mochad_Reference
+'''
+
+
 
 class Mochad(HAInterface):
     
-    VERSION='0.2'
+    VERSION='0.2.1'
 
     def _readInterface(self, lastPacketHash):
         """
@@ -15,30 +20,37 @@ class Mochad(HAInterface):
 	0     1        2  3     4     5        6     7
 	"""
         responses = self._interface.read()
-	if len(responses) >=4:
-	    self._logger.debug('responses> ' + responses)
-	    data=responses.split(' ')
-	    #ate=data[0]
-	    #ime=data[1]
-	    direction=data[2]
-	    method=data[3]
-	    #ua=data[4]
-	    addr=data[5]
-	    #func junk
-	    func=data[7].strip()
-	    #self._onCommand(command=func.upper(),address=address)
-
-	    if func=="On":
-	        print "on"
-	        self.on(address=addr)
-	    elif func=="Off":
-	        self.off(address=addr)
-	    elif func=="Motion_alert_MS10A":
-	        self._onCommand(command=Command.MOTION,address=addr)
-	    elif func=="Motion_normal_MS10A":
-	        self._onCommand(command=Command.STILL,address=addr)
-
-	    
+        if len(responses) >=4:
+            self._logger.debug('responses> ' + responses)
+            data=responses.split(' ')
+            #date=data[0]
+            #time=data[1]
+            #direction=data[2]
+            #method=data[3]
+            #ua=data[4]
+            addr=data[5]
+            #func junk
+            func=data[7].strip()
+            #self._onCommand(command=func.upper(),address=address)
+    
+            if func=="On":
+                self._onCommand(command=Command.ON,address=addr)
+            elif func=="Off":
+                self._onCommand(command=Command.OFF,address=addr)
+            elif func=="Motion_alert_MS10A":
+                self._onCommand(command=Command.MOTION,address=addr)
+            elif func=="Motion_normal_MS10A":
+                self._onCommand(command=Command.STILL,address=addr)
+            elif func=="Arm_KR10A":
+                self._onCommand(command=Command.VACATE,address=addr)
+            elif func=="Disarm_KR10A":
+                self._onCommand(command=Command.OCCUPY,address=addr)
+            elif func=="Lights_On_KR10A":
+                self._onCommand(command=Command.ON,address=addr)
+            elif func=="Lights_Off_KR10A":
+                self._onCommand(command=Command.OFF,address=addr)
+                
+                
 
     def rawstatus(self):
         self._interface.write('st'+"\x0D")
@@ -58,6 +70,7 @@ class Mochad(HAInterface):
            return State.ON
 	    """
         self._logger.debug('Mochad Status called')
+        self._commandReturnData
         return  
     
     def update_status(self):
@@ -81,12 +94,10 @@ class Mochad(HAInterface):
 
     def on(self, address):
         self._logger.debug('[Mochad] Command on at '+address)
-	#self._onCommand(command=Command.ON,address=address)
         self._interface.write('rf ' + address + ' on' + "\x0D")
 
     def off(self, address):
         self._logger.debug('[Mochad] Command off at '+address)
-	#self._onCommand(command=Command.OFF,address=address)
         self._interface.write('rf ' + address + ' off'+ "\x0D")
 
     def version(self):
