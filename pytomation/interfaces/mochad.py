@@ -81,12 +81,12 @@ class Mochad(HAInterface):
 
     def on(self, address):
         self._logger.debug('[Mochad] Command on at '+address)
-	self._onCommand(command=Command.ON,address=address)
+	#self._onCommand(command=Command.ON,address=address)
         self._interface.write('rf ' + address + ' on' + "\x0D")
 
     def off(self, address):
         self._logger.debug('[Mochad] Command off at '+address)
-	self._onCommand(command=Command.OFF,address=address)
+	#self._onCommand(command=Command.OFF,address=address)
         self._interface.write('rf ' + address + ' off'+ "\x0D")
 
     def version(self):
