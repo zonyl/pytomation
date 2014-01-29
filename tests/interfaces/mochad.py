@@ -16,7 +16,7 @@ class MochadTests(TestCase):
 
     def test_on(self):
         self.mochad.on('a1')
-        self.tcp.write.assert_called_with('pl a1 on\x0D')
+        self.tcp.write.assert_called_with('rf a1 on\x0D')
         
     def test_receive_off(self):
         interface = Mock()
@@ -24,7 +24,7 @@ class MochadTests(TestCase):
         interface.read.return_value = ''
         m = Mochad(interface)
         m.onCommand(address='a1', callback=interface.callback)
-        interface.read.return_value = "pl a1 off\x0D"
+        interface.read.return_value = "rf a1 off\x0D"
         time.sleep(2)
         interface.read.return_value = ''
         interface.callback.assert_called_with(address='a1', command='off', source=m)  
