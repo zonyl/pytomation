@@ -37,3 +37,7 @@ try:
     from .rpi_input import *
 except:
     print "Could not import RPI library"
+try:    
+    from .honeywell_thermostat import *
+except:
+    print "Could not load Honeywell Thermostat library"
