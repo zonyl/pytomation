@@ -26,7 +26,7 @@ class Mochad(HAInterface):
             return
         
         response = responses.split('\n')
-        if len(response) == 1 :
+        if len(response) < 3 :
             self._logger.debug('responses> ' + responses)
             data=responses.split(' ')
             #date=data[0]
@@ -37,25 +37,11 @@ class Mochad(HAInterface):
             addr=data[5]
             #func junk
             
-            if direction=="Rx":
-                func=data[7].strip().rsplit('_',1)[0] #removing _devicemodel
-        
-                if func=="On":
-                    self._onCommand(command=Command.ON,address=addr)
-                elif func=="Off":
-                    self._onCommand(command=Command.OFF,address=addr)
-                elif func=="Motion_alert":
-                    self._onCommand(command=Command.MOTION,address=addr)
-                elif func=="Motion_normal":
-                    self._onCommand(command=Command.STILL,address=addr)
-                elif func=="Arm":
-                    self._onCommand(command=Command.VACATE,address=addr)
-                elif func=="Disarm":
-                    self._onCommand(command=Command.OCCUPY,address=addr)
-                elif func=="Lights_On":
-                    self._onCommand(command=Command.ON,address=addr)
-                elif func=="Lights_Off":
-                    self._onCommand(command=Command.OFF,address=addr)
+            #if direction=="Rx":
+            func=data[7].strip().rsplit('_',1)[0] #removing _devicemodel
+            print func,addr
+            self._map(func,addr)
+                
                     
         """
         command sent > st
@@ -71,52 +57,62 @@ class Mochad(HAInterface):
         02/01 16:44:23 Sensor addr: 055780 Last: 1049:59 Contact_alert_max_DS10A
         02/01 16:44:23 Sensor addr: 27B380 Last: 01:42 Motion_normal_MS10A
         02/01 16:44:23 Sensor addr: AF1E00 Last: 238:19 Lights_Off_KR10A
+        0     1        2      3     4      5     6      7 
         02/01 16:44:23 End status
         """    
-        if len(response) > 1:
-            print len(response)
+        if len(response) > 3:
+            #print len(response)
+            print "Status output?"
             _devicestatus = False
             _securitystatus = False
             #print response
             for line in response:
-                #print line.split(' ')[2:4]
-                words = line.split(' ')
-                if words[2:5] == ["Security","sensor","status"]:
-                    _devicestatus=False
-                    _securitystatus=True
-                    
-                if words[2:4] == ["End","status"]:
-                    _securitystatus=False
+                words = line.split(' ')   
+                print words                
                     
                 if _devicestatus:                   
                     housecode = words[3].strip(":")
-                    
+                       
                     for device in words[4].split(','):
+                        print device
                         devicestatus=device.split('=')
+                        print devicestatus
                         print housecode+devicestatus[0]+" is "+devicestatus[1]
+                      
                         if devicestatus[1]=='0':
-                            self._onCommand(command=Command.OFF,address=str(housecode+devicestatus[0]))
+                              self._onCommand(command=Command.OFF,address=str(housecode+devicestatus[0]))
                         if devicestatus[1]=='1':
-                            self._onCommand(command=Command.ON,address=str(housecode+devicestatus[0]))
-                    
-                if _securitystatus:
-                    #TODO: Code in Security Status
-                    pass
-                
+                              self._onCommand(command=Command.ON,address=str(housecode+devicestatus[0]))
+                      
+#                 if _securitystatus:
+#                     print "Function: "+ func + " Address " + addr[0:2]+":"+addr[2:4]+":"+addr[4:6]
+#                     addr=words[4]
+#                     func = words[7].rsplit('_',1)[0]
+#                       
+#                     self._map(func,addr[0:2]+":"+addr[2:4]+":"+addr[4:6]) #adding back :s
+                 
                 if words[2:4] == ["Device","status"]:
-                    print "Device check"
+                    print "Begin status"        
                     _devicestatus=True
+                      
+                if words[2:4] == ["Security","sensor"]:
+                    print "Beginning of security sensor stuff"
+                    _devicestatus=False
+                    _securitystatus=True
+ 
+                if words[2:4] == ["End","status"]:
+                    print "End status"
+                    _securitystatus=False
+                    return
     
     def status(self,address):
         self._logger.debug('[Mochad] Querying of last known status all devices including '+address)
         self._interface.write('st'+"\x0D")
         return None 
         
-#     def update_status(self):
-#         self._logger.debug('Mochad update status called')
-#         for d in self._devices:
-#             self._logger.debug('... '+ d.address)
-#             self.status(d.address)
+    def update_status(self):
+        self._logger.debug('Mochad update status called')
+        self.status('')
 
     def _onCommand(self, command=None, address=None):
         commands = command.split(' ')
@@ -149,4 +145,33 @@ class Mochad(HAInterface):
 
     def version(self):
         self._logger.info("Mochad Pytomation Driver version " + self.VERSION)
+        
+    def _map(self,func,addr):
+        #print func,addr
+        if func=="On":
+            self._onCommand(command=Command.ON,address=addr)
+        elif func=="Off":
+            self._onCommand(command=Command.OFF,address=addr)
+        elif func=="Contact_normal_min":
+            self._onCommand(command=Command.CLOSE,address=addr)
+        elif func=="Contact_alert_min":
+            self._onCommand(command=Command.OPEN,address=addr) 
+        elif func=="Contact_normal_max":
+            self._onCommand(command=Command.CLOSE,address=addr)
+        elif func=="Contact_alert_max":
+            self._onCommand(command=Command.OPEN,address=addr)
+        elif func=="Motion_alert":
+            self._onCommand(command=Command.MOTION,address=addr)
+        elif func=="Motion_normal":
+            self._onCommand(command=Command.STILL,address=addr)
+        elif func=="Arm":
+            self._onCommand(command=Command.VACATE,address=addr)
+        elif func=="Panic":
+            self._onCommand(command=Command.VACATE,address=addr)
+        elif func=="Disarm":
+            self._onCommand(command=Command.OCCUPY,address=addr)
+        elif func=="Lights_On":
+            self._onCommand(command=Command.ON,address=addr)
+        elif func=="Lights_Off":
+            self._onCommand(command=Command.OFF,address=addr)
 
