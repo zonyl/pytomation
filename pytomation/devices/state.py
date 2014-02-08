@@ -108,6 +108,9 @@ class StateDevice(PytomationObject):
     def _get_state(self):
         return self._state
     
+    def set_state(self, value, *args, **kwargs):
+        return self._set_state(value, *args, **kwargs)
+    
     def _set_state(self, value, *args, **kwargs):
         source = kwargs.get('source', None)
         if value != self._state:
