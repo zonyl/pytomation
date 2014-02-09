@@ -96,7 +96,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                        })
         else:
             self._devices.append(device)
-    
+
     def _onCommand(self, command=None, address=None):
         # Received command from interface and this will delegate to subscribers
         self._logger.debug("Received Command:" + str(address) + ":" + str(command))
@@ -135,6 +135,19 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                    source=self,
                                    address=address)
 
+    def _onState(self, state, address):
+        for device in self._devices:
+            if device.addressMatches(address):
+                try:
+                    device.set_state(
+                                       state,
+                                       address=address,
+                                       source=self,
+                                       )
+                except Exception, ex:
+                    self._logger.debug('Could not set state for device: {device}'.format(device=device.name))
+                    
+                    
     def _sendInterfaceCommand(self, modemCommand,
                           commandDataString=None,
                           extraCommandDetails=None, modemCommandPrefix=None):
