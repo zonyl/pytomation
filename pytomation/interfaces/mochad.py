@@ -47,7 +47,7 @@ class Mochad(HAInterface):
                 #method=data[3]
                 #ua=data[4]
                 addr=line_data[5]
-                func=data[7].strip().rsplit('_',1)[0]   #removing _devicemodel
+                func=line_data[7].strip().rsplit('_',1)[0]   #removing _devicemodel
                 self._map(func,addr)
                 
             """
