@@ -1,6 +1,7 @@
 from .common import *
+#from pytomation.devices import StateDevice, InterfaceDevice, State
 from .ha_interface import HAInterface
-#from pytomation.devices import State
+from pytomation.devices import State
 '''
 http://sourceforge.net/apps/mediawiki/mochad/index.php?title=Mochad_Reference
 
@@ -21,8 +22,6 @@ class Mochad(HAInterface):
         
         if len(raw_response) == 0: #if no data leave
             return
-        
-        #NOTE need to correct: Look for number of words first then 3rd term. Then decide what to do
         
         response_lines = raw_response.split('\n')
         
@@ -99,6 +98,7 @@ class Mochad(HAInterface):
                 addr=line_data[4]
                 func = line_data[7].rsplit('_',1)[0]
                 self._logger.debug("Function: "+ func + " Address " + addr[0:2]+":"+addr[2:4]+":"+addr[4:6])
+                self._map(func,addr[0:2]+":"+addr[2:4]+":"+addr[4:6])
                 # NOTE THIS NEEDS TO SET Security state!       
 
                   
@@ -154,21 +154,21 @@ class Mochad(HAInterface):
         elif func=="Contact_normal_min":
             self._onCommand(command=Command.CLOSE,address=addr)
         elif func=="Contact_alert_min":
-            self._onCommand(command=Command.OPEN,address=addr) 
+            self._onState(state=State.OPEN,address=addr) 
         elif func=="Contact_normal_max":
-            self._onCommand(command=Command.CLOSE,address=addr)
+            self._onState(state=State.CLOSE,address=addr)
         elif func=="Contact_alert_max":
-            self._onCommand(command=Command.OPEN,address=addr)
+            self._onState(state=State.OPEN,address=addr)
         elif func=="Motion_alert":
-            self._onCommand(command=Command.MOTION,address=addr)
+            self._onState(state=State.MOTION,address=addr)
         elif func=="Motion_normal":
-            self._onCommand(command=Command.STILL,address=addr)
+            self._onState(state=State.STILL,address=addr)
         elif func=="Arm":
-            self._onCommand(command=Command.ON,address=addr)
+            self._onState(state=State.ON,address=addr)
         elif func=="Panic":
-            self._onCommand(command=Command.VACATE,address=addr)
+            self._onState(state=State.VACATE,address=addr)
         elif func=="Disarm":
-            self._onCommand(command=Command.DISARM,address=addr)
+            self._onState(state=State.DISARM,address=addr)
         elif func=="Lights_On":
             self._onCommand(command=Command.ON,address=addr)
         elif func=="Lights_Off":
