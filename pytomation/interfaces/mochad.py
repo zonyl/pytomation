@@ -98,12 +98,8 @@ class Mochad(HAInterface):
                 addr=line_data[4]
                 func = line_data[7].rsplit('_',1)[0]
                 self._logger.debug("Function: "+ func + " Address " + addr[0:2]+":"+addr[2:4]+":"+addr[4:6])
-                self._map(func,addr[0:2]+":"+addr[2:4]+":"+addr[4:6])
-                # NOTE THIS NEEDS TO SET Security state!       
-
-                  
-
-    
+                self._map(func,addr[0:2]+":"+addr[2:4]+":"+addr[4:6]) #adding in COLONs
+                       
     def status(self,address):
         self._logger.debug('Querying of last known status all devices including '+address)
         self._interface.write('st'+"\x0D")
@@ -152,11 +148,11 @@ class Mochad(HAInterface):
         elif func=="Off":
             self._onCommand(command=Command.OFF,address=addr)
         elif func=="Contact_normal_min":
-            self._onCommand(command=Command.CLOSE,address=addr)
+            self._onState(state=State.CLOSED,address=addr)
         elif func=="Contact_alert_min":
             self._onState(state=State.OPEN,address=addr) 
         elif func=="Contact_normal_max":
-            self._onState(state=State.CLOSE,address=addr)
+            self._onState(state=State.CLOSED,address=addr)
         elif func=="Contact_alert_max":
             self._onState(state=State.OPEN,address=addr)
         elif func=="Motion_alert":
