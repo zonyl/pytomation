@@ -41,3 +41,7 @@ try:
     from .honeywell_thermostat import *
 except:
     print "Could not load Honeywell Thermostat library"
+try:
+    from .open_zwave import *
+except:
+    print "Could not load Open Zwave library"
