@@ -59,7 +59,6 @@ from .ha_interface import HAInterface
 
 class W800rf32(HAInterface):
     VERSION = '1.4'
-    MODEM_PREFIX = ''
     
     hcodeDict = {
 0b0110:'A', 0b1110:'B', 0b0010:'C', 0b1010:'D',

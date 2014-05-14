@@ -110,7 +110,6 @@ from .ha_interface import HAInterface
 
 class Arduino(HAInterface):
     VERSION = '1.0'
-    MODEM_PREFIX = ''
     
     
     def __init__(self, interface, *args, **kwargs):

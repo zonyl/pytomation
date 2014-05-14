@@ -40,8 +40,6 @@ from .common import *
 from .ha_interface import HAInterface
 
 class Stargate(HAInterface):
-#    MODEM_PREFIX = '\x12'
-    MODEM_PREFIX = ''
     VERSION = '1.4'
 
     def __init__(self, interface, *args, **kwargs):

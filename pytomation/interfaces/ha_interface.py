@@ -35,8 +35,6 @@ from pytomation.common.pytomation_object import PytomationObject
 class HAInterface(AsynchronousInterface, PytomationObject):
     "Base protocol interface"
 
-    MODEM_PREFIX = '\x02'
-    
     def __init__(self, interface, *args, **kwargs):
         kwargs.update({'interface': interface})
         self._po_common(*args, **kwargs)
@@ -160,7 +158,6 @@ class HAInterface(AsynchronousInterface, PytomationObject):
             pass
 
         try:
-#            bytesToSend = self.MODEM_PREFIX + binascii.unhexlify(modemCommand)
             if modemCommandPrefix:
                 bytesToSend = modemCommandPrefix + modemCommand
             else:
