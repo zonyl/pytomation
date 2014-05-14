@@ -168,28 +168,6 @@ class Arduino(HAInterface):
         self._onCommand(address=response[:2],command=(Command.LEVEL, response[2:]))
 
 
-    def _processRegister(self, response, lastPacketHash):
-        foundCommandHash = None
-
-        #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
-        for (commandHash, commandDetails) in self._pendingCommandDetails.items():
-            if commandDetails['modemCommand'] == self._modemCommands['read_register']:
-                #Looks like this is our command.  Lets deal with it
-                self._commandReturnData[commandHash] = response[4:]
-
-                waitEvent = commandDetails['waitEvent']
-                waitEvent.set()
-
-                foundCommandHash = commandHash
-                break
-
-        if foundCommandHash:
-            del self._pendingCommandDetails[foundCommandHash]
-        else:
-            self._logger.debug("[Arduino] Unable to find pending command details for the following packet:\n")
-            self._logger.debug((hex_dump(response, len(response)) + '\n'))
-
-
     # Initialize the Uno board, input example "ADIC"
     def setChannel(self, boardChannelType):
         p = re.compile('[A][A,D][I,N,O][C-T]')

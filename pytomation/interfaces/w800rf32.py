@@ -145,29 +145,6 @@ class W800rf32(HAInterface):
         self._onCommand(address=addr, command=cmd)
 
 
-    def _processRegister(self, response, lastPacketHash):
-        foundCommandHash = None
-
-        #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
-        for (commandHash, commandDetails) in self._pendingCommandDetails.items():
-            if commandDetails['modemCommand'] == self._modemCommands['read_register']:
-                #Looks like this is our command.  Lets deal with it
-                self._commandReturnData[commandHash] = response[4:]
-
-                waitEvent = commandDetails['waitEvent']
-                waitEvent.set()
-
-                foundCommandHash = commandHash
-                break
-
-        if foundCommandHash:
-            del self._pendingCommandDetails[foundCommandHash]
-        else:
-#            pylog(self, "[W800RF32] Unable to find pending command details for the following packet:\n")
-#            pylog(self, hex_dump(response) + " " + len(response) + "n")
-            self._logger.warning("Unable to find pending command details for the following packet:")
-            self._logger.warning(hex_dump(response) + " " + len(response))
-
     def _processNewW800RF32(self, response):
         pass
 
