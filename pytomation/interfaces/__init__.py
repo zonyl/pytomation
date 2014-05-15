@@ -45,3 +45,4 @@ try:
     from .open_zwave import *
 except:
     print "Could not load Open Zwave library"
+from .bv4626 import *

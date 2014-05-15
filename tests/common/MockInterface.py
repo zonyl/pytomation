@@ -40,3 +40,6 @@ class MockInterface(object):
 
     def close(self):
         pass
+
+    def inWaiting(self):
+        return self._response_q is not None
