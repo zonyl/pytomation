@@ -37,3 +37,6 @@ class MockInterface(object):
     
     def immediate_response(self, response):
         self._response_q = response
+
+    def close(self):
+        pass

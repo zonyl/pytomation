@@ -266,6 +266,10 @@ class Serial(Interface):
             return self.__serialDevice.inWaiting()
         return True
 
+    def close(self):
+        if self.__serialDevice:
+            return self.__serialDevice.close()
+
 class USB(Interface):
     def __init__(self, device):
         return None
