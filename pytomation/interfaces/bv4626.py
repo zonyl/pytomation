@@ -46,11 +46,90 @@ import re
 from .common import *
 from .ha_interface import HAInterface
 
+class MaplinWirelessSocket(object):
+
+    _codes = [
+        [0x33353335, 0x33533335, 0x35333335, 0x53333335],
+        [0x33353353, 0x33533353, 0x35333353, 0x53333353],
+        [0x33353533, 0x33533533, 0x35333533, 0x53333533],
+        [0x33355333, 0x33535333, 0x35335333, 0x53335333]
+    ]
+
+    _on = 0x3333
+    _off = 0x5333
+
+    _pulseWidth = 450 * 1e-6 # Measured from Maplin transmitters
+
+    _preamble = [0] * 26
+    _sync = [1]
+    _postamble = [0] * 2
+
+
+    def __init__(self, interface, onCommand, offCommand):
+        self._interface = interface
+        self._onCommand = onCommand
+        self._offCommand = offCommand
+
+
+    # converts the lowest bit_count bits to a list of ints
+    def _int2BitList(self, i, bitCount):
+        result = []
+        shifted = i
+        for i in range(0, bitCount):
+            result.append(shifted & 0x01)
+            shifted = shifted >> 1
+        return result
+
+
+    def _commandAsBitList(self, channel, button, on):
+        return \
+            self._int2BitList(self._codes[channel - 1][button - 1], 32) + \
+            self._int2BitList(self._on if on else self._off, 16)
+
+
+    # encodes 0 as a 1 count state change, 1 as a 3 count state change, starting
+    # with a change to low
+    def _encodeStateList(self, bitList):
+        result = []
+        state = 0
+        for bit in bitList:
+            result.extend([state] if bit == 0 else [state, state, state])
+            state = 1 - state
+        return result
+
+
+    def _busyWait(self, end):
+        while (time.time() <= end): pass
+
+
+    def _send(self, channel, button, on):
+        bits = self._commandAsBitList(channel, button, on)
+        states = self._preamble + self._sync + self._encodeStateList(bits) + self._postamble
+
+        for i in xrange(1, 6):
+            end = time.time()
+            for state in states:
+                end = end + self._pulseWidth
+                self._interface.write(self._onCommand if state else self._offCommand)
+                self._busyWait(end)
+
+
+    def on(self, channel, button):
+        self._send(channel, button, 1)
+
+
+    def off(self, channel, button):
+        self._send(channel, button, 0)
+
+
+
+
 class Bv4626(HAInterface):
     VERSION = '1.0'
     
     _connected = False
     _outputs = ''
+    _sockets = ''
     _validAddresses = False
     CR = '\015'
     ESC = '\033'
@@ -71,13 +150,30 @@ class Bv4626(HAInterface):
           'turnOff': '0',
         }
 
+        outputs_regexp = 'AB'
+        valid_outputs = re.compile('a?b?c?d?e?f?g?h?')
         if 'outputs' in kwargs:
-          self._logger.debug("Found OUTPUTS: " + kwargs['outputs'])
-          valid_outputs = re.compile('a?b?c?d?e?f?g?h?')
-          if valid_outputs.match(kwargs['outputs']):
-            self._outputs = kwargs['outputs']
+            self._logger.debug("Found Outputs: " + kwargs['outputs'])
+            if valid_outputs.match(kwargs['outputs']):
+                self._outputs = kwargs['outputs']
+                outputs_regexp += kwargs['outputs']
 
-        self._validAddresses = re.compile('[AB' + self._outputs + ']')
+        outputs_regexp = '[' + outputs_regexp + ']'
+
+        if 'sockets' in kwargs:
+            self._logger.debug("Found Maplin Sockets: " + kwargs['sockets'])
+            if valid_outputs.match(kwargs['sockets']):
+                no_overlap = True
+                for c in kwargs['sockets']:
+                    if self._outputs.find(c) != -1:
+                        self._logger.error("Found overlapping output and socket " + c)
+                        no_overlap = False
+                if no_overlap:
+                    self._sockets = kwargs['sockets']
+                    outputs_regexp = '(' + outputs_regexp + ')|([' + self._sockets + '][1-4][1-4])'
+
+        self._logger.debug('Valid outputs regex: ' + outputs_regexp)
+        self._validAddresses = re.compile('^(' + outputs_regexp + ')$')
 
     def shutdown(self):
         super(Bv4626, self).shutdown()
@@ -178,22 +274,52 @@ class Bv4626(HAInterface):
     def getFirmwareVersion(self):
         return self._sendInterfaceCommand(self._modemCommands['getFirmwareVersion'], True)
 
+    def _maplinSwitch(self, address, channel, button, on=True):
+        self._logger.debug('Sending ' + ('ON' if on else 'OFF') + ' to address> ' + address + ' (via Maplin Wireless Socket ' + str(button) + ' on channel ' + str(channel) + ')')
+        self._logger.debug('Clearing ACK')
+        self._interface.write(self.ESC+'[0E') # Clear ACK
+        socket = MaplinWirelessSocket(self._interface, self.ESC+'[255'+address, self.ESC+'[0'+address)
+        self._logger.debug('Sending signal...')
+        if on:
+            socket.on(channel, button)
+        else:
+            socket.off(channel, button)
+        self._logger.debug('Resetting ACK')
+        self._interface.write(self.ESC+'['+str(ord(self.ACK))+'E') # set ACK
+        return True
+
     def on(self, address):
         if not self._validAddresses.match(address):
-            self._logger.debug("Invalid address '" + address + "'")
+            self._logger.error("Invalid address '" + address + "'")
             return False
+
+        if len(address) > 1:
+            pin = address[0]
+            channel = int(address[1])
+            button = int(address[2])
+            return self._maplinSwitch(pin, channel, button)
+
         self._logger.debug("Sending ON to address> " + address)
-        if address == 'A' or address == 'B':
+        if address == address.upper():
           return self._sendInterfaceCommand(self._modemCommands['turnOn'] + address)
+
         return self._sendInterfaceCommand('255' + address)
             
     def off(self, address):
         if not self._validAddresses.match(address):
-            self._logger.debug("Invalid address '" + address + "'")
+            self._logger.error("Invalid address '" + address + "'")
             return False
+
+        if len(address) > 1:
+            pin = address[0]
+            channel = int(address[1])
+            button = int(address[2])
+            return self._maplinSwitch(pin, channel, button, False)
+
         self._logger.debug("Sending OFF to address> " + address)
-        if address == 'A' or address == 'B':
+        if address == address.upper():
           return self._sendInterfaceCommand(self._modemCommands['turnOff'] + address)
+
         return self._sendInterfaceCommand('0' + address)
 
     def version(self):
