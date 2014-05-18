@@ -50,6 +50,8 @@ class Bv4626(HAInterface):
     VERSION = '1.0'
     
     _connected = False
+    _outputs = ''
+    _validAddresses = False
     CR = '\015'
     ESC = '\033'
     ACK = '\006'
@@ -69,6 +71,14 @@ class Bv4626(HAInterface):
           'turnOff': '0',
         }
 
+        if 'outputs' in kwargs:
+          self._logger.debug("Found OUTPUTS: " + kwargs['outputs'])
+          valid_outputs = re.compile('a?b?c?d?e?f?g?h?')
+          if valid_outputs.match(kwargs['outputs']):
+            self._outputs = kwargs['outputs']
+
+        self._validAddresses = re.compile('[AB' + self._outputs + ']')
+
     def shutdown(self):
         super(Bv4626, self).shutdown()
         self._logger.debug("Shutting down")
@@ -77,7 +87,7 @@ class Bv4626(HAInterface):
         
     def _connect(self):
         if self._connected:
-            return
+            return True
 
         self._interface.write(self.CR) # establish Baud rate
 
@@ -105,13 +115,31 @@ class Bv4626(HAInterface):
         self._interface.write(self.ESC+'['+str(ord(self.ACK))+'E') # set ACK
         self._connected = True
 
+        rv = True
+        if self._outputs:
+            val = 0
+            for c in 'abcdefgh':
+                if c not in self._outputs:
+                    pin = ord(c) - 97 # a = 0, b = 1...
+                    val += 2**pin
+            self._logger.debug("Setting output pins " + self._outputs +  " (" + str(val) + ")")
+            if self._sendInterfaceCommand(str(val)+'s'):
+                self._logger.debug("Output pins configured.")
+            else:
+                self._logger.debug("Output pins NOT configured.")
+                rv = False
+
+        return rv
+
     def _readInterface(self, lasPacketHash):
         #self._connect()
         time.sleep(0.5)
 
 
     def _sendInterfaceCommand(self, command, expectsReply=False):
-        self._connect()
+        if not self._connect():
+            return False
+
         self._logger.debug("Sending command: '" + command + "'")
         self._interface.write(self.ESC + '[' + command)
 
@@ -151,18 +179,22 @@ class Bv4626(HAInterface):
         return self._sendInterfaceCommand(self._modemCommands['getFirmwareVersion'], True)
 
     def on(self, address):
-        if address != 'A' and address != 'B':
+        if not self._validAddresses.match(address):
             self._logger.debug("Invalid address '" + address + "'")
             return False
         self._logger.debug("Sending ON to address> " + address)
-        return self._sendInterfaceCommand(self._modemCommands['turnOn'] + address)
+        if address == 'A' or address == 'B':
+          return self._sendInterfaceCommand(self._modemCommands['turnOn'] + address)
+        return self._sendInterfaceCommand('255' + address)
             
     def off(self, address):
-        if address != 'A' and address != 'B':
+        if not self._validAddresses.match(address):
             self._logger.debug("Invalid address '" + address + "'")
             return False
         self._logger.debug("Sending OFF to address> " + address)
-        return self._sendInterfaceCommand(self._modemCommands['turnOff'] + address)
+        if address == 'A' or address == 'B':
+          return self._sendInterfaceCommand(self._modemCommands['turnOff'] + address)
+        return self._sendInterfaceCommand('0' + address)
 
     def version(self):
         self._logger.info("Bv4626 Pytomation driver version " + self.VERSION)

@@ -13,11 +13,12 @@ class Bv4626Tests(TestCase):
     def setUp(self):
         self.ms = MockInterface()
         if self.useMock:  # Use Mock Serial Port
-            self.byvac = Bv4626(self.ms)
+            self.byvac = Bv4626(self.ms, outputs='abefh')
             self.ms.add_response({'\015': '*'})
+            self.ms.add_response({'\033[76s': self.byvac.ACK})
         else:
             self.serial = Serial('/dev/ttyUSB0', 115200, rtscts=True)
-            self.byvac = Bv4626(self.serial)
+            self.byvac = Bv4626(self.serial, outputs='abefh')
 
         #self.byvac.start()
 
@@ -51,15 +52,39 @@ class Bv4626Tests(TestCase):
 
         response = self.byvac.on('A')
         self.assertTrue(response)
-        time.sleep(0.5)
+        time.sleep(0.25)
         response = self.byvac.on('B')
         self.assertTrue(response)
-        time.sleep(1)
+        time.sleep(0.5)
         response = self.byvac.off('A')
         self.assertTrue(response)
-        time.sleep(0.5)
+        time.sleep(0.25)
         response = self.byvac.off('B')
         self.assertTrue(response)
+
+        response = self.byvac.on('C')
+        self.assertFalse(response)
+
+    def test_outputs(self):
+        self.ms.add_response({'\033[255a': self.byvac.ACK})
+        self.ms.add_response({'\033[0a': self.byvac.ACK})
+        self.ms.add_response({'\033[255h': self.byvac.ACK})
+        self.ms.add_response({'\033[0h': self.byvac.ACK})
+
+        response = self.byvac.on('a')
+        self.assertTrue(response)
+        time.sleep(0.25)
+        response = self.byvac.on('h')
+        self.assertTrue(response)
+        time.sleep(0.5)
+        response = self.byvac.off('a')
+        self.assertTrue(response)
+        time.sleep(0.25)
+        response = self.byvac.off('h')
+        self.assertTrue(response)
+
+        response = self.byvac.on('c')
+        self.assertFalse(response)
 
     #def test_device_status(self):
         #"""
