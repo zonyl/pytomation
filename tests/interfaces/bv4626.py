@@ -20,8 +20,6 @@ class Bv4626Tests(TestCase):
             self.serial = Serial('/dev/ttyUSB0', 115200, rtscts=True)
             self.byvac = Bv4626(self.serial, outputs='abefh')
 
-        #self.byvac.start()
-
     def tearDown(self):
         self.byvac.shutdown()
         self.serial = None
@@ -30,21 +28,21 @@ class Bv4626Tests(TestCase):
         self.assertIsNotNone(self.byvac,
                              'BV4626 interface could not be instantiated')
 
-    def test_get_device_id(self):
+    def test_b_get_device_id(self):
         # What will be written / what should we get back
         self.ms.add_response({'\033['+self.byvac._modemCommands['getDeviceId']: '4626'+self.byvac.ACK})
 
         response = self.byvac.getDeviceId()
         self.assertEqual(response, '4626')
 
-    def test_get_firmware_version(self):
+    def test_d_get_firmware_version(self):
         # What will be written / what should we get back
         self.ms.add_response({'\033['+self.byvac._modemCommands['getFirmwareVersion']: '12'+self.byvac.ACK})
 
         response = self.byvac.getFirmwareVersion()
         self.assertEqual(response, '12')
 
-    def test_relays(self):
+    def test_a_relays(self):
         self.ms.add_response({'\033[' + self.byvac._modemCommands['turnOn'] + 'A': self.byvac.ACK})
         self.ms.add_response({'\033[' + self.byvac._modemCommands['turnOff'] + 'A': self.byvac.ACK})
         self.ms.add_response({'\033[' + self.byvac._modemCommands['turnOn'] + 'B': self.byvac.ACK})
@@ -65,7 +63,7 @@ class Bv4626Tests(TestCase):
         response = self.byvac.on('C')
         self.assertFalse(response)
 
-    def test_outputs(self):
+    def test_c_outputs(self):
         self.ms.add_response({'\033[255a': self.byvac.ACK})
         self.ms.add_response({'\033[0a': self.byvac.ACK})
         self.ms.add_response({'\033[255h': self.byvac.ACK})
