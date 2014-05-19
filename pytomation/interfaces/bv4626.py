@@ -108,9 +108,12 @@ class MaplinWirelessSocket(object):
 
         for i in xrange(1, 6):
             end = time.time()
+            laststate = 2
             for state in states:
                 end = end + self._pulseWidth
-                self._interface.write(self._onCommand if state else self._offCommand)
+                if laststate != state:
+                    self._interface.write(self._onCommand if state else self._offCommand)
+                    laststate = state
                 self._busyWait(end)
 
 
