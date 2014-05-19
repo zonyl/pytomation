@@ -13,6 +13,7 @@ class Bv4626Tests(TestCase):
     def setUp(self):
         self.ms = MockInterface()
 
+        self.serial = None
         if not self.useMock:  # Use Mock Serial Port
             self.serial = Serial('/dev/ttyUSB0', 115200, rtscts=True)
 
@@ -42,13 +43,13 @@ class Bv4626Tests(TestCase):
         # Relay outputs
         response = self.byvac.on('A')
         self.assertTrue(response)
-        time.sleep(0.25)
+        self.serial and time.sleep(0.25)
         response = self.byvac.on('B')
         self.assertTrue(response)
-        time.sleep(0.5)
+        self.serial and time.sleep(0.5)
         response = self.byvac.off('A')
         self.assertTrue(response)
-        time.sleep(0.25)
+        self.serial and time.sleep(0.25)
         response = self.byvac.off('B')
         self.assertTrue(response)
 
@@ -59,13 +60,13 @@ class Bv4626Tests(TestCase):
         # I/O or Switch Outputs
         response = self.byvac.on('a')
         self.assertTrue(response)
-        time.sleep(0.25)
+        self.serial and time.sleep(0.25)
         response = self.byvac.on('h')
         self.assertTrue(response)
-        time.sleep(0.5)
+        self.serial and time.sleep(0.5)
         response = self.byvac.off('a')
         self.assertTrue(response)
-        time.sleep(0.25)
+        self.serial and time.sleep(0.25)
         response = self.byvac.off('h')
         self.assertTrue(response)
 
@@ -79,7 +80,7 @@ class Bv4626Tests(TestCase):
 
         response = self.byvac.on('c11')
         self.assertTrue(response)
-        time.sleep(0.5)
+        self.serial and time.sleep(0.5)
         response = self.byvac.off('c11')
         self.assertTrue(response)
 
