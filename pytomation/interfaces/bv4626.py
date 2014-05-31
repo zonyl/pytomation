@@ -65,10 +65,9 @@ class MaplinWirelessSocket(object):
     _postamble = [0] * 2
 
 
-    def __init__(self, interface, onCommand, offCommand):
-        self._interface = interface
-        self._onCommand = onCommand
-        self._offCommand = offCommand
+    def __init__(self, onCallback, offCallback):
+        self._onCallback = onCallback
+        self._offCallback = offCallback
 
 
     # converts the lowest bit_count bits to a list of ints
@@ -112,7 +111,10 @@ class MaplinWirelessSocket(object):
             for state in states:
                 end = end + self._pulseWidth
                 if laststate != state:
-                    self._interface.write(self._onCommand if state else self._offCommand)
+                    if state:
+                        self._onCallback()
+                    else:
+                        self._offCallback()
                     laststate = state
                 self._busyWait(end)
 
@@ -284,7 +286,7 @@ class Bv4626(HAInterface):
         self._logger.debug('Sending ' + ('ON' if on else 'OFF') + ' to address> ' + address + ' (via Maplin Wireless Socket ' + str(button) + ' on channel ' + str(channel) + ')')
         self._logger.debug('Clearing ACK')
         self._interface.write(self.ESC+'[0E') # Clear ACK
-        socket = MaplinWirelessSocket(self._interface, self.ESC+'[255'+address, self.ESC+'[0'+address)
+        socket = MaplinWirelessSocket(lambda: self._interface.write(self.ESC+'[255'+address), lambda: self._interface.write(self.ESC+'[0'+address))
         self._logger.debug('Sending signal...')
         if on:
             socket.on(channel, button)
