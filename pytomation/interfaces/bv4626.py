@@ -173,6 +173,7 @@ class Bv4626(HAInterface):
                         no_overlap = False
                 if no_overlap:
                     self._sockets = kwargs['sockets']
+                    self._outputs += self._sockets
                     outputs_regexp = '(' + outputs_regexp + ')|([' + self._sockets + '][1-4][1-4])'
 
         self._logger.debug('Valid outputs regex: ' + outputs_regexp)
