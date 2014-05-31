@@ -279,6 +279,8 @@ class Bv4626(HAInterface):
         return self._sendInterfaceCommand(self._modemCommands['getFirmwareVersion'], True)
 
     def _maplinSwitch(self, address, channel, button, on=True):
+        if not self._connect():
+            return False
         self._logger.debug('Sending ' + ('ON' if on else 'OFF') + ' to address> ' + address + ' (via Maplin Wireless Socket ' + str(button) + ' on channel ' + str(channel) + ')')
         self._logger.debug('Clearing ACK')
         self._interface.write(self.ESC+'[0E') # Clear ACK
