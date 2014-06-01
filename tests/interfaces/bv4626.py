@@ -20,7 +20,7 @@ class Bv4626Tests(TestCase):
         self.byvac = Bv4626(self.ms if self.useMock else self.serial, outputs='abefh', sockets='c')
 
         self.ms.add_response({'\015': '*'})
-        self.ms.add_response({'\033[76s': self.byvac.ACK})
+        self.ms.add_response({'\033[72s': self.byvac.ACK})
 
     def tearDown(self):
         self.byvac.shutdown()
