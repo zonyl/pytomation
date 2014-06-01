@@ -28,18 +28,9 @@ Author(s):
 License:
     This free software is licensed under the terms of the GNU public license, Version 3
 
-Usage:
-
-    see /example_bv4626_use.py
-
-Notes:
-    For documentation on the BV4626 please see:
-    http://doc.byvac.com/index.php5?title=Product_BV4626
-
 Versions and changes:
     Initial version created May 2014
 
-    
 """
 import time
 
@@ -122,7 +113,4 @@ class MaplinWirelessSocket(object):
 
     def off(self, channel, button):
         self._send(channel, button, 0)
-
-
-
 
