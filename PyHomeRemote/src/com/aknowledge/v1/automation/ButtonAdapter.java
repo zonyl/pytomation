@@ -8,6 +8,7 @@ import android.graphics.drawable.StateListDrawable;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseAdapter;
@@ -19,9 +20,11 @@ public class ButtonAdapter extends BaseAdapter {
 	private PytoDevice[] pytoDevices;
 	public StateListDrawable buttonStates;
 	public OnClickListener oncl;
+	public OnLongClickListener onlongcl;
 	public Drawable onImage;
 	public Drawable offImage;
 	public Drawable unknownImage;
+	public Drawable dimmedImage;
 	
 	
 	public ButtonAdapter(Context c){
@@ -29,11 +32,12 @@ public class ButtonAdapter extends BaseAdapter {
 
 	}
 	
-	public void setBackgroundImages(Drawable on, Drawable off, Drawable unknownImage)
+	public void setBackgroundImages(Drawable on, Drawable off, Drawable unknownImage, Drawable dimmedImage)
 	{
 	this.onImage = on;
 	this.offImage = off;
 	this.unknownImage = unknownImage;
+	this.dimmedImage = dimmedImage;
 	}
 	
 	public void setButtonAdapterState(StateListDrawable sld){
@@ -43,6 +47,9 @@ public class ButtonAdapter extends BaseAdapter {
 	public void setOnClick(OnClickListener listener){
 		this.oncl = listener;
 		
+	}
+	public void setOnLongClick(OnLongClickListener listener){
+		this.onlongcl = listener;
 	}
 	@Override
 	public int getCount() {
@@ -79,7 +86,9 @@ public class ButtonAdapter extends BaseAdapter {
         button.setTag(pytoDevices[index].getDevID());
       //  button.setBackgroundDrawable(buttonStates);
         button.setOnClickListener(oncl);
-
+        button.setOnLongClickListener(onlongcl);
+    //    button.setTextColor(0xFFFFFF);
+        Log.d("WTF", pytoDevices[index].getDevState());
         if(pytoDevices[index].getDevState().equalsIgnoreCase("on")){
             Log.d("WTF", pytoDevices[index].getDevState());
             button.setBackgroundDrawable(onImage);
@@ -87,10 +96,14 @@ public class ButtonAdapter extends BaseAdapter {
         }else{ 
         	if (pytoDevices[index].getDevState().equalsIgnoreCase("off")) {
 				button.setBackgroundDrawable(offImage);
-			} else{
+			} else{ 
+				if(pytoDevices[index].getDevState().contains("level")){
+					button.setBackgroundDrawable(dimmedImage);
+				}else{
 				button.setBackgroundDrawable(unknownImage);
 				
 			}
+        }
         }
 
         return button;
