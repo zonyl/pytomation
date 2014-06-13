@@ -97,6 +97,7 @@ public class RemoteActivity extends Activity implements
 		}
 
 	}
+
 	public void onCommandExecuted(View v, String result){
 		
 		if (result!=null) {
@@ -108,11 +109,16 @@ public class RemoteActivity extends Activity implements
 						dev.setDevState(devState);
 						if ( devState.equalsIgnoreCase("on") ){
 							v.setBackgroundResource(R.drawable.light_bulb_on);
-						} else
-						{
-							v.setBackgroundResource(R.drawable.light_bulb_off);
-						}
-						
+						} 
+						else { 
+								if ( devState.equalsIgnoreCase("off")){
+									v.setBackgroundResource(R.drawable.light_bulb_off);
+								}
+								else{
+									v.setBackgroundResource(R.drawable.light_bulb_dimmed);
+								}
+							}
+
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -124,23 +130,30 @@ public class RemoteActivity extends Activity implements
 
 	public void onButtonClicked(View v) {
 		Log.d("RemoteActivity", "Got click from  :" + v.getTag());
-		for (PytoDevice dev : myDevices){
-			if (dev.getDevID().equalsIgnoreCase((String)v.getTag()))
-			{
+		for (PytoDevice dev : myDevices) {
+			if (dev.getDevID().equalsIgnoreCase((String) v.getTag())) {
 				netFrag.setPytoServerDetails(hostname, user, pass);
-				if (dev.getDevState().equalsIgnoreCase("off")){
+				if (dev.getDevState().equalsIgnoreCase("off")) {
 					netFrag.doCommand(v, "command=on");
-					
-				}else
-				{
+
+				} else {
 					netFrag.doCommand(v, "command=off");
 				}
 
-			
 			}
-			
+
 		}
-		
+
+	}
+
+	public void onButtonLongClicked(View v, String command) {
+		Log.d("RemoteActivity", "command = " + command + " View =" + v.getTag());
+		for (PytoDevice dev : myDevices) {
+			if (dev.getDevID().equalsIgnoreCase((String) v.getTag())) {
+				netFrag.setPytoServerDetails(hostname, user, pass);
+				netFrag.doCommand(v, "command=" + command);
+			}
+		}
 	}
 
 	public void startProgressBar() {
@@ -231,10 +244,9 @@ public class RemoteActivity extends Activity implements
 
 		getFragmentManager()
 				.beginTransaction()
-				.replace(
-						R.id.container,
-						remoteFrag = RemotePanelFragment
-								.newInstance(pDevs)).commit();
+				.replace(R.id.container,
+						remoteFrag = RemotePanelFragment.newInstance(pDevs))
+				.commit();
 	}
 
 	@Override

@@ -20,10 +20,12 @@ package com.aknowledge.v1.automation;
 
 
 
-import com.aknowledge.v1.automation.NetFragment.onDataLoadedListener;
+
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.DialogInterface;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
@@ -32,8 +34,10 @@ import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.widget.EditText;
 import android.widget.GridView;
 
 public class RemotePanelFragment extends Fragment {
@@ -41,6 +45,7 @@ public class RemotePanelFragment extends Fragment {
 	private static final String ARG_SECTION_NAME = "sectionName";
 	public ButtonAdapter buttonAdapter;
 	public StateListDrawable bStates;
+	public String command;
 	
 	
 	onButtonClickListener fragListener;
@@ -48,6 +53,7 @@ public class RemotePanelFragment extends Fragment {
 	
 	public interface onButtonClickListener {
 		public void onButtonClicked(View v);
+		public void onButtonLongClicked(View v, String command);
 	}
 
 	public void onAttach(Activity activity) {
@@ -94,7 +100,41 @@ public class RemotePanelFragment extends Fragment {
         	
         }
     };
+    private OnLongClickListener buttonLongListener = new OnLongClickListener() {
+    	public boolean onLongClick(View v) {
+    		Log.d("REMOTEPANEL","onLongClick");
+    		
+    		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+					v.getContext());
+    		alertDialogBuilder.setTitle("Enter Custom Command");
+    		alertDialogBuilder.setMessage("Type the exact string, ie 'level,80'");
+    		final EditText input = new EditText(v.getContext());
+    		final View myView = v;
+    		alertDialogBuilder.setView(input);
+    		alertDialogBuilder.setPositiveButton("OK",new DialogInterface.OnClickListener() {
+    			public void onClick(DialogInterface dialog, int whichButton) {
+    				 
+    				  command = input.getText().toString();
+    				  Log.d("RemotePanel", "Command =" + command);
+    				  fragListener.onButtonLongClicked(myView,command);
+    				  }
+    				});
+    		alertDialogBuilder.setNegativeButton("CANCEL",new DialogInterface.OnClickListener() {
+    			  public void onClick(DialogInterface dialog, int whichButton) {
+    				    // Canceled.
+    				  }
+    				});
+    		alertDialogBuilder.show();
+    		//fragListener.onButtonLongClicked(v, command);
+			v.setBackgroundResource(R.drawable.lightanim);	
+			AnimationDrawable lightAnimation = (AnimationDrawable) v.getBackground();
+			lightAnimation.start();
+    		return true;
+    	
+    	}
+    };
 	
+    
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -125,9 +165,12 @@ public class RemotePanelFragment extends Fragment {
 			buttonAdapter.setDevices(devices);
 			buttonAdapter.setButtonAdapterState(bStates);
 			buttonAdapter.setOnClick(buttonListener);
+			buttonAdapter.setOnLongClick(buttonLongListener);
+			
 			buttonAdapter.setBackgroundImages(getResources().getDrawable(R.drawable.light_bulb_on), 
 					getResources().getDrawable(R.drawable.light_bulb_off),
-					getResources().getDrawable(R.drawable.light_bulb_unknown));
+					getResources().getDrawable(R.drawable.light_bulb_unknown),
+					getResources().getDrawable(R.drawable.light_bulb_dimmed));
 
 			if(gv !=null){
 				Log.d("FRAGMENT", gv.toString());
