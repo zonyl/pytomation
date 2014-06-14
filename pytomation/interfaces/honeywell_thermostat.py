@@ -133,6 +133,15 @@ class HoneywellWebsite(Interface):
         self._logger.debug(location)
         self._logger.debug(headers)
         self._logger.debug(request)
+
+        conn = httplib.HTTPSConnection("rs.alarmnet.com")
+        rawj = json.dumps(request)
+        conn.request("POST", location, rawj, headers)
+        r4 = conn.getresponse()
+        if (r4.status != 200): 
+            print "Bad R4 status ", r4.status, r4.reason
+            return False
+
         return True
 
     def read(self, deviceid=None, *args, **kwargs):
@@ -144,7 +153,7 @@ class HoneywellWebsite(Interface):
 
 
 class HoneywellThermostat(HAInterface):
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
 
     def _init(self, *args, **kwargs):
         super(HoneywellThermostat, self)._init(*args, **kwargs)
