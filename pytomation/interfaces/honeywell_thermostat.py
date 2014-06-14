@@ -275,3 +275,20 @@ class HoneywellThermostat(HAInterface):
 
         return self._interface.write(deviceid=self._deviceid,
                                      request=cancelHold)
+
+    def automatic(self, *args, **kwargs):
+        # should take us back to the schedule
+        cancelHold = {
+            "CoolNextPeriod": None,
+            "CoolSetpoint": 75,  # bogus temp
+            "DeviceID": None,
+            "FanMode": None,
+            "HeatNextPeriod": None,
+            "HeatSetpoint": None,
+            "StatusCool": 0,
+            "StatusHeat": 0,
+            "SystemSwitch": None
+        }
+
+        return self._interface.write(deviceid=self._deviceid,
+                                         request=cancelHold)
