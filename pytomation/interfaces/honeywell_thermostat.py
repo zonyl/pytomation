@@ -175,15 +175,16 @@ class HoneywellThermostat(HAInterface):
         #value used when on temp
         #import datetime; str(timedelta(minutes=1410))
         self._request = {
-            "CoolNextPeriod": None,
-            "CoolSetpoint": 78,
-            "DeviceID": None,
-            "FanMode": None,
+            "DeviceID": self._deviceid,
+            "SystemSwitch": None,
+            "HeatSetpoint": None,
+            "CoolSetpoint": None,
             "HeatNextPeriod": None,
-            "HeatSetpoint": 70,
-            "StatusCool": 0,
-            "StatusHeat": 0,
-            "SystemSwitch": None
+            "CoolNextPeriod": None,
+            "StatusHeat": None,
+            "StatusCool": None,
+            "FanMode": None
+
         }
         """
         The "CoolNextPeriod" and "HeatNextPeriod" parameters require special
@@ -261,34 +262,42 @@ class HoneywellThermostat(HAInterface):
             time.sleep(1)  # one sec iteration
 
     def schedule(self, *args, **kwargs):  # should take us back to the schedule
-        cancelHold = {
-            "CoolNextPeriod": None,
-            "CoolSetpoint": 75,  # bogus temp
-            "DeviceID": None,
-            "FanMode": None,
-            "HeatNextPeriod": None,
-            "HeatSetpoint": None,
-            "StatusCool": 0,
-            "StatusHeat": 0,
-            "SystemSwitch": None
-        }
-
+        self._request['HeatSetPoint'] = 65
+        self._request['StatusCool'] = 2
+        self._request['StatusHeat'] = 2
         return self._interface.write(deviceid=self._deviceid,
-                                     request=cancelHold)
+                                     request=self._request)
 
     def automatic(self, *args, **kwargs):
-        # should take us back to the schedule
-        cancelHold = {
-            "CoolNextPeriod": None,
-            "CoolSetpoint": 75,  # bogus temp
-            "DeviceID": None,
-            "FanMode": None,
-            "HeatNextPeriod": None,
-            "HeatSetpoint": None,
-            "StatusCool": 0,
-            "StatusHeat": 0,
-            "SystemSwitch": None
-        }
-
+        self._fan(mode="On")
+        self._system(mode="Auto")
         return self._interface.write(deviceid=self._deviceid,
-                                         request=cancelHold)
+                                         request=self._request)
+
+    def _fan(self, mode="On"):
+        if mode == "On":
+            self._request['FanMode'] = 1
+        else:
+            self._request['FanMode'] = 0
+        return
+
+    def _system(self, mode="Auto"):
+        if mode == "Auto":
+            self._request['SystemSwitch'] = 4
+        elif mode == "Cool":
+            self._request['SystemSwitch'] = 3
+        elif mode == "Heat":
+            self._request['SystemSwitch'] = 1
+        elif mode == "Off":
+            self._request['SystemSwitch'] = 2
+        return
+
+    def circulate(self, *args, **kwargs):
+        self._fan(mode="On")
+        return self._interface.write(deviceid=self._deviceid,
+                                         request=self._request)
+
+    def still(self, *args, **kwargs):
+        self._fan(mode="Auto")
+        return self._interface.write(deviceid=self._deviceid,
+                                         request=self._request)
