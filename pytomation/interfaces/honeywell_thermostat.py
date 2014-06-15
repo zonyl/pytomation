@@ -36,6 +36,7 @@ class HoneywellWebsite(Interface):
         self._password = password
         self._cookie = None
         self._loggedin = False
+        self._conn = None
         self._logger.debug('Created object for user> ' + str(username))
         try:
             self._login()
@@ -57,9 +58,9 @@ class HoneywellWebsite(Interface):
                 "Origin": "https://rs.alarmnet.com/TotalComfort/",
                 "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36"
             }
-        conn = httplib.HTTPSConnection("rs.alarmnet.com")
-        conn.request("POST", "/TotalConnectComfort/", params, headers)
-        r1 = conn.getresponse()
+        self._conn = httplib.HTTPSConnection("rs.alarmnet.com")
+        self._conn.request("POST", "/TotalConnectComfort/", params, headers)
+        r1 = self._conn.getresponse()
         cookie = r1.getheader("Set-Cookie")
         location = r1.getheader("Location")
         newcookie = cookie
@@ -77,13 +78,13 @@ class HoneywellWebsite(Interface):
             self._loggin = True
 
     def _query(self, deviceid):
-            self._logger.debug('[HoneywellThermostat] Querying Thermostat>')
+            self._logger.debug('Querying Thermostat>')
             t = datetime.datetime.now()
             utc_seconds = (time.mktime(t.timetuple()))
             utc_seconds = int(utc_seconds * 1000)
 
-            location = "/TotalConnectComfort/Device/CheckDataSession/"
-            + deviceid + "?_=" + str(utc_seconds)
+            location = ("/TotalConnectComfort/Device/CheckDataSession/"
+                        + deviceid + "?_=" + str(utc_seconds))
             headers = {
                     "Accept": "*/*",
                     "DNT": "1",
@@ -97,9 +98,9 @@ class HoneywellWebsite(Interface):
                     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36",
                     "Cookie": self._cookie
                 }
-            conn = httplib.HTTPSConnection("rs.alarmnet.com")
-            conn.request("GET", location, None, headers)
-            r3 = conn.getresponse()
+            self._conn = httplib.HTTPSConnection("rs.alarmnet.com")
+            self._conn.request("GET", location, None, headers)
+            r3 = self._conn.getresponse()
             if (r3.status != 200):
                     self._logger.debug("Bad R3 status ")
 
@@ -121,26 +122,47 @@ class HoneywellWebsite(Interface):
             "Accept-Language": "en-US,en,q=0.8",
             "Connection": "keep-alive",
             "Host": "rs.alarmnet.com",
-            "Referer": "https://rs.alarmnet.com/TotalConnectComfort/",
+            #"Referer": "https://rs.alarmnet.com/TotalConnectComfort/" + deviceid,
             "X-Requested-With": "XMLHttpRequest",
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36",
-            'Referer': "/TotalConnectComfort/Device/CheckDataSession/" + deviceid,
+            #'Referer': "/TotalConnectComfort/Device/CheckDataSession/" + deviceid,
+            'Referer': 'https://rs.alarmnet.com/TotalConnectComfort/Device/Control/' + deviceid,
             "Cookie": self._cookie
         }
 
         request["DeviceID"] = deviceid
-
+        rawj = json.dumps(request)
+        
         self._logger.debug(location)
         self._logger.debug(headers)
         self._logger.debug(request)
+        self._logger.debug(rawj)
 
-        conn = httplib.HTTPSConnection("rs.alarmnet.com")
-        rawj = json.dumps(request)
-        conn.request("POST", location, rawj, headers)
-        r4 = conn.getresponse()
-        if (r4.status != 200): 
-            print "Bad R4 status ", r4.status, r4.reason
-            return False
+        #self._conn = httplib.HTTPSConnection("rs.alarmnet.com")
+        
+        #self._conn.request("POST", location, rawj, headers)
+        #r4 = self._conn.getresponse()
+        #if (r4.status != 200): 
+        #    print "Bad R4 status ", r4.status, r4.reason
+        #    return False
+        '''
+        Host: rs.alarmnet.com
+        User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0
+        Accept: application/json, text/javascript, */*; q=0.01
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        DNT: 1
+        Content-Type: application/json; charset=utf-8
+        X-Requested-With: XMLHttpRequest
+        Referer: https://rs.alarmnet.com/TotalConnectComfort/Device/Control/xxxxxx
+        Content-Length: 174
+        Cookie: __utma=95700044.1876926805.1393956240.1393956240.1402712414.2; __utmz=95700044.1393956240.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); thlang=en-US; ASP.NET_SessionId=nzaw2rg3mlv0xwwh0eu2zvco; TrueHomeCheckCookie=; __utmb=95700044.500.10.1402712414; __utmc=95700044; __RequestVerificationToken_L1RvdGFsQ29ubmVjdENvbWZvcnQ_=qHpN+ogUBNZ2Z0/8AVI+8dkdgBk9CTflbvrcdQIhuSuDEWYROXaRLPyBW/bl0KzMVr1m20Di24ElCFkkatYMErJPKXTVjzCnO0AfMkU2HkZKIzFwEJUYFp1CND934KUAHUIGIUUMJod3SonJKKh5Ikwb/Lm7oDEyH9yuzoK2J/4=; .ASPXAUTH_TH_A=89DF272D3E8B9B2CD724E3221B43DC5DEDF3829EA5B9283B2C2D5F5D541F3A4C33A753AC619053E51C631D9D2EF1937269F5C7D50AFDED4F1A14C4DCE5B8129F784C41CE61E8628713807DC7C184D8B6F4CB3F74D015DA5A93F97E3A1F5B7D7967A66F22C5CA87D9A9649529F2F273BC31E02D24867C9BCFAF4707E59A23335F9438CA31256CA128A38CDEECC9CD2B1CBE221ECFEBDAD605B769CA2C6DF423EDA8A87BA94DFCA6C69714183C4C879A8629572A69B88CB9E29094E60C7E9AF35F
+        Connection: keep-alive
+        Pragma: no-cache
+        Cache-Control: no-cache
+        
+        {"DeviceID":xxxxxxx,"SystemSwitch":null,"HeatSetpoint":null,"CoolSetpoint":null,"HeatNextPeriod":null,"CoolNextPeriod":null,"StatusHeat":null,"StatusCool":null,"FanMode":null}
+        '''
 
         return True
 
