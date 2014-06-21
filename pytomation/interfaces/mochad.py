@@ -3,8 +3,10 @@
 from .common import Command
 from .ha_interface import HAInterface
 from pytomation.devices import State
+import time
+
 '''
-Mochad Driver Reference: 
+Mochad Driver Reference:
 http://sourceforge.net/apps/mediawiki/mochad/index.php?title=Mochad_Reference
 
 switched pl method for rf as both the cm19a only supports rf while the cm14a
@@ -25,6 +27,7 @@ class Mochad(HAInterface):
         raw_response = self._interface.read()
 
         if len(raw_response) == 0:  # if no data leave
+            time.sleep(1)  # prevent cpu loops
             return
 
         response_lines = raw_response.split('\n')
