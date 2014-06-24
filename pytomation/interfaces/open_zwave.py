@@ -11,10 +11,10 @@ from .ha_interface import HAInterface
 
 import time
 try:
-    import openzwave
+    #import openzwave
     from openzwave.option import ZWaveOption
     from openzwave.network import ZWaveNetwork
-    from openzwave.node import ZWaveNode
+    #from openzwave.node import ZWaveNode
 except:
     print ("Error importing Openzwave and/or Python-Openzwave")
 
@@ -99,3 +99,23 @@ class Open_zwave(HAInterface):
                           self._network.controller.python_library_version)
         self._logger.info("Use ZWave library : %s" %
                           self._network.controller.library_description)
+
+    def test(self):
+        val = self._network.get_value_from_id_on_network("0184c44a.6.26.1.0").value_id
+        self._network.nodes[6].set_dimmer(val, 99)
+        """
+        node002 frontdoor
+        node006 dimmer 72057594143408129
+        """
+
+    def on(self, address):
+        val = self._network.get_value_from_id_on_network(address)
+        nodeid = address.split(".")[1]
+        self._network.nodes[nodeid].set_dimmer(val, 99)
+        self._logger.debug('Command on at' + val)
+
+    def off(self, address):
+        val = self._network.get_value_from_id_on_network(address)
+        nodeid = address.split(".")[1]
+        self._network.nodes[nodeid].set_dimmer(val, 99)
+        self._logger.debug('Command off at' + val)
