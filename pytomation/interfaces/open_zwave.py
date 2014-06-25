@@ -89,6 +89,7 @@ class Open_zwave(HAInterface):
             for node in self._network.nodes:
                 self._printNetwork(node)
             self.nodesdisplayed = True
+	time.sleep(1)
 
     def version(self):
         self._logger.info("Open_zwave Pytomation Driver version " +
@@ -103,12 +104,22 @@ class Open_zwave(HAInterface):
     def on(self, address):
         val = self._network.get_value_from_id_on_network(address)
         nodeid = val.parent_id 
-        self._network.nodes[nodeid].set_dimmer(val.value_id, 99)
-        self._logger.debug('Command on at' + address)
+        if (self._network.nodes[nodeid].set_dimmer(val.value_id, 99)):
+           self._logger.debug('Command dimmer on at' + address)
+	if (self._network.nodes[nodeid].set_switch(val, True)):
+           self._logger.debug('Command switch on at' + address)
 
     def off(self, address):
         val = self._network.get_value_from_id_on_network(address)
         nodeid = val.parent_id 
-        self._network.nodes[nodeid].set_dimmer(val.value_id, 0)
-        self._logger.debug('Command off at' + address)
+        if (self._network.nodes[nodeid].set_dimmer(val.value_id, 0)):
+           self._logger.debug('Command dimmer off at' + address)
+	if (self._network.nodes[nodeid].set_switch(val, False)):
+           self._logger.debug('Command switch off at' + address)
 
+    def status(self,address):
+        val = self._network.get_value_from_id_on_network(address)
+	nodeid = val.parent_id
+	level = self._network.nodes[nodeid].get_dimmer_level(val)
+	#next lone isn't great
+	self._network.nodes[nodeid].set_dimmer(val.value_id, level) 
