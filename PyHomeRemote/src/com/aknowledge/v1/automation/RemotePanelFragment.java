@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with PyHomeRemote.  If not, see <http://www.gnu.org/licenses/>. * 
 
-
+	Written by Anand Kameswaran
  */
 package com.aknowledge.v1.automation;
 
@@ -31,12 +31,15 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.GridView;
 
@@ -46,6 +49,9 @@ public class RemotePanelFragment extends Fragment {
 	public ButtonAdapter buttonAdapter;
 	public StateListDrawable bStates;
 	public String command;
+    private static final String[] COMMANDS = new String[] {
+        "on", "off", "level", "status", "toggle"
+    };
 	
 	
 	onButtonClickListener fragListener;
@@ -108,7 +114,12 @@ public class RemotePanelFragment extends Fragment {
 					v.getContext());
     		alertDialogBuilder.setTitle("Enter Custom Command");
     		alertDialogBuilder.setMessage("Type the exact string, ie 'level,80'");
-    		final EditText input = new EditText(v.getContext());
+    		final AutoCompleteTextView input = new AutoCompleteTextView(v.getContext());
+    		ArrayAdapter<String> adapt = new ArrayAdapter<String>(v.getContext(),android.R.layout.select_dialog_item,COMMANDS);
+    		input.setAdapter(adapt);
+    		input.setMaxLines(1);
+    		input.setInputType(InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE);
+    		input.setThreshold(0);
     		final View myView = v;
     		alertDialogBuilder.setView(input);
     		alertDialogBuilder.setPositiveButton("OK",new DialogInterface.OnClickListener() {
@@ -117,18 +128,19 @@ public class RemotePanelFragment extends Fragment {
     				  command = input.getText().toString();
     				  Log.d("RemotePanel", "Command =" + command);
     				  fragListener.onButtonLongClicked(myView,command);
+    					myView.setBackgroundResource(R.drawable.lightanim);	
+    					AnimationDrawable lightAnimation = (AnimationDrawable) myView.getBackground();
+    					lightAnimation.start();
     				  }
     				});
     		alertDialogBuilder.setNegativeButton("CANCEL",new DialogInterface.OnClickListener() {
     			  public void onClick(DialogInterface dialog, int whichButton) {
-    				    // Canceled.
+    				    
     				  }
     				});
     		alertDialogBuilder.show();
     		//fragListener.onButtonLongClicked(v, command);
-			v.setBackgroundResource(R.drawable.lightanim);	
-			AnimationDrawable lightAnimation = (AnimationDrawable) v.getBackground();
-			lightAnimation.start();
+
     		return true;
     	
     	}

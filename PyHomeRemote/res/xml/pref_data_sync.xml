@@ -21,5 +21,9 @@
     <Preference android:title="@string/pref_title_system_sync_settings" >
         <intent android:action="android.settings.SYNC_SETTINGS" />
     </Preference>  -->
+    <EditTextPreference android:key="pyto_refresh_rate" android:defaultValue="30"
+        android:inputType="number"
+        android:singleLine="true"
+        android:title="Refresh Rate"/>
 
 </PreferenceScreen>

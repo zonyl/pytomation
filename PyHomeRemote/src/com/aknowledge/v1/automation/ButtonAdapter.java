@@ -1,3 +1,21 @@
+/**
+    This file is part of PyHomeRemote
+
+    PyHomeRemote is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    PyHomeRemote is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with PyHomeRemote.  If not, see <http://www.gnu.org/licenses/>. * 
+	
+	Written by Anand Kameswaran
+ */
 package com.aknowledge.v1.automation;
 
 
@@ -6,6 +24,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
@@ -75,9 +94,12 @@ public class ButtonAdapter extends BaseAdapter {
 		
         if (arg1 == null) {  // if it's not recycled, initialize some attributes
             button = new Button(context);
-            button.setLayoutParams(new GridView.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT));
-          
-
+            final float scale = context.getResources().getDisplayMetrics().density;
+            int pixels = (int) (110*scale+ 0.5f);
+            //button.setLayoutParams(new GridView.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT));
+            button.setLayoutParams(new GridView.LayoutParams(pixels+10,pixels-20));
+         //   button.setTextSize(TypedValue.COMPLEX_UNIT_SP,12);
+            
         } else {
             button = (Button) arg1;
         }
@@ -88,9 +110,9 @@ public class ButtonAdapter extends BaseAdapter {
         button.setOnClickListener(oncl);
         button.setOnLongClickListener(onlongcl);
     //    button.setTextColor(0xFFFFFF);
-        Log.d("WTF", pytoDevices[index].getDevState());
+     //   Log.d("WTF", pytoDevices[index].getDevState());
         if(pytoDevices[index].getDevState().equalsIgnoreCase("on")){
-            Log.d("WTF", pytoDevices[index].getDevState());
+     
             button.setBackgroundDrawable(onImage);
   
         }else{ 
@@ -114,7 +136,10 @@ public class ButtonAdapter extends BaseAdapter {
 		
 	}
 	public void setDevices(PytoDevice[] devices) {
-		this.pytoDevices = devices;;
+		if (devices== null){
+			this.pytoDevices = new PytoDevice[0];
+		}else{
+		this.pytoDevices = devices;}
 		this.notifyDataSetChanged();
 		
 	}
