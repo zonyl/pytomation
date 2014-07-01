@@ -52,7 +52,14 @@ echo "Making sure scripts are excutable..."
 chmod +x /usr/bin/pytomation.sh
 chmod +x /etc/init.d/pyto
 
-echo "Setting Pytomation to start from run level 2"
-ln -s ../init.d/pyto /etc/rc2.d/S99pyto
+# Old versions of the install script created a manual rcS symlink for runlevel
+# 2 only, which is not correct. Force remove any old symlinks that might exist
+# before using update-rc.d to create the proper entries (start or kill) at all
+# runlevels.
+echo "Removing old rcS entries ..."
+update-rc.d -f pyto remove
+
+echo "Configuration Pytomation to run at boot ..."
+update-rc.d pyto defaults
 
 echo "Finished..."
