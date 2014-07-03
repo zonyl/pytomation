@@ -38,55 +38,46 @@ more planned in the future.
 
 #### DEPENDENCIES
 
-Before you can create an instance and run Pytomation automation software you must satisfy a few dependencies. Pytomation is written in Python and currently has been tested under versions 2.6.x and 2.7.x.
+Before you can create an instance and run Pytomation automation software you must satisfy a few dependencies. Pytomation is written in Python and currently has been tested under versions 2.6.x and 2.7.x. 
 
-
-Pytomation also requires the following packages to be installed:
+Pytomation also requires the following packages to be installed for normal operation:
  
-
- - Pyserial - Support for RS232 serial interfaces.
+ - pySerial - Support for RS232 serial interfaces.
  - Pyephem - High-precision astronomy computations for sunrise/sunset.
  - Pytz - World timezone definitions.
- - Mock - Python testing library.
- - Git - Version control software.
- - Debian packages are available for Pyserial and can be installed with : 
 
-     
+Additional packages are required for development and testing. See `requirements.txt` for a more complete list.
 
-       sudo apt-get install python-serial 
-or search for python serial in your software manager.
+Debian packages are available for pySerial and pytz. They can be installed with : 
 
+    sudo apt-get install git python-serial python-tz
 
-The other pieces can be installed with ""pip". "Pip" is a tool for installing and managing Python packages, such as those found in the Python Package Index.
+For other operating systems, search your package manager for the equivalent packages or use pip to install the Python dependencies.
 
+The remaining dependencies can be installed with `pip`. Pip is a tool for installing and managing Python packages, such as those found in the Python Package Index.
 
 Again, under Debian distributions you can install the python-pip package: 
 
-     sudo apt-get install python-pip
+    sudo apt-get install python-pip
 
-     
 Once pip is installed it is easy to install the rest of the dependencies with the following commands.
 
-
-    sudo pip install pytz pyephem mock git
+    sudo pip install pyephem
 
     
 ####INSTALL
 
-
-You are now ready to install pytomation. Change into the directory that Pytomation resides in from the git clone command above and run "./install.sh". You may have to make it executable with the command chmod +x ./install.sh first. Install.sh can take an optional argument which points to an alternate installation directory:
+You are now ready to install pytomation. First, clone the pytomation git repository. Change into the pytomation repo directory and run `./install.sh`. You may have to make it executable with the command `chmod +x ./install.sh` first. Install.sh can take an optional argument which points to an alternate installation directory:
 
      ./install.sh /some/other/folder/pytomation
 
-     
 The install.sh command does the following:
  
-
   - Confirms where you are installing Pytomation to.
   - Makes a "pyto" user and creates the home directory.
   - Copies all the necessary files into Pytomations HOME.
-  - Creates a /usr/bin/pytomation.sh command to start Pytomation.
-  - Creates an /etc/init.d/pyto script for starting Pytomation on boot.
+  - Creates an /etc/init.d/pytomation init script for starting Pytomation on boot.
+  - Configures pytomation to start automatically at boot time
 
 You are now ready to configure pytomation and create an instance for your devices.
 
