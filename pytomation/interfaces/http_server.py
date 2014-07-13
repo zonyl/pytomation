@@ -1,6 +1,7 @@
 import BaseHTTPServer
 import base64
-
+import threading
+from SocketServer import ThreadingMixIn
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from pytomation.common import config
 #import pytomation.common.config 
@@ -95,6 +96,11 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
         else:
             getattr(SimpleHTTPRequestHandler, "do_" + self.command.upper())(self)
 
+class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
+    '''
+    classdocs
+    '''
+
 class HTTPServer(HAInterface):
     def __init__(self, address=None, port=None, path=None, *args, **kwargs):
         super(HTTPServer, self).__init__(address, *args, **kwargs)
@@ -115,7 +121,7 @@ class HTTPServer(HAInterface):
         
         PytoHandlerClass.protocol_version = self._protocol
         PytoHandlerClass.server = self
-        httpd = BaseHTTPServer.HTTPServer(server_address, PytoHandlerClass)
+        httpd = ThreadedHTTPServer(server_address, PytoHandlerClass)
         
         sa = httpd.socket.getsockname()
         print "Serving HTTP files at ", self._path, " on", sa[0], "port", sa[1], "..."
