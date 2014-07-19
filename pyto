@@ -1,0 +1,57 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides: pytomation
+# Required-Start: networking
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Starts Pytomation server
+# Description:
+### END INIT INFO
+
+# Pytomation automatically generates a PID file here:
+PID=/var/run/pytomation.pid
+ 
+# Use this command to start the proxy
+# this just calls another script that does the real work
+DAEMON=/usr/bin/pytomation.sh
+ 
+# Start pytomation
+start()
+{
+    echo "Starting Pytomation"
+    start-stop-daemon --start --background --quiet --exec $DAEMON && success=1
+# --chuid doesn't work with scripts
+#    start-stop-daemon --start --background --quiet --chuid pyto --exec $DAEMON && success=1
+    echo ""
+}
+ 
+# Stop pytomation
+stop()
+{
+    echo "Stopping Pytomation"
+    start-stop-daemon --stop --quiet --pidfile $PID && success=1
+}
+ 
+ 
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        echo "Pytomation stopped..."
+        sleep 5
+        start
+        echo "Pytomation started..."
+        ;;
+    *) # Display a usage option.
+        echo "Usage: /etc/init.d/pytomation {start|stop|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

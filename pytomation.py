@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import os
 from pytomation.common import config, pytomation_system
 
