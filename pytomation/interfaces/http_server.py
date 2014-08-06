@@ -44,11 +44,11 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
     def do_GET(self):
         auth_credentials = base64.b64encode(config.admin_user + ":" + config.admin_password)
         
-        if self.headers.getheader('Authorization') == None:
+        if config.auth_enabled == 'Y' and self.headers.getheader('Authorization') == None:
             self.do_AUTHHEAD()
             self.wfile.write('no auth header received')
             return
-        elif self.headers.getheader('Authorization') == 'Basic ' + auth_credentials:
+        elif config.auth_enabled != 'Y' or self.headers.getheader('Authorization') == 'Basic ' + auth_credentials:
 #            self.do_HEAD()
 #            self.wfile.write(self.headers.getheader('Authorization'))
 #            self.wfile.write('authenticated!')
@@ -57,6 +57,7 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
             self.do_AUTHHEAD()
             self.wfile.write(self.headers.getheader('Authorization'))
             self.wfile.write('Not authenticated')
+            self.wfile.write('<br />AuthConfig :' + config.auth_enabled)
             return
         self.route()
 
