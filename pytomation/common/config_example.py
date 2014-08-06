@@ -26,6 +26,7 @@ import sys
 #
 #********************* SYSYTEM CONFIGURATION ONLY ********************
 #
+auth_enabled = 'Y'
 admin_user = 'pyto'
 admin_password = 'mation'
 http_address = "0.0.0.0"
