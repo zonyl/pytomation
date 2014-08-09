@@ -1,0 +1,28 @@
+body {
+}
+button.toggle, button.command {
+    width:100%;
+    margin-bottom: 0px;
+    margin-top:0px;
+}
+#tableDevices {
+  width:100%;
+}
+.ui-slider-track {
+    position: relative;
+    left: -60px;
+    width : 90%;
+}
+.singleDevice {
+    border-style: groove;
+    border-width: thin;
+    padding-left: 1px;
+    padding-right: 1px;
+}
+div.ui-slider {
+    margin-top:0px;
+    margin-bottom: 0px;
+}
+#mainContent{
+    padding: 0 0 0 0;
+}
