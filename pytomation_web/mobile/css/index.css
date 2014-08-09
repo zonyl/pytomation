@@ -5,7 +5,7 @@ button.toggle, button.command {
     margin-bottom: 0px;
     margin-top:0px;
 }
-#tableDevices {
+table {
   width:100%;
 }
 .ui-slider-track {

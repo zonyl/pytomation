@@ -18,31 +18,31 @@
     <!-- Start of main page: #main -->
     <div data-role="page" id="main">
         <div data-role="header">
-            	<h1>Home Control</h1>
-		<div style="position:absolute;top:-5px;left:5px">
-            	<select name='listDevice' onchange='reload_device_grid()'>
-				  <option value='Door'>Door</option>
-				  <option value='Generic'>Generic</option>
-				  <option selected value='Light'>Light</option>
-				  <option value='Location'>Location</option>
-				  <option value='Motion'>Motion</option>
-				  <option value='Photocell'>Photocell</option>
-				  <option value='Room'>Room</option>
-				  <option value='Thermostat'>Thermostat</option>
-				</select>
-		</div>
+            <h1>Home Control</h1>
+            <div style="position:absolute;top:-5px;left:5px">
+            <select name='listDevice' onchange='reload_device_grid()'>
+                <option value='Door'>Door</option>
+                <option value='Generic'>Generic</option>
+                <option selected value='Light'>Light</option>
+                <option value='Location'>Location</option>
+                <option value='Motion'>Motion</option>
+                <option value='Photocell'>Photocell</option>
+                <option value='Room'>Room</option>
+                <option value='Thermostat'>Thermostat</option>
+            </select>
+            </div>
             <div style="position:absolute;top:-3px;right:5px">
             	<a id="settingsButton" href="#settings" data-icon="gear" data-role="button" data-rel="dialog"
                     data-transition="pop">Settings</a>
             </div>
         </div><!-- /header -->
 
-        <div id="mainContent" data-role="content" data-theme="c">
-            <!-- /content -->
-			<table id='tableDevices'>
-			
-			</table>
-		</div>
+        <div id="mainContent" data-role="content">
+        <!-- /content -->
+            <table id='tableDevices'>
+
+            </table>
+        </div>
     </div><!-- /page main -->
     
     <!-- Start of commands popup: #commands -->
@@ -51,7 +51,7 @@
             <!-- /content -->
     		<table id='tableCommands'>
 				
-			</table>
+                </table>
             <p>
                 <a href="#main" data-rel="back" data-role="button" data-inline="true"
                     data-icon="back">close</a>
@@ -66,8 +66,8 @@
         </div><!-- /header -->
 
         <div data-role="content" >
-           	<form id="settings">
-           	<p>
+            <form id="settings">
+            <p>
                Server Name:Port <input type="text" name="serverName" id="serverName">
                User Name <input type="text" name="userName" id="userName">
                Password <input type="password" name="password" id="password">
