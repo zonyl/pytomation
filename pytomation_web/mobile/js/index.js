@@ -3,37 +3,89 @@ var serverName;
 var userName;
 var password;
 var deviceData;
+var currentTheme;
 var auth;
+var onServer = false;
+var resizeTimer;
 
 var init = function () {
     load_settings();
+    if (currentTheme !== 'a') theme_changed(currentTheme);
     get_device_data();
+    
+    //resize slider, taking the hidden text box into accout
+    $(window).resize(function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+        var device_width = $(window).innerWidth();
+        device_width=(device_width / 2) - 38;
+        $('.ui-slider-track ').width(device_width);
+    }, 200);
+});
 }; // init
 $(document).ready(init);
+
+function theme_changed(selectedTheme){
+    $('.ui-body-' + currentTheme).each(function(){
+        $(this).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme);    
+    });
+    $('.ui-btn-up-' + currentTheme).each(function(){
+        $(this).removeClass('ui-btn-up-' + currentTheme).addClass('ui-btn-up-' + selectedTheme);    
+    });
+    $('.ui-btn-down-' + currentTheme).each(function(){
+        $(this).removeClass('ui-btn-down-' + currentTheme).addClass('ui-btn-down-' + selectedTheme);    
+    });
+
+    $('#main').find('*[data-theme]').each(function(index){
+        $(this).attr('data-theme',selectedTheme);
+    });
+    $('#main').attr('data-theme', selectedTheme).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme).trigger('create');
+
+    $('#settings').find('*[data-theme]').each(function(index){
+        $(this).attr('data-theme',selectedTheme);
+    });
+    $('#settings').attr('data-theme', selectedTheme).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme).trigger('create');
+
+    $('#commands').find('*[data-theme]').each(function(index){
+        $(this).attr('data-theme',selectedTheme);
+    });
+    $('#commands').attr('data-theme', selectedTheme).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme).trigger('create');
+    currentTheme = selectedTheme;
+} //theme changed
 
 function load_settings() {
     serverName = window.localStorage.getItem("serverName");
     userName = window.localStorage.getItem("userName");
     password = window.localStorage.getItem("password");
-    var settingsForm = document.forms['settings'];
+    currentTheme = window.localStorage.getItem("currentTheme");
+
+    var settingsForm = document.forms['settingsForm'];
     settingsForm.elements["serverName"].value = serverName;
     settingsForm.elements["userName"].value = userName;
     settingsForm.elements["password"].value = password;
+    
+    if (currentTheme === null) currentTheme = 'a';
     if (typeof userName === 'undefined' || userName === '') auth=false; else auth = true;
 } //Load Settings
 
 function save_settings() {
-    var settingsForm = document.forms['settings'];
+    var settingsForm = document.forms['settingsForm'];
     serverName = settingsForm.elements["serverName"].value;
     userName = settingsForm.elements["userName"].value;
     password = settingsForm.elements["password"].value;
     window.localStorage.setItem("serverName", serverName);
     window.localStorage.setItem("userName", userName);
     window.localStorage.setItem("password", password);
+    window.localStorage.setItem("currentTheme", currentTheme);
     get_device_data();
 } //Save Settings
 
 function get_device_data_callback(data) {
+    if(data !== null && serverName === '' && onServer === false) {
+        //On the server so remove server settings
+        $('#serverSettings').css('display','none');
+        onServer=true;
+    };
     data.sort(function (a,b) {
         if (a['type_name'] === b['type_name']) {
             var x = a['name'].toLowerCase(), y = b['name'].toLowerCase();
@@ -121,8 +173,8 @@ function reload_device_grid() {
                 rowData+= "<tr class='deviceRow'>";
             }
             rowData += "<td><div data-id='" + values['id'] + "' class='singleDevice'><a href='#commands' style='display: none;'></a>";
-            rowData +="<button data-mini='true' data-theme='c' data-inline='true' data-role='button' class='toggle' command='toggle' deviceId='" + deviceID + "'>" + buttonLabel + "</button>";
-            if (select.value === 'Light') rowData += "<input deviceId='" + deviceID + "' data-mini='true' id='slider"  + deviceID + "' value=" + sliderValue + " class='ui-hidden-accessible sliderlevel' type='range' name='points' min='0' max='100'></div></td>";
+            rowData +="<button data-mini='true' data-inline='true' data-role='button' class='toggle' command='toggle' deviceId='" + deviceID + "'>" + buttonLabel + "</button>";
+            if (select.value === 'Light') rowData += "<input deviceId='" + deviceID + "' id='slider"  + deviceID + "' value=" + sliderValue + "  data-highlight='true' class='ui-hidden-accessible sliderlevel' type='range' name='points' min='0' max='100'></div></td>";
             else rowData += "</div></td>";
             if (deviceColumn === 2) {
                 rowData+= "</tr>";
@@ -140,6 +192,11 @@ function reload_device_grid() {
     $(".ui-slider").mouseup(send_level);
     $(".ui-slider").touchend(send_level);
     $(".toggle").bind("taphold", commandsPopup);
+    
+    //resize slider, taking the hidden text box into accout 
+    var device_width = $(window).innerWidth();
+    device_width=(device_width / 2) - 40;
+    $('.ui-slider-track ').width(device_width);
 } // reload device grid
 
 function commandsPopup(event) {
@@ -155,7 +212,7 @@ function update_command_table(deviceID) {
         if (values['id'] === deviceID) {
             if (values['commands']) {
                 $.each(values['commands'], function(index, command){
-                    commands.push("<tr><td><button data-theme='c' data-mini='true' data-role='button' class='command' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</button></td></tr>");
+                    commands.push("<tr><td><button data-mini='true' data-role='button' class='command' command='" + command + "' deviceId='" + values['id'] + "'>" + command + "</button></td></tr>");
                 }); //each
                 $("#tableCommands").append(commands.join(" ")).trigger('create');
                 $(".command").click(on_device_command);
