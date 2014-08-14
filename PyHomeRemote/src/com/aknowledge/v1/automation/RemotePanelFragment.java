@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with PyHomeRemote.  If not, see <http://www.gnu.org/licenses/>. * 
 
-
+	Written by Anand Kameswaran
  */
 package com.aknowledge.v1.automation;
 
@@ -31,12 +31,16 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 
@@ -46,6 +50,9 @@ public class RemotePanelFragment extends Fragment {
 	public ButtonAdapter buttonAdapter;
 	public StateListDrawable bStates;
 	public String command;
+    private static final String[] COMMANDS = new String[] {
+        "on", "off", "level", "status", "toggle"
+    };
 	
 	
 	onButtonClickListener fragListener;
@@ -107,28 +114,72 @@ public class RemotePanelFragment extends Fragment {
     		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
 					v.getContext());
     		alertDialogBuilder.setTitle("Enter Custom Command");
-    		alertDialogBuilder.setMessage("Type the exact string, ie 'level,80'");
-    		final EditText input = new EditText(v.getContext());
+    		alertDialogBuilder.setMessage("");
     		final View myView = v;
-    		alertDialogBuilder.setView(input);
-    		alertDialogBuilder.setPositiveButton("OK",new DialogInterface.OnClickListener() {
-    			public void onClick(DialogInterface dialog, int whichButton) {
-    				 
-    				  command = input.getText().toString();
-    				  Log.d("RemotePanel", "Command =" + command);
+    		
+    		final View input = View.inflate(v.getContext(),R.layout.command_dialog, null);
+    		
+    		class myList implements OnClickListener{
+    			public void onClick(View v)
+    			{
+    				command = "status";
+    				int myID = v.getId();
+    				switch (myID){
+    				case R.id.on_btn: 	command = "on";
+    									break;
+    				case R.id.off_btn: command = "off";
+    					break;
+    				case R.id.low_btn: command = "level,10";
+    					break;
+    				case R.id.lowest_btn: command = "level,1";
+    					break;
+    				case R.id.med_btn: command = "level,40";
+    					break;
+    				case R.id.hi_btn: command = "level,70";
+    				}
+    				
+    				
+    						
+    				
+    				
+    				Log.d("RemotePanel", "Command =" + command + v.getId());
     				  fragListener.onButtonLongClicked(myView,command);
-    				  }
+    					myView.setBackgroundResource(R.drawable.lightanim);	
+    					AnimationDrawable lightAnimation = (AnimationDrawable) myView.getBackground();
+    					lightAnimation.start();
+    			}
+    		};
+    		
+    		OnClickListener variab = new myList();
+    		
+    		Button onBtn = (Button)input.findViewById(R.id.on_btn);
+    		onBtn.setOnClickListener( variab);
+    		Button offBtn = (Button)input.findViewById(R.id.off_btn);
+    		offBtn.setOnClickListener(variab);
+    		
+    		Button statusBtn = (Button)input.findViewById(R.id.status_btn);
+    		statusBtn.setOnClickListener(variab);
+    		
+    		Button lowestBtn = (Button)input.findViewById(R.id.lowest_btn);
+    		lowestBtn.setOnClickListener(variab);
+    		
+    		Button lowBtn = (Button)input.findViewById(R.id.low_btn);
+    		lowBtn.setOnClickListener(variab);
+    		
+    		Button medBtn = (Button)input.findViewById(R.id.med_btn);
+    		medBtn.setOnClickListener(variab);
+    		Button highBtn = (Button)input.findViewById(R.id.hi_btn);
+    		highBtn.setOnClickListener(variab);
+    		
+    		alertDialogBuilder.setView(input);
+    		alertDialogBuilder.setPositiveButton("DONE",new DialogInterface.OnClickListener() {
+    			public void onClick(DialogInterface dialog, int whichButton) {
+    				 }
     				});
-    		alertDialogBuilder.setNegativeButton("CANCEL",new DialogInterface.OnClickListener() {
-    			  public void onClick(DialogInterface dialog, int whichButton) {
-    				    // Canceled.
-    				  }
-    				});
+    		
     		alertDialogBuilder.show();
     		//fragListener.onButtonLongClicked(v, command);
-			v.setBackgroundResource(R.drawable.lightanim);	
-			AnimationDrawable lightAnimation = (AnimationDrawable) v.getBackground();
-			lightAnimation.start();
+
     		return true;
     	
     	}

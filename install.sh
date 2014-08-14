@@ -31,28 +31,27 @@ echo "Copying files to $PYHOME..."
 cp -a * $PYHOME
 chown -R pyto $PYHOME
 
-echo "Setting install location in pytomation.sh"
-echo "#!/bin/bash" > /usr/bin/pytomation.sh
-echo "PYHOME=\"/home/pytomation\""  >> /usr/bin/pytomation.sh
-echo "cd \$PYHOME"   >> /usr/bin/pytomation.sh
-echo "PROGRAM='python ./pytomation.py'"  >> /usr/bin/pytomation.sh
-echo "\$PROGRAM &"  >> /usr/bin/pytomation.sh
-echo "PID=\$!"  >> /usr/bin/pytomation.sh
-echo "if [ -w /var/run ]; then"  >> /usr/bin/pytomation.sh
-echo "    echo \$PID > /var/run/pytomation.pid"  >> /usr/bin/pytomation.sh
-echo "else"  >> /usr/bin/pytomation.sh
-echo "    echo \"Running as regular user can't write PID file to /var/run/pytomation.pid...\""  >> /usr/bin/pytomation.sh
-echo "    echo \"PID is \$PID...\""  >> /usr/bin/pytomation.sh
-echo "fi"  >> /usr/bin/pytomation.sh
+OLD_INIT_SCRIPT="/etc/init.d/pyto"
+NEW_INIT_SCRIPT="/etc/init.d/pytomation"
+if [ -e "$OLD_INIT_SCRIPT" ]; then
+    echo "Removing old init script at $OLD_INIT_SCRIPT ..."
+    rm "$OLD_INIT_SCRIPT"
+fi
 
 echo "Copying init script to /etc/init.d..."
-cp pyto /etc/init.d
+cp pytomation.init "$NEW_INIT_SCRIPT"
 
 echo "Making sure scripts are excutable..."
-chmod +x /usr/bin/pytomation.sh
-chmod +x /etc/init.d/pyto
+chmod +x "$NEW_INIT_SCRIPT"
 
-echo "Setting Pytomation to start from run level 2"
-ln -s ../init.d/pyto /etc/rc2.d/S99pyto
+# Old versions of the install script created a manual rcS symlink for runlevel
+# 2 only, which is not correct. Force remove any old symlinks that might exist
+# before using update-rc.d to create the proper entries (start or kill) at all
+# runlevels.
+echo "Removing old rcS entries ..."
+update-rc.d -f pyto remove
+
+echo "Configuration Pytomation to run at boot ..."
+update-rc.d pytomation defaults
 
 echo "Finished..."

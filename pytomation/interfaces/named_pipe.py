@@ -37,7 +37,7 @@ class NamedPipe(Interface):
         except Exception, ex:
             self._logger.error('Error reading pipe %s' % ex)
             raise ex
-        return result
+        return result.strip()
 
     def write(self, bytesToSend):
         return os.write(self._pipe, bytesToSend)
