@@ -26,7 +26,7 @@ class Open_zwave(HAInterface):
     nodesdisplayed = False
 
     def __init__(self, *args, **kwargs):
-        self._serialDevicePath = kwargs.get('serialDevicePath', None)
+        self._serialDevicePath = kwargs.get('device', None)
         self._options = ZWaveOption(self._serialDevicePath, \
           config_path="/usr/share/python-openzwave/config", \
           user_path=".", cmd_line="")
