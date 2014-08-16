@@ -92,7 +92,7 @@ class NestThermostat(HAInterface):
         for structure in self.interface.structures:
             self.interface.structures[structure].away = True
 
-    def level(self, address, level, timeout=2.0):
+    def setpoint(self, address, level, timeout=2.0):
         self._set_point = level
         try:
             self.interface.devices[address].change_temperature(level)

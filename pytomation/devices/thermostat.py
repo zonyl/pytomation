@@ -2,14 +2,12 @@ from pytomation.devices import InterfaceDevice, State
 from pytomation.interfaces import Command
 
 class Thermostat(InterfaceDevice):
-    STATES = [State.UNKNOWN, State.OFF, State.HEAT, State.COOL, State.LEVEL, State.CIRCULATE, State.AUTOMATIC, State.HOLD, State.VACANT, State.OCCUPIED]
-    COMMANDS = [Command.AUTOMATIC, Command.MANUAL, Command.COOL, Command.HEAT, Command.HOLD, Command.SCHEDULE, Command.OFF, Command.LEVEL, Command.STATUS, Command.CIRCULATE, Command.STILL, Command.VACATE, Command.OCCUPY]
-
-
+    STATES = [State.UNKNOWN, State.OFF, State.HEAT, State.COOL, State.LEVEL, State.CIRCULATE, State.STILL, State.AUTOMATIC, State.HOLD, State.VACANT, State.OCCUPIED, State.SETPOINT]
+    COMMANDS = [Command.AUTOMATIC, Command.MANUAL, Command.COOL, Command.HEAT, Command.HOLD, Command.SCHEDULE, Command.OFF, Command.LEVEL, Command.STATUS, Command.CIRCULATE, Command.STILL, Command.VACATE, Command.OCCUPY, Command.SETPOINT]
     
     def __init__(self, *args, **kwargs):
-        for level in range(32,100):
-            self.COMMANDS.append((Command.LEVEL, level))
+        for level in range(60,90):
+            self.COMMANDS.append((Command.SETPOINT, level))
             
         self._level = None
         self._setpoint = None
@@ -20,6 +18,7 @@ class Thermostat(InterfaceDevice):
         self._current_mode = None
         self._last_temp = None
         self._sync_interface = False
+        self._thermostat_states = {'temp': 'unknown', 'mode': 'unknown', 'setpoint': 'unknown'}
 
         super(Thermostat, self).__init__(*args, **kwargs)
     
@@ -74,9 +73,7 @@ class Thermostat(InterfaceDevice):
             primary_command=command[0]
             secondary_command=command[1]
         
-        if primary_command == Command.LEVEL and \
-            (source != self or not source) and \
-            source not in self._interfaces:
+        if primary_command == Command.SETPOINT:
             self._setpoint = secondary_command
 
         if primary_command == Command.HEAT:
@@ -101,7 +98,20 @@ class Thermostat(InterfaceDevice):
         
         self.automatic_check()
         return result
-        
+
+    def _set_state(self, value, *args, **kwargs):
+        if isinstance(value, tuple) and value[0] == State.LEVEL:
+            self._thermostat_states['temp'] = value[1]
+        elif isinstance(value, tuple) and value[0] == State.SETPOINT:
+            self._thermostat_states['setpoint'] = value[1]
+        elif value in [State.OFF, State.COOL, State.HEAT, State.AUTOMATIC]:
+            self._thermostat_states['mode'] = value
+        else:
+            status = self._thermostat_states.items()
+            status.append(value)
+            return super(Thermostat, self)._set_state(status, *args, **kwargs)
+        return super(Thermostat, self)._set_state(self._thermostat_states.items(), *args, **kwargs)
+
     def automatic_delta(self, value):
         self._automatic_delta = value
         

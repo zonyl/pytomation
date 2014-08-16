@@ -14,6 +14,7 @@ class State(object):
     ON = 'on'
     OFF = 'off'
     LEVEL = 'level'
+    SETPOINT = 'setpoint'
     MOTION = 'motion'
     STILL = 'still'
     OPEN = 'open'
@@ -231,6 +232,16 @@ class StateDevice(PytomationObject):
                 state = (State.LEVEL, kwargs.get('sub_state', (0,))[0])
 #                m_command = (Command.LEVEL,  kwargs.get('sub_state', (0,) ))
             m_command = self._state_to_command(state, m_command)
+        elif command == Command.SETPOINT or (isinstance(command, tuple) and command[0] == Command.SETPOINT):
+            if isinstance(command, tuple):
+                state = (State.SETPOINT, command[1:])
+                if len(command[1:]) > 1:
+                    state = sum([(State.SETPOINT, ), command[1:]], ())
+                else:
+                    state = (State.SETPOINT, command[1])
+#                m_command = command
+            else:
+                state = (State.SETPOINT, kwargs.get('sub_state', (0,))[0])
         elif isinstance(command, tuple) and self._is_valid_command(command[0]) and command[0] != Command.LEVEL:
             m_command = command
             state = self._previous_state

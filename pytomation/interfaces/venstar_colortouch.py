@@ -25,6 +25,7 @@ class VenstarThermostat(HAInterface):
         self._CoolSetpoint = None
         self._HeatSetpoint = None
         self._set_point = None
+        self._last_set_point = None
         self._mode = None
         self._fan = None
         self._last_state = None
@@ -105,6 +106,10 @@ class VenstarThermostat(HAInterface):
                                 self._set_point = self._HeatSetpoint
 
                     self._logger.debug('Venstar Status mode = ' + str(command))
+
+                    if self._set_point != self._last_set_point:
+                        self._last_set_point = self._set_point
+                        self._onCommand(command=(Command.SETPOINT, self._set_point))
 
                     if command != self._mode:
                         self._mode = command
@@ -206,7 +211,7 @@ class VenstarThermostat(HAInterface):
         self._mode = Command.OFF
         return self._send_state()
 
-    def level(self, address, level, timeout=2.0):
+    def setpoint(self, address, level, timeout=2.0):
         self._set_point = level
         if self._last_state == 1:
             self._HeatSetpoint = level
