@@ -11,10 +11,10 @@ from .ha_interface import HAInterface
 
 import time
 try:
-    import openzwave
+    #import openzwave
     from openzwave.option import ZWaveOption
     from openzwave.network import ZWaveNetwork
-    from openzwave.node import ZWaveNode
+    #from openzwave.node import ZWaveNode
 except:
     print ("Error importing Openzwave and/or Python-Openzwave")
 
@@ -26,7 +26,7 @@ class Open_zwave(HAInterface):
     nodesdisplayed = False
 
     def __init__(self, *args, **kwargs):
-        self._serialDevicePath = kwargs.get('serialDevicePath', None)
+        self._serialDevicePath = kwargs.get('device', None)
         self._options = ZWaveOption(self._serialDevicePath, \
           config_path="/usr/share/python-openzwave/config", \
           user_path=".", cmd_line="")
@@ -89,6 +89,7 @@ class Open_zwave(HAInterface):
             for node in self._network.nodes:
                 self._printNetwork(node)
             self.nodesdisplayed = True
+	time.sleep(1)
 
     def version(self):
         self._logger.info("Open_zwave Pytomation Driver version " +
@@ -99,3 +100,26 @@ class Open_zwave(HAInterface):
                           self._network.controller.python_library_version)
         self._logger.info("Use ZWave library : %s" %
                           self._network.controller.library_description)
+
+    def on(self, address):
+        val = self._network.get_value_from_id_on_network(address)
+        nodeid = val.parent_id 
+        if (self._network.nodes[nodeid].set_dimmer(val.value_id, 99)):
+           self._logger.debug('Command dimmer on at' + address)
+	if (self._network.nodes[nodeid].set_switch(val, True)):
+           self._logger.debug('Command switch on at' + address)
+
+    def off(self, address):
+        val = self._network.get_value_from_id_on_network(address)
+        nodeid = val.parent_id 
+        if (self._network.nodes[nodeid].set_dimmer(val.value_id, 0)):
+           self._logger.debug('Command dimmer off at' + address)
+	if (self._network.nodes[nodeid].set_switch(val, False)):
+           self._logger.debug('Command switch off at' + address)
+
+    def status(self,address):
+        val = self._network.get_value_from_id_on_network(address)
+	nodeid = val.parent_id
+	level = self._network.nodes[nodeid].get_dimmer_level(val)
+	#next lone isn't great
+	self._network.nodes[nodeid].set_dimmer(val.value_id, level) 
