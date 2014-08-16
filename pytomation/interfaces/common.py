@@ -80,6 +80,7 @@ class Command(object):
     L80 = 'l80'
     L90 = 'l90'
     LEVEL = 'level'
+    SETPOINT = 'setpoint'
     PREVIOUS = 'previous'
     TOGGLE = 'toggle'
     BRIGHT = 'bright'
@@ -275,7 +276,7 @@ class HTTP(Interface):
         super(HTTP, self).__init__()
 
         self._protocol = protocol
-        self._host = host        
+        self._host = host
         self._username = username
         self._password = password
         self._logger.debug("{name} HTTP Port created".format(
