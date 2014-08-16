@@ -44,8 +44,11 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200, "ok")
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, ON, OFF, DELETE, PUT, AUTHHEAD, HEAD')
-        self.send_header("Access-Control-Allow-Headers", "Authorization")
+        if config.auth_enabled == 'Y':
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, ON, OFF, DELETE, PUT, AUTHHEAD, HEAD')
+            self.send_header("Access-Control-Allow-Headers", "Authorization")
+        else:
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, ON, OFF, DELETE, PUT, HEAD')
 
     def do_GET(self):
         auth_credentials = base64.b64encode(config.admin_user + ":" + config.admin_password)
@@ -96,8 +99,11 @@ class PytoHandlerClass(SimpleHTTPRequestHandler):
             response = self._api.get_response(method=method, path="/".join(p[2:]), type=None, data=data, source=PytoHandlerClass.server)
             self.send_response(200)
             self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, ON, OFF, DELETE, PUT, AUTHHEAD, HEAD')
-            self.send_header("Access-Control-Allow-Headers", "Authorization")
+            if config.auth_enabled == 'Y':
+                self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, ON, OFF, DELETE, PUT, AUTHHEAD, HEAD')
+                self.send_header("Access-Control-Allow-Headers", "Authorization")
+            else:
+                self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, ON, OFF, DELETE, PUT, HEAD')
             self.send_header("Content-length", len(response))
             self.send_header("Content-type", "application/json")
             self.end_headers()
