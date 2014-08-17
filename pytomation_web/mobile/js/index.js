@@ -94,9 +94,30 @@ function get_device_data_callback(data) {
         var x = a['type_name'].toLowerCase(), y = b['type_name'].toLowerCase();
         return x < y ? -1 : x > y ? 1 : 0;
     }); //sort
+    var availableTypes = {};
     $.each(data, function(index, values) {
-        deviceData[values['id']] = values;
+        if (values['commands'] !== null ) {
+            deviceData[values['id']] = values;
+            if (!availableTypes.hasOwnProperty(values['type_name'])) availableTypes[values['type_name']] = true;
+        }
     });
+    var optionList = "<option selected value='All'>All</option>";
+    $.each(availableTypes, function(type_name, value) {
+        optionList += "<option value='" + type_name + "'>" + type_name + "</option>";
+    });
+    var element = $("#listDevice").html(optionList);
+        
+    //jQuery mobile error work-around, seemingly a race condition
+    var stillTrying = true;
+    while (stillTrying){
+        try{
+            element.selectmenu().selectmenu("refresh");
+            stillTrying = false;
+        }
+        catch(err){
+
+        }
+    }
     reload_device_grid();
 }
 
@@ -129,11 +150,12 @@ function get_device_data() {
 
 function reload_device_grid() {
     var devices = [];
+    var devicesLong = [];
     var select = document.getElementsByName('listDevice')[0];
     var deviceColumn = 1;
     var screenSize = $(document).width();
     $.each(deviceData, function(deviceID, values) {
-        if (values['type_name'] === select.value) {
+        if (select.value === 'All' || values['type_name'] === select.value) {
             var sliderValue;
             var state = values['state'];
             var name = values['name'];
@@ -187,6 +209,9 @@ function reload_device_grid() {
             if (deviceColumn === 1) {
                 rowData+= "<tr class='deviceRow'>";
             }
+            else if (values['type_name'] === 'Thermostat') {
+                rowData+= "</tr><tr class='deviceRow'>";
+            }
             rowData += "<td><div data-id='" + values['id'] + "' class='singleDevice'><a href='#commands' class='commandPopupToggle' style='display: none;'></a>";
             
             if (values['type_name'] === 'Thermostat'){
@@ -217,12 +242,13 @@ function reload_device_grid() {
                 rowData += '</select></td><td style="width:1em;padding-left:.5em">' + tempTransitionLabel + '</td><td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="decrementSetpoint" data-iconpos="notext" data-role="button" data-icon="minus"></a></div></td>';
                 rowData += '<td style="width:3em"><button data-mini="true" data-role="button" class="toggle" command="toggle" deviceId="' + deviceID + '">' + buttonLabel + "</button></td>";
                 rowData += '<td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="incrementSetpoint" data-iconpos="notext" data-role="button" data-icon="plus"></a></div></td></tr></table>';
+                deviceColumn = 2;
             } else {
                 rowData += "<button data-mini='true' data-role='button' class='toggle' command='toggle' deviceId='" + deviceID + "'>" + buttonLabel + "</button>";
                 if (values['type_name'] === 'Light') 
                     rowData += "<input deviceId='" + deviceID + "' id='slider"  + deviceID + "' value=" + sliderValue + "  data-highlight='true' class='ui-hidden-accessible sliderlevel' type='range' name='points' min='0' max='100'></div></td>";
                 else
-                    rowData += "</div></td>"
+                    rowData += "</div></td>";
             }
             
             if (deviceColumn === 2) {
@@ -231,12 +257,21 @@ function reload_device_grid() {
             }
             else
                 deviceColumn = 2;
-            
-            devices.push(rowData);
+            if (values['type_name'] === 'Thermostat'){
+                devicesLong.push(rowData);
+            } else {
+                devices.push(rowData);
+            }
         } // if type
     }); // each device
-    $("#tableDevices").find("tr").remove();
-    $("#tableDevices").append(devices.join('')).trigger('create');
+    if (devices) {
+        $("#tableDevices").find("tr").remove();
+        $("#tableDevices").append(devices.join('')).trigger('create');
+    }
+    if (devicesLong) {
+        $("#tableDevicesLong").find("tr").remove();
+        $("#tableDevicesLong").append(devicesLong.join('')).trigger('create');
+    }
     $(".toggle").click(on_device_command);
     $(".decrementSetpoint").click(decrementSetpoint);
     $(".incrementSetpoint").click(incrementSetpoint);
@@ -324,22 +359,22 @@ function send_command_callback(data) {
             if (statePart[0] === 'mode') mode = statePart[1];
             if (statePart[0] === 'setpoint') {setpoint = statePart[1]; buttonLabel=setpoint + '°';}
         }); //each
-            $('div[data-id="' + id + '"] .temperature').html(temp);
-            $('div[data-id="' + id + '"] button.toggle').html(buttonLabel);
-            var element = $('div[data-id="' + id + '"] .thermostatMode ');
-            element.val(mode);
-            
-            //jQuery mobile error work-around, seemingly a race condition
-            var stillTrying = true;
-            while (stillTrying){
-                try{
-                    element.selectmenu().selectmenu("refresh");
-                    stillTrying = false;
-                }
-                catch(err){
-                    
-                }
+        $('div[data-id="' + id + '"] .temperature').html(temp);
+        $('div[data-id="' + id + '"] button.toggle').html(buttonLabel);
+        var element = $('div[data-id="' + id + '"] .thermostatMode ');
+        element.val(mode);
+
+        //jQuery mobile error work-around, seemingly a race condition
+        var stillTrying = true;
+        while (stillTrying){
+            try{
+                element.selectmenu().selectmenu("refresh");
+                stillTrying = false;
             }
+            catch(err){
+
+            }
+        }
             
     } else {
         if (name.length > 18) {

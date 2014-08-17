@@ -9,7 +9,7 @@ table {
   width: 100%;
   table-layout:fixed;
 }
-#tableDevices{
+#tableDevices, #tableDevicesLong{
   padding-right: 4px;
 }
 div.ui-slider {
