@@ -130,7 +130,7 @@ class HoneywellWebsite(Interface):
             "Cookie": self._cookie
         }
 
-        request["DeviceID"] = deviceid
+        request["DeviceID"] = int(deviceid) 
         rawj = json.dumps(request)
         
         self._logger.debug(location)
@@ -138,32 +138,13 @@ class HoneywellWebsite(Interface):
         self._logger.debug(request)
         self._logger.debug(rawj)
 
-        #self._conn = httplib.HTTPSConnection("rs.alarmnet.com")
+        self._conn = httplib.HTTPSConnection("rs.alarmnet.com")
         
-        #self._conn.request("POST", location, rawj, headers)
-        #r4 = self._conn.getresponse()
-        #if (r4.status != 200): 
-        #    print "Bad R4 status ", r4.status, r4.reason
-        #    return False
-        '''
-        Host: rs.alarmnet.com
-        User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0
-        Accept: application/json, text/javascript, */*; q=0.01
-        Accept-Language: en-US,en;q=0.5
-        Accept-Encoding: gzip, deflate
-        DNT: 1
-        Content-Type: application/json; charset=utf-8
-        X-Requested-With: XMLHttpRequest
-        Referer: https://rs.alarmnet.com/TotalConnectComfort/Device/Control/xxxxxx
-        Content-Length: 174
-        Cookie: __utma=95700044.1876926805.1393956240.1393956240.1402712414.2; __utmz=95700044.1393956240.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); thlang=en-US; ASP.NET_SessionId=nzaw2rg3mlv0xwwh0eu2zvco; TrueHomeCheckCookie=; __utmb=95700044.500.10.1402712414; __utmc=95700044; __RequestVerificationToken_L1RvdGFsQ29ubmVjdENvbWZvcnQ_=qHpN+ogUBNZ2Z0/8AVI+8dkdgBk9CTflbvrcdQIhuSuDEWYROXaRLPyBW/bl0KzMVr1m20Di24ElCFkkatYMErJPKXTVjzCnO0AfMkU2HkZKIzFwEJUYFp1CND934KUAHUIGIUUMJod3SonJKKh5Ikwb/Lm7oDEyH9yuzoK2J/4=; .ASPXAUTH_TH_A=89DF272D3E8B9B2CD724E3221B43DC5DEDF3829EA5B9283B2C2D5F5D541F3A4C33A753AC619053E51C631D9D2EF1937269F5C7D50AFDED4F1A14C4DCE5B8129F784C41CE61E8628713807DC7C184D8B6F4CB3F74D015DA5A93F97E3A1F5B7D7967A66F22C5CA87D9A9649529F2F273BC31E02D24867C9BCFAF4707E59A23335F9438CA31256CA128A38CDEECC9CD2B1CBE221ECFEBDAD605B769CA2C6DF423EDA8A87BA94DFCA6C69714183C4C879A8629572A69B88CB9E29094E60C7E9AF35F
-        Connection: keep-alive
-        Pragma: no-cache
-        Cache-Control: no-cache
-        
-        {"DeviceID":xxxxxxx,"SystemSwitch":null,"HeatSetpoint":null,"CoolSetpoint":null,"HeatNextPeriod":null,"CoolNextPeriod":null,"StatusHeat":null,"StatusCool":null,"FanMode":null}
-        '''
-
+        self._conn.request("POST", location, rawj, headers)
+        r4 = self._conn.getresponse()
+	if (r4.status != 200): 
+            print "Bad R4 status ", r4.status, r4.reason
+            return False
         return True
 
     def read(self, deviceid=None, *args, **kwargs):
@@ -173,6 +154,9 @@ class HoneywellWebsite(Interface):
     def username(self):
         return self._username
 
+    @property
+    def cookie(self):
+        return self._cookie
 
 class HoneywellThermostat(HAInterface):
     VERSION = '0.0.3'
@@ -181,12 +165,12 @@ class HoneywellThermostat(HAInterface):
         super(HoneywellThermostat, self)._init(*args, **kwargs)
         self._deviceid = kwargs.get('deviceid', None)
 
-        self._cookie = None
         self._iteration = 0
         self._poll_secs = kwargs.get('poll', 360)
         self._retries = kwargs.get('retries', 5)
 
         self._username = self._interface.username
+	self._cookie = self._interface.cookie
 
         self._fanMode = None                # 0-auto 1-on
 
@@ -294,8 +278,8 @@ class HoneywellThermostat(HAInterface):
 
     def schedule(self, *args, **kwargs):  # should take us back to the schedule
         self._request['HeatSetPoint'] = 65
-        self._request['StatusCool'] = 2
-        self._request['StatusHeat'] = 2
+        self._request['StatusCool'] = 0
+        self._request['StatusHeat'] = 0
         return self._interface.write(deviceid=self._deviceid,
                                      request=self._request)
 
@@ -332,3 +316,12 @@ class HoneywellThermostat(HAInterface):
         self._fan(mode="Auto")
         return self._interface.write(deviceid=self._deviceid,
                                          request=self._request)
+
+    def status(self, *args, **kwargs):
+        self._iteration = self._poll_secs + 1
+	return self._interface.write(deviceid=self._deviceid,
+	                                 request=self._request)
+
+    def level(self, deviceid, level, *args, **kwargs):
+        print "Level called",level
+	#Needs to be written
