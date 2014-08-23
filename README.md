@@ -24,9 +24,9 @@ more planned in the future.
    - Mochad X10 CM15 (USB) and CM19 (USB)
    - [Misterhouse](http://misterhouse.sourceforge.net/) Voice Commands MHSend (TCP)
    - [Spark I/O](http://www.spark.io) WiFi devices
+   - Z-Wave (Aeon Labs via pyOpenzwave) DSA02203-ZWUS 
 
 ### Future
-   - Z-Wave (Aeon Labs) DSA02203-ZWUS
    - Weeder Analog I/O board (Wtaio/RS232)
    - Ube Wifi Devices
    - CoralStar WiFi Devices
