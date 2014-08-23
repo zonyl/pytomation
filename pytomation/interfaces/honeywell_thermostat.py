@@ -63,9 +63,9 @@ class HoneywellWebsite(Interface):
             }
         self._conn = httplib.HTTPSConnection("rs.alarmnet.com")
         self._conn.request("POST", "/TotalConnectComfort/", params, headers)
-        r1 = self._conn.getresponse()
-        cookie = r1.getheader("Set-Cookie")
-        location = r1.getheader("Location")
+        response = self._conn.getresponse()
+        cookie = response.getheader("Set-Cookie")
+        location = response.getheader("Location")
         newcookie = cookie
         newcookie = re.sub(";\s*expires=[^;]+", "", newcookie)
         newcookie = re.sub(";\s*path=[^,]+,", ";", newcookie)
@@ -73,11 +73,12 @@ class HoneywellWebsite(Interface):
         newcookie = re.sub(";\s*HttpOnly\s*,", ";", newcookie)
         self._cookie = newcookie
 
-        if ((location == None) or (r1.status != 302)):
-            self._logger.warning('Failed HTTP Code> ' + str(r1.status))
+        if ((location == None) or (response.status != 302)):
+            self._logger.warning('Failed HTTP Code> ' + str(response.status))
             self._loggedin = False
         else:
-            self._logger.debug('Login passed. HTTP Code> ' + str(r1.status))
+            self._logger.debug('Login passed. HTTP Code> ' +
+                               str(response.status))
             self._loggin = True
 
     def _query(self, deviceid):
