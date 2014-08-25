@@ -3,6 +3,7 @@ var serverName;
 var userName;
 var password;
 var deviceData = {};
+var rooms = {};
 var currentTheme;
 var auth;
 var onServer = false;
@@ -95,20 +96,48 @@ function get_device_data_callback(data) {
         return x < y ? -1 : x > y ? 1 : 0;
     }); //sort
     var availableTypes = {};
+    var optionList = "<option selected value='All'>All Rooms</option>";
     $.each(data, function(index, values) {
         if (values['commands'] !== null ) {
-            deviceData[values['id']] = values;
+            currentID = values['id'];
+            deviceData[currentID] = values;
+            if (values['type_name'] === 'Room'){
+                optionList += "<option value='" + values['id'] + "'>" + values['name'] + "</option>";
+                rooms[currentID] = values['devices'];
+            }
             if (!availableTypes.hasOwnProperty(values['type_name'])) availableTypes[values['type_name']] = true;
         }
     });
-    var optionList = "<option selected value='All'>All</option>";
+    //Attach real device data to rooms dictionary
+    //Done after to ensure all device data exists
+    $.each(rooms, function(roomID, values) {
+        var roomList = {};
+        $.each(values, function(index, deviceID) {
+            roomList[deviceID] = deviceData[deviceID];
+        });
+        rooms[roomID] = roomList;
+    });
+    var element = $("#listRoom").html(optionList);
+    //jQuery mobile error work-around, seemingly a race condition
+    var stillTrying = true;
+    while (stillTrying){
+        try{
+            element.selectmenu().selectmenu("refresh");
+            stillTrying = false;
+        }
+        catch(err){
+
+        }
+    }
+    
+    optionList = "<option selected value='All'>All</option>";
     $.each(availableTypes, function(type_name, value) {
         optionList += "<option value='" + type_name + "'>" + type_name + "</option>";
     });
-    var element = $("#listDevice").html(optionList);
+    element = $("#listDevice").html(optionList);
         
     //jQuery mobile error work-around, seemingly a race condition
-    var stillTrying = true;
+    stillTrying = true;
     while (stillTrying){
         try{
             element.selectmenu().selectmenu("refresh");
@@ -152,9 +181,24 @@ function reload_device_grid() {
     var devices = [];
     var devicesLong = [];
     var select = document.getElementsByName('listDevice')[0];
+    var room = document.getElementsByName('listRoom')[0];
     var deviceColumn = 1;
     var screenSize = $(document).width();
-    $.each(deviceData, function(deviceID, values) {
+    var deviceList;
+    
+    if (room.value === 'All') 
+        deviceList = deviceData;
+    else {
+        deviceList = rooms[room.value];
+        var values = deviceData[room.value];
+        var buttonLabel = values['name'] + '<br />' + values['state'];
+        var rowData = "<tr class='deviceRow'>";
+        rowData += "<td><div data-id='" + values['id'] + "' class='singleDevice'><a href='#commands' class='commandPopupToggle' style='display: none;'></a>";
+        rowData += "<button data-mini='true' data-role='button' class='toggle' command='toggle' deviceId='" + room.value + "'>" + buttonLabel + "</button>";
+        rowData += "</div></td><tr>";
+        devicesLong.push(rowData);
+    }
+    $.each(deviceList, function(deviceID, values) {
         if (select.value === 'All' || values['type_name'] === select.value) {
             var sliderValue;
             var state = values['state'];

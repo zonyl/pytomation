@@ -21,13 +21,15 @@
     <!-- Start of main page: #main -->
     <div data-role="page" id="main" data-theme="a">
         <div data-role="header">
-            <h1>Home Control</h1>
-            <div style="position:absolute;top:-5px;left:5px">
+            <div style="text-align: center;"><select id="listRoom" name='listRoom' onchange='reload_device_grid()'>
+                <option selected value='All'>All Rooms</option>
+            </select></div>
+            <div style="position:absolute;top:0px;left:5px">
             <select id="listDevice" name='listDevice' onchange='reload_device_grid()'>
                 <option selected value='All'>All</option>
             </select>
             </div>
-            <div style="position:absolute;top:-3px;right:5px">
+            <div style="position:absolute;top:-6px;right:5px">
             	<a id="settingsButton" href="#settings" data-icon="gear" data-role="button" data-rel="dialog"
                     data-transition="pop">Settings</a>
             </div>

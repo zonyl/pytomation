@@ -37,3 +37,7 @@ div.ui-slider {
     float: left;
     border: 1px solid #777;
 }
+.ui-select {
+    margin-top: 0;
+    margin-bottom: 2px;
+}
