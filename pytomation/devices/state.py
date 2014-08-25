@@ -467,7 +467,15 @@ class StateDevice(PytomationObject):
                                                                                    source=source.name if source else None,
                                                                                    delegate=delegate.name,
                                                                            ))
-                
+
+    def device_list(self):
+        if len(self._devices) == 0:
+            return None
+        device_ids = []
+        for device in self._devices:
+            device_ids.append(device.type_id)
+        return device_ids
+
     def devices(self, *args, **kwargs):
         devices = args[0]
 
