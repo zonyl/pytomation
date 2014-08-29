@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <meta name="msapplication-tap-highlight" content="no" />
+	<link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.3.min.css"/>
+        <link rel="stylesheet" href="css/HomeControl-theme.css" />
+        <link rel="stylesheet" href="css/jquery.mobile.icons.min.css" />
+        <link rel="stylesheet" type="text/css" href="css/jquery.mobile.structure-1.4.3.min.css" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+	<script type="text/javascript" src="rte/cordova.js"></script>
+	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="js/jquery.mobile-1.4.3.min.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <title>Home Control</title>
+    </head>
+    <body>
+
+    <!-- Start of main page: #main -->
+    <div data-role="page" id="main" data-theme="a">
+        <div data-role="header">
+            <div style="text-align: center;"><select id="listRoom" name='listRoom' onchange='reload_device_grid()'>
+                <option selected value='All'>All Rooms</option>
+            </select></div>
+            <div style="position:absolute;top:0px;left:5px">
+            <select id="listDevice" name='listDevice' onchange='reload_device_grid()'>
+                <option selected value='All'>All</option>
+            </select>
+            </div>
+            <div style="position:absolute;top:-6px;right:5px">
+            	<a id="settingsButton" href="#settings" data-icon="gear" data-role="button" data-rel="dialog"
+                    data-transition="pop">Settings</a>
+            </div>
+        </div><!-- /header -->
+
+        <div id="mainContent" data-role="content">
+        <!-- /content -->
+            <table id='tableDevicesLong'>
+
+            </table>
+            <table id='tableDevices'>
+
+            </table>
+        </div>
+    </div><!-- /page main -->
+    
+    <!-- Start of commands popup: #commands -->
+    <div data-role="page" id="commands">
+    	<div data-role="content" >
+            <!-- /content -->
+    		<table id='tableCommands'>
+				
+                </table>
+            <p>
+                <a href="#main" data-rel="back" data-role="button" data-inline="true"
+                    data-icon="back">close</a>
+            </p>
+    	</div>
+    </div><!-- /page commands -->
+    
+    <!-- Start of settings popup: #settings -->
+    <div data-role="page" id="settings">
+        <div data-role="header" >
+            <h1>Settings</h1>
+        </div><!-- /header -->
+
+        <div data-role="content" >
+            <form id="settingsForm">
+            <p id='serverSettings'>
+               Server Name:Port <input type="text" name="serverName" id="serverName">
+               User Name <input type="text" name="userName" id="userName">
+               Password <input type="password" name="password" id="password">
+            </p>
+            <p>
+                Select a theme: <br />
+                <a href="#" onclick='theme_changed("a")' class="colorSelect" style="background-color: #38C;"></a>  <!-- (default) Blue/White -->
+                <a href="#" onclick='theme_changed("a")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+
+                <a href="#" onclick='theme_changed("b")' class="colorSelect" style="background-color: #3CF;"></a>  <!-- Light Blue/White -->
+                <a href="#" onclick='theme_changed("b")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+
+                <a href="#" onclick='theme_changed("c")' class="colorSelect" style="background-color: #009245;"></a>  <!-- Dark Green/White -->
+                <a href="#" onclick='theme_changed("c")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+
+                <a href="#" onclick='theme_changed("d")' class="colorSelect" style="background-color: #8CC63F;"></a>  <!-- Lime Green/White -->
+                <a href="#" onclick='theme_changed("d")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+
+                <a href="#" onclick='theme_changed("e")' class="colorSelect" style="background-color: #C1272D;"></a>  <!-- Red/White -->
+                <a href="#" onclick='theme_changed("e")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+                
+                <br />
+                <br />
+                
+                <a href="#" onclick='theme_changed("f")' class="colorSelect" style="background-color: #38C;"></a>  <!-- Blue/Black -->
+                <a href="#" onclick='theme_changed("f")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+
+                <a href="#" onclick='theme_changed("g")' class="colorSelect" style="background-color: #3CF;"></a>  <!-- Light Blue/Black -->
+                <a href="#" onclick='theme_changed("g")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+
+                <a href="#" onclick='theme_changed("h")' class="colorSelect" style="background-color: #009245;"></a>  <!-- Dark Green/Black -->
+                <a href="#" onclick='theme_changed("h")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+
+                <a href="#" onclick='theme_changed("i")' class="colorSelect" style="background-color: #8CC63F;"></a>  <!-- Lime Green/Black -->
+                <a href="#" onclick='theme_changed("i")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+
+                <a href="#" onclick='theme_changed("j")' class="colorSelect" style="background-color: #C1272D;"></a>  <!-- Red/Black -->
+                <a href="#" onclick='theme_changed("j")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+                <br />
+            </p>
+            <p>
+                <a href="#main" onclick="save_settings()" data-rel="back" data-role="button" data-inline="true"
+                    data-icon="back">Save Settings</a>
+            </p>
+            </form>
+        </div><!-- /content -->
+    </div><!-- /page settings -->
+    </body>
+</html>

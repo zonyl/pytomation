@@ -13,6 +13,7 @@ from .cm11a import *
 from .mochad import *
 from .mh_send import *
 from .hw_thermostat import *
+from .venstar_colortouch import *
 try:
     from .wemo import *
 except:

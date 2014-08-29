@@ -16,6 +16,7 @@ more planned in the future.
    - [JDS Stargate](http://www.jdstechnologies.com/stargate.html) (RS232 / RS485)
    - [Radio Thermostat](http://www.radiothermostat.com/ ) WiFi Enabled Thermostat (CT30)
    - [Nest Labs](https://nest.com/) Nest thermostat
+   - [Venstar ColorTouch](http://www.venstar.com/Thermostats/ColorTouch/) Venstar ColorTouch Thermostat (5/6800)
    - [Weeder](http://www.weedtech.com/) Digital I/O board (Wtdio/RS232)
    - [Logitech Harmony](http://www.myharmony.com) Universal WiFi Remote (Harmony Ultimate)
    - [WGL Designs](http://wgldesigns.com/w800.html) W800RF32 X10 RF receiver (W800/RS232)
@@ -24,9 +25,9 @@ more planned in the future.
    - Mochad X10 CM15 (USB) and CM19 (USB)
    - [Misterhouse](http://misterhouse.sourceforge.net/) Voice Commands MHSend (TCP)
    - [Spark I/O](http://www.spark.io) WiFi devices
+   - Z-Wave (Aeon Labs via pyOpenzwave) DSA02203-ZWUS 
 
 ### Future
-   - Z-Wave (Aeon Labs) DSA02203-ZWUS
    - Weeder Analog I/O board (Wtaio/RS232)
    - Ube Wifi Devices
    - CoralStar WiFi Devices

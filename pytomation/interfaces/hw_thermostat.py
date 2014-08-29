@@ -89,7 +89,7 @@ class HW_Thermostat(HAInterface):
         self._mode = Command.OFF
         return self._send_state()
     
-    def level(self, address, level, timeout=2.0):
+    def setpoint(self, address, level, timeout=2.0):
         self._set_point = level
         return self._send_state()
     
@@ -122,8 +122,6 @@ class HW_Thermostat(HAInterface):
         if command != self._mode:
             self._mode = command
             self._onCommand(command=command,address=self._host)
-            
-        
 
     def _send_state(self):
         modes = dict(zip([Command.OFF, Command.HEAT, Command.COOL, Command.SCHEDULE],
@@ -150,4 +148,3 @@ class HW_Thermostat(HAInterface):
         commandExecutionDetails = self._sendInterfaceCommand(command)
         return True
         #return self._waitForCommandToFinish(commandExecutionDetails, timeout=2.0)
-        
