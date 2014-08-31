@@ -332,3 +332,14 @@ class HoneywellThermostat(HAInterface):
         self._fan(mode="Auto")
         return self._interface.write(deviceid=self._deviceid,
                                          request=self._request)
+        
+    def setpoint(self, address, level, *args, **kwargs):
+        # Need to include logic warmer/colder on auto mode 
+        if self._request['SystemSwitch'] == 3:
+            self._request['CoolSetPoint'] = level
+            
+        if self._request['SystemSwitch'] == 1:
+            self._request['HeatSetPoint'] = level  
+            
+        return self._interface.write(deviceid=self._deviceid,
+                                         request=self._request)     

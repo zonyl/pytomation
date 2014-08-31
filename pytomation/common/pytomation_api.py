@@ -71,6 +71,7 @@ class PytomationAPI(PytomationObject):
     
     def update_device(self, levels, data=None, source=None, *args, **kwargs):
         command = None
+	response=None
 #	print 'kkkkkkkk' + str(source)
         if not source:
             source = self
