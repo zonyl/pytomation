@@ -21,16 +21,25 @@ class State(object):
     CLOSED = "close"
     LIGHT = "light"
     DARK = "dark"
-    ACTIVE = 'activate'
-    INACTIVE = 'deactivate'
-    OCCUPIED = 'occupy'
-    VACANT = 'vacate'
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'
+    OCCUPIED = 'occupied'
+    VACANT = 'vacant'
     HEAT = 'heat'
     COOL = 'cool'
     CIRCULATE = 'circulate'
     AUTOMATIC = 'automatic'
     HOLD = 'hold'
-    
+
+class CommandStateMap(object):
+    state_to_command = {
+        State.ACTIVE: Command.ACTIVATE,
+        State.INACTIVE: Command.DEACTIVATE,
+        State.OCCUPIED: Command.OCCUPY,
+        State.VACANT: Command.VACATE
+    }
+
+    command_to_state = {v: k for k, v in state_to_command.items()}
 
 class Attribute(object):
     MAPPED = 'mapped'
@@ -268,9 +277,17 @@ class StateDevice(PytomationObject):
         # Try to map the same state ID
         try:
 #            state = getattr(State, command)
-            primary = command
             if isinstance(command, tuple):
-                primary = command[0]
+                primary = CommandStateMap.command_to_state.get(command[0], None)
+                if primary:
+                    tlist = list(command)
+                    tlist[0] = primary
+                    return tuple(tlist)
+                else:
+                    primary = command[0]
+            else:
+                command = CommandStateMap.command_to_state.get(command, command)
+                primary = command
             for attribute in dir(State):
                 if getattr(State, attribute) == primary:
                     return command
@@ -284,9 +301,17 @@ class StateDevice(PytomationObject):
     def _state_to_command(self, state, command):
         try:
 #            return Command['state']
-            primary = state
             if isinstance(state, tuple):
-                primary = state[0]
+                primary = CommandStateMap.state_to_command(state[0], None)
+                if primary:
+                    tlist = list(state)
+                    tlist[0] = primary
+                    return tuple(tlist)
+                else:
+                    primary = state[0]
+            else:
+                state = CommandStateMap.state_to_command.get(state, state)
+                primary = state
             for attribute in dir(Command):
                 if getattr(Command, attribute) == primary:
                     return state
