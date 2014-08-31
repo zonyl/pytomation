@@ -191,12 +191,13 @@ function reload_device_grid() {
     else {
         deviceList = rooms[room.value];
         var values = deviceData[room.value];
-        var buttonLabel = values['name'] + '<br />' + values['state'];
-        var rowData = "<tr class='deviceRow'>";
-        rowData += "<td><div data-id='" + values['id'] + "' class='singleDevice'><a href='#commands' class='commandPopupToggle' style='display: none;'></a>";
-        rowData += "<button data-mini='true' data-role='button' class='toggle' command='toggle' deviceId='" + room.value + "'>" + buttonLabel + "</button>";
-        rowData += "</div></td><tr>";
-        devicesLong.push(rowData);
+        var buttonLabel = values['state'];
+        if (buttonLabel !== 'unknown') {
+            var rowData = "<tr class='deviceRow'><td><div data-id='" + values['id'] + "' class='singleDevice'>";
+            rowData += "<button data-mini='true' data-role='button' class='room_toggle' command='toggle' deviceId='" + room.value + "'>" + buttonLabel + "</button>";
+            rowData += "</div></td><tr>";
+            devicesLong.push(rowData);
+        }
     }
     $.each(deviceList, function(deviceID, values) {
         if (select.value === 'All' || values['type_name'] === select.value) {
@@ -285,8 +286,7 @@ function reload_device_grid() {
                 }); //each
                 rowData += '</select></td><td style="width:1em;padding-left:.5em">' + tempTransitionLabel + '</td><td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="decrementSetpoint" data-iconpos="notext" data-role="button" data-icon="minus"></a></div></td>';
                 rowData += '<td style="width:3em"><button data-mini="true" data-role="button" class="toggle" command="toggle" deviceId="' + deviceID + '">' + buttonLabel + "</button></td>";
-                rowData += '<td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="incrementSetpoint" data-iconpos="notext" data-role="button" data-icon="plus"></a></div></td></tr></table>';
-                deviceColumn = 2;
+                rowData += '<td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="incrementSetpoint" data-iconpos="notext" data-role="button" data-icon="plus"></a></div></td></tr></table></tr>';
             } else {
                 rowData += "<button data-mini='true' data-role='button' class='toggle' command='toggle' deviceId='" + deviceID + "'>" + buttonLabel + "</button>";
                 if (values['type_name'] === 'Light') 
@@ -295,19 +295,22 @@ function reload_device_grid() {
                     rowData += "</div></td>";
             }
             
-            if (deviceColumn === 2) {
-                rowData+= "</tr>";
-                deviceColumn = 1;
-            }
-            else
-                deviceColumn = 2;
             if (values['type_name'] === 'Thermostat'){
                 devicesLong.push(rowData);
             } else {
+                if (deviceColumn === 2) {
+                    rowData+= "</tr>";
+                    deviceColumn = 1;
+                }
+                else
+                    deviceColumn = 2;
                 devices.push(rowData);
             }
         } // if type
     }); // each device
+    if (deviceColumn === 2 ) {
+        devices.push("<td><div class='singleDevice' style='border-style: none;'></td></tr>");
+    }
     if (devices) {
         $("#tableDevices").find("tr").remove();
         $("#tableDevices").append(devices.join('')).trigger('create');
@@ -317,6 +320,7 @@ function reload_device_grid() {
         $("#tableDevicesLong").append(devicesLong.join('')).trigger('create');
     }
     $(".toggle").click(on_device_command);
+    $(".room_toggle").click(on_device_command);
     $(".decrementSetpoint").click(decrementSetpoint);
     $(".incrementSetpoint").click(incrementSetpoint);
     $(".ui-slider").mouseup(send_level);
@@ -396,7 +400,7 @@ function send_command_callback(data) {
     var setpoint = 0;
     var mode = 'off';
     var temp = 0;
-    deviceData[id] = data;
+    deviceData[id]['state'] = state;
     if (data['type_name'] === 'Thermostat') {
         $.each(state, function(stateIndex, statePart) {
             if (statePart[0] === 'temp') temp = statePart[1] + '°';
@@ -449,6 +453,11 @@ function send_command_callback(data) {
             sliderValue = state[1];
         } // slider level
         $('div[data-id="' + id + '"] button.toggle').html(buttonLabel);
+        if (data['type_name'] === 'Room') {
+            buttonLabel = data['state'];
+            if (buttonLabel === 'unknown') buttonLabel = "Occupancy Unknown";
+            $('div[data-id="' + id + '"] button.room_toggle').html(buttonLabel);
+        }
         $('#slider' + id).val(sliderValue);
         $('#slider' + id).slider('refresh');
     } // if type name
