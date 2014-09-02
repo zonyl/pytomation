@@ -1,7 +1,7 @@
 import time
 from datetime import datetime, timedelta
 from threading import Event
-from apscheduler.scheduler import Scheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 # The actual Event class
@@ -24,7 +24,7 @@ class PeriodicTimer(object):
 
     def scheduler_start(self):
         if not PeriodicTimer.sched:
-            PeriodicTimer.sched = Scheduler()
+            PeriodicTimer.sched = BackgroundScheduler()
         if not PeriodicTimer.sched.running:
             PeriodicTimer.sched.start()
 
@@ -51,12 +51,12 @@ class PeriodicTimer(object):
 
         self.stop()
 
-        self._job = PeriodicTimer.sched.add_interval_job(self._check_for_event, seconds = self.frequency, max_instances=10, misfire_grace_time=10, coalesce=False)
+        self._job = PeriodicTimer.sched.add_job(self._check_for_event, trigger="interval", seconds = self.frequency, max_instances=10, misfire_grace_time=10, coalesce=False)
         self.is_stopped.clear()
 
     def stop(self):
         if self._job:
-            PeriodicTimer.sched.unschedule_job(self._job)
+            PeriodicTimer.sched.remove_job(self._job.id)
         self.is_stopped.set()        
 
     def _check_for_event(self):
