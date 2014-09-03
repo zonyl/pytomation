@@ -279,21 +279,21 @@ class HoneywellThermostat(HAInterface):
             self._TemporaryHoldUntilTime = uiData["TemporaryHoldUntilTime"]
 
             command = None
-            if self._SystemSwitchPosition == 2:
+            if self._SystemSwitchPosition == SYSTEMOFF:
                 self._logger.debug("system off!")
                 command = Command.OFF
 
-            elif self._SystemSwitchPosition == 1:
+            elif self._SystemSwitchPosition == SYSTEMHEAT:
                 self._logger.debug("heat on!")
                 command = Command.HEAT
                 self._setpoint = self._HeatSetpoint
 
-            elif self._SystemSwitchPosition == 3:
+            elif self._SystemSwitchPosition == SYSTEMCOOL:
                 self._logger.debug("cool on!")
                 command = Command.COOL
                 self._setpoint = self._CoolSetpoint
 
-            elif self._SystemSwitchPosition == 4:
+            elif self._SystemSwitchPosition == SYSTEMAUTO:
                 command = Command.AUTOMATIC
                 if self._last_temp < self._HeatSetpoint:
                     self._logger.debug("auto: heat on!")
@@ -336,13 +336,13 @@ class HoneywellThermostat(HAInterface):
 
     def _system(self, mode="Auto"):
         if mode == "Auto":
-            self._request['SystemSwitch'] = 4
+            self._request['SystemSwitch'] = SYSTEMAUTO
         elif mode == "Cool":
-            self._request['SystemSwitch'] = 3
+            self._request['SystemSwitch'] = SYSTEMCOOL
         elif mode == "Heat":
-            self._request['SystemSwitch'] = 1
+            self._request['SystemSwitch'] = SYSTEMHEAT
         elif mode == "Off":
-            self._request['SystemSwitch'] = 2
+            self._request['SystemSwitch'] = SYSTEMOFF
         return
 
     def circulate(self, *args, **kwargs):
@@ -359,11 +359,17 @@ class HoneywellThermostat(HAInterface):
         
     def setpoint(self, address, level, *args, **kwargs):
         # Need to include logic warmer/colder on auto mode 
-        if self._request['SystemSwitch'] == 3:
+        if self._request['SystemSwitch'] == SYSTEMCOOL:
             self._request['CoolSetPoint'] = level
             
-        if self._request['SystemSwitch'] == 1:
+        if self._request['SystemSwitch'] == SYSTEMHEAT:
             self._request['HeatSetPoint'] = level  
+
+	if self._request['SystemSwitch'] == SYSTEMAUTO:
+	    if level < self._request['CoolSetPoint']:
+	        self._request['CoolSetPoint'] = level
+	    if level > self._request['HeatSetPoint'] = level
+
         return self._interface.write(address=self._address,
                                          request=self._request)     
 
