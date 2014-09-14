@@ -60,6 +60,7 @@ class StateDevice(PytomationObject):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS,
                 Command.TOGGLE, Command.AUTOMATIC, Command.MANUAL, Command.INITIAL, Command.STATUS]
+    _delegates_state_change = []
     
     def __init__(self, *args, **kwargs):
         self._command_lock = thread.allocate_lock()
@@ -510,7 +511,16 @@ class StateDevice(PytomationObject):
             try:
                 _delegate(state,
                           prev=kwargs.get('prev', None),
-                          source=kwargs.get('source',None))
+                          source=kwargs.get('source',None),
+                          device=self)
+            except Exception, ex:
+                pass
+        for _delegate in StateDevice._delegates_state_change:
+            try:
+                _delegate(state,
+                          prev=kwargs.get('prev', None),
+                          source=kwargs.get('source',None),
+                          device=self)
             except Exception, ex:
                 pass
 
@@ -917,7 +927,12 @@ class StateDevice(PytomationObject):
     def onStateChanged(self, func):
         self._delegates_state_change.append(func)
         return True
-    
+
+    @staticmethod
+    def onStateChanged(func):
+        StateDevice._delegates_state_change.append(func)
+        return True
+
     @staticmethod
     def dump_garbage():
         """
