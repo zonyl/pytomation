@@ -62,23 +62,21 @@ class HoneywellWebsite(Interface):
 	    headers=self._headers
 	    )
 
-        if login_request.status_code != 302:
+        if login_request.status_code != 200:
             self._logger.warning('Failed HTTP Code> ' + str(login_request.status_code))
             self._loggedin = False
         else:
             self._logger.debug('Login passed. HTTP Code> ' + str(login_request.status_code))
             self._loggedin = True
 	
-	if (self._loggedin):
-	    verifylogin_request=self._session.get(
-	        'https://rs.alarmnet.com/TotalConnectComfort/Device/Control/'+deviceid,
-		headers=self._headers)
-
-	    if verifylogin_request.status_code != 200:
-	        self._loggedin = False
-
-
     def _query(self, address):
+	    #if (self._loggedin):
+	    #    verifylogin_request=self._session.get(
+	    #        'https://rs.alarmnet.com/TotalConnectComfort/Device/Control/'+str(address),
+		#    headers=self._headers)
+
+	    #if verifylogin_request.status_code != 200:
+	    #    self._loggedin = False
             self._logger.debug('Querying Thermostat>'+str(address))
             t = datetime.datetime.now()
             utc_seconds = (time.mktime(t.timetuple()))
@@ -126,6 +124,7 @@ class HoneywellWebsite(Interface):
         return True
 
     def read(self, address=None, *args, **kwargs):
+        self._login()
         return self._query(address)
 
     @property
@@ -273,9 +272,9 @@ class HoneywellThermostat(HAInterface):
             #                   (Command.LEVEL, current_temp),
             #                   address=self._address 
             #                   )
-            self._onState(state=[("temp",current_temp),("setpoint",self._setpoint),state],address=self._address)
-            #self._onState(state=("setpoint",self._setpoint,state),address=self._address)
-	    #state=state,setpoint=self._setpoint),address=self._address)
+            #self._onState(("temp",current_temp),address=self._address)
+            self._onState(state=[("temp",current_temp),("setpoint",self._setpoint),("mode",state)],address=self._address)
+            #self._onState(state=[("temp",current_temp),("setpoint",self._setpoint),("mode",state)],address=self._address)
 	    
 
         else:
