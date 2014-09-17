@@ -70,6 +70,7 @@ class StateDevice(PytomationObject):
         self._last_set = datetime.now()
         self._changes_only = False
         self._delegates = []
+        self._delegates_state_change = []
         self._times = []
         self._maps = {}
         self._delays = {}
@@ -116,6 +117,7 @@ class StateDevice(PytomationObject):
         source = kwargs.get('source', None)
         if value != self._state:
             self._previous_state = self._state
+            self._delegate_state_change(value, prev=self._state, source=source)
         self._last_set = datetime.now()
         self._state = value
         return self._state
@@ -467,6 +469,7 @@ class StateDevice(PytomationObject):
                                                                                    source=source.name if source else None,
                                                                                    delegate=delegate.name,
                                                                            ))
+<<<<<<< HEAD
 
     def device_list(self):
         if len(self._devices) == 0:
@@ -476,6 +479,19 @@ class StateDevice(PytomationObject):
             device_ids.append(device.type_id)
         return device_ids
 
+=======
+                
+    def _delegate_state_change(self, state, *args, **kwargs):
+        for _delegate in self._delegates_state_change:
+            try:
+                _delegate(state, 
+                          prev=kwargs.get('prev', None),
+                          source=kwargs.get('source',None))
+            except Exception, ex:
+                pass
+            
+        
+>>>>>>> db64d622752b2eca9093841543dcf3b93f9d703e
     def devices(self, *args, **kwargs):
         devices = args[0]
 
@@ -874,7 +890,11 @@ class StateDevice(PytomationObject):
         elif new_state != original_state and self._retrigger_delay:
             self._retrigger_delay.restart()
         return False          
-
+    
+    def onStateChanged(self, func):
+        self._delegates_state_change.append(func)
+        return True
+    
     @staticmethod
     def dump_garbage():
         """

@@ -31,3 +31,5 @@ htmlcov
 #Mr Developer
 .mr.developer.cfg
 /instances/graburns.py
+
+/instances/*.py

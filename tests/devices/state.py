@@ -2,9 +2,11 @@ import time
 
 from unittest import TestCase
 from datetime import datetime
+from mock import Mock, PropertyMock, MagicMock
 
 from pytomation.devices import StateDevice, State, Attribute, Attributes
 from pytomation.interfaces import Command
+
 
 class StateTests(TestCase):
     def test_instance(self):
@@ -804,4 +806,10 @@ class StateTests(TestCase):
         sr.off()
         self.assertEqual(State.OFF, s2.state)        
         
-        
+    def test_onStateChanged(self):
+        s1 = StateDevice()
+        custom = Mock()
+        s1.on()
+        s1.onStateChanged(custom.method)
+        s1.off()
+        custom.method.assert_called_with(State.OFF, source=None, prev=State.ON)
