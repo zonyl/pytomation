@@ -8,13 +8,20 @@ var currentTheme;
 var auth;
 var onServer = false;
 var resizeTimer;
+var ws;
 
 var init = function () {
     load_settings();
     if (currentTheme !== 'a') theme_changed(currentTheme);
     get_device_data();
     
-    //resize slider, taking the hidden text box into accout
+    //Create web socket hook for device state changes
+    ws = new WebSocket("ws://" + serverName + "/api/state");
+    ws.onmessage = function(e) {
+            send_command_callback($.parseJSON(e.data));
+    };
+    
+    //resize sliders, taking the hidden text box into accout
     $(window).resize(function() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function() {
@@ -151,10 +158,17 @@ function get_device_data_callback(data) {
 }
 
 function get_device_data() {
+    var url;
+    if (serverName === '') {
+        url = "/api/devices";
+    } else {
+        url = "http://" + serverName + "/api/devices";
+    };
+    
     if (auth) {
         $.ajax({
             dataType: "json",
-            url: serverName + "/api/devices",
+            url: url,
             headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
             crossDomain: true,
             context: document.body,
@@ -166,7 +180,7 @@ function get_device_data() {
     } else {
         $.ajax({
             dataType: "json",
-            url: serverName + "/api/devices",
+            url: url,
             crossDomain: true,
             context: document.body,
             type: 'GET',
@@ -392,6 +406,7 @@ function send_level() {
 } // send level
 
 function send_command_callback(data) {
+    if (data === 'success') return;
     var id = data['id'];
     var state = data['state'];
     var name = data['name'];
@@ -464,29 +479,35 @@ function send_command_callback(data) {
 }
 
 function send_command(deviceID, command) {
+    var url;
+    if (serverName === '') {
+        url = "/api/device/" + deviceID;
+    } else {
+        url = "http://" + serverName + "/api/device/" + deviceID;
+    };
     if (auth) {
         $.ajax({
             dataType: "json",
-            url: serverName + "/api/device/" + deviceID,
+            url: url,
             headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
             crossDomain: true,
             context: document.body,
             type: 'POST',
             data: { command: command },
             error: function(jqXHR, status, errorThrown){
-                alert(errorThrown);
+                alert(status + errorThrown);
             } //error
         }).done(send_command_callback); //done
     } else {
         $.ajax({
             dataType: "json",
-            url: serverName + "/api/device/" + deviceID,
+            url: url,
             crossDomain: true,
             context: document.body,
             type: 'POST',
             data: { command: command },
             error: function(jqXHR, status, errorThrown){
-                alert(errorThrown);
+                alert(status + errorThrown);
             } //error
         }).done(send_command_callback); //done
     }

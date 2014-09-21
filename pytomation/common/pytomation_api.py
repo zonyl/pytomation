@@ -6,17 +6,20 @@ import urllib
 #from collections import OrderedDict
 
 class PytomationAPI(PytomationObject):
+    VERSION = '2.0'
     JSON = 'json'
+    WEBSOCKET = 'websocket'
 
     def get_map(self):
         return {
-           ('get','devices'): PytomationAPI.get_devices,
-           ('get', 'device'): PytomationAPI.get_device,
-           ('post', 'device'): self.update_device,
-           }
-    
+                   ('get', 'devices'): PytomationAPI.get_devices,
+                   ('get', 'device'): PytomationAPI.get_device,
+                   ('post', 'device'): self.update_device,
+        }
+
     def get_response(self, method="GET", path=None, type=None, data=None, source=None):
         response = None
+        type = type.lower() if type else self.JSON
         method = method.lower()
         levels = path.split('/')
         if data:
@@ -28,9 +31,6 @@ class PytomationAPI(PytomationObject):
             else:
                 data = urllib.unquote(data).decode('utf8')
 
-#        print 'pizz:' + path + "l:" + levels[0] + "DDD"+ str(data)
-#	print "eeeeee" + str(source)
-        type = type.lower() if type else self.JSON
         f = self.get_map().get((method, levels[0]), None)
         if f:
             response = f(levels, data=data, source=source)
@@ -39,9 +39,23 @@ class PytomationAPI(PytomationObject):
                 response = self.update_device(command=method, levels=levels, source=source)
             except Exception, ex:
                 pass
-        if type==self.JSON:
+        if type == self.JSON:
             return json.dumps(response)
+        elif type == self.WEBSOCKET:
+            if method != 'post':
+                return json.dumps(response)
+            else:
+                return json.dumps("success")
         return None
+
+    def get_state_changed_message(self, state, source, prev, device):
+        return json.dumps({
+            'id': device.type_id,
+            'name': device.name,
+            'type_name': device.type_name,
+            'state': state,
+            'previous_state': prev
+        })
 
     @staticmethod
     def get_devices(path=None, *args, **kwargs):
@@ -64,15 +78,14 @@ class PytomationAPI(PytomationObject):
     @staticmethod
     def get_device(levels, *args, **kwargs):
         id = levels[1]
-        detail = pytomation_system.get_instances_detail()[id]
+        detail = pytomation_system.get_instance_detail(id)
         detail.update({'id': id})
         del detail['instance']
         return detail
     
     def update_device(self, levels, data=None, source=None, *args, **kwargs):
         command = None
-	response=None
-#	print 'kkkkkkkk' + str(source)
+        response = None
         if not source:
             source = self
 
@@ -82,7 +95,7 @@ class PytomationAPI(PytomationObject):
 #                    print 'ff' + str(d)
                     e = d.split('=')
 #                    print 'eee' + str(e)
-                    if e[0]== 'command':
+                    if e[0] == 'command':
                         command = e[1]
             else:
                 e = data.split('=')
@@ -106,7 +119,7 @@ class PytomationAPI(PytomationObject):
             detail = pytomation_system.get_instances_detail()[id]
             device = detail['instance']
             device.command(command=command, source=source)
-            response =  PytomationAPI.get_device(levels)
+            response = PytomationAPI.get_device(levels)
         except Exception, ex:
             pass
 #        print 'res['+ str(response)
