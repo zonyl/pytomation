@@ -9,24 +9,28 @@ Brad Goodman http://www.bradgoodman.com/  brad@bradgoodman.com
 
 some code ideas from:
  George Farris <farrisg@gmsys.com>
+
+Switched to use Python Requests
 """
-#import urllib2
-import urllib
-import json
+import requests
 import datetime
-import re
-#import time
-#import math
-#import base64
 import time
-import httplib
 
 from .ha_interface import HAInterface
 from .common import Interface, Command
+from pytomation.devices import State
 
 
 class HoneywellWebsite(Interface):
-    VERSION = '0.0.1'
+    VERSION = '2.0.0'
+
+    _headers={
+    	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; rv:31.0) Gecko/20100101 Firefox/31.0',
+	'Host': 'rs.alarmnet.com',
+	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+	'Accept-Language': 'en-US,en;q=0.5',
+	'Referer': 'https://rs.alarmnet.com/TotalConnectComfort'
+	}
 
     def __init__(self, username=None, password=None):
         super(HoneywellWebsite, self).__init__()
@@ -34,140 +38,95 @@ class HoneywellWebsite(Interface):
         self._host = "rs.alarmnet.com"
         self._username = username
         self._password = password
-        self._cookie = None
         self._loggedin = False
-        self._conn = None
+	self._session = None
         self._logger.debug('Created object for user> ' + str(username))
         try:
             self._login()
         except Exception, ex:
             self._logger.debug('Error logging in> ' + str(username)
-                               + 'exception:' + ex)
+                               + 'exception: ' + str(ex))
 
     def _login(self):
-        params = urllib.urlencode({"timeOffset": "240",
-                                 "UserName": self._username,
-                                 "Password": self._password,
-                                 "RememberMe": "false"})
+        self._session = requests.Session()
+	params = {
+		'timeOffset':240,
+		'UserName':self._username,
+		'Password':self._password,
+		'RememberMe':'false'
+		}
 
-        headers = {"Content-Type": "application/x-www-form-urlencoded",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Encoding": "sdch",
-                "Host": "rs.alarmnet.com",
-                "DNT": "1",
-                "Origin": "https://rs.alarmnet.com/TotalComfort/",
-                "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36"
-            }
-        self._conn = httplib.HTTPSConnection("rs.alarmnet.com")
-        self._conn.request("POST", "/TotalConnectComfort/", params, headers)
-        r1 = self._conn.getresponse()
-        cookie = r1.getheader("Set-Cookie")
-        location = r1.getheader("Location")
-        newcookie = cookie
-        newcookie = re.sub(";\s*expires=[^;]+", "", newcookie)
-        newcookie = re.sub(";\s*path=[^,]+,", ";", newcookie)
-        newcookie = re.sub("HttpOnly\s*[^;],", "X;", newcookie)
-        newcookie = re.sub(";\s*HttpOnly\s*,", ";", newcookie)
-        self._cookie = newcookie
+	login_request=self._session.post(
+	    'https://rs.alarmnet.com/TotalConnectComfort',
+	    params=params,
+	    headers=self._headers
+	    )
 
-        if ((location == None) or (r1.status != 302)):
-            self._logger.warning('Failed HTTP Code> ' + str(r1.status))
+        if login_request.status_code != 302:
+            self._logger.warning('Failed HTTP Code> ' + str(login_request.status_code))
             self._loggedin = False
         else:
-            self._logger.debug('Login passed. HTTP Code> ' + str(r1.status))
-            self._loggin = True
+            self._logger.debug('Login passed. HTTP Code> ' + str(login_request.status_code))
+            self._loggedin = True
+	
+	if (self._loggedin):
+	    verifylogin_request=self._session.get(
+	        'https://rs.alarmnet.com/TotalConnectComfort/Device/Control/'+deviceid,
+		headers=self._headers)
 
-    def _query(self, deviceid):
-            self._logger.debug('Querying Thermostat>')
+	    if verifylogin_request.status_code != 200:
+	        self._loggedin = False
+
+
+    def _query(self, address):
+            self._logger.debug('Querying Thermostat>'+str(address))
             t = datetime.datetime.now()
             utc_seconds = (time.mktime(t.timetuple()))
             utc_seconds = int(utc_seconds * 1000)
 
-            location = ("/TotalConnectComfort/Device/CheckDataSession/"
-                        + deviceid + "?_=" + str(utc_seconds))
-            headers = {
-                    "Accept": "*/*",
-                    "DNT": "1",
-                    "Accept-Encoding": "plain",
-                    "Cache-Control": "max-age=0",
-                    "Accept-Language": "en-US,en,q=0.8",
-                    "Connection": "keep-alive",
-                    "Host": "rs.alarmnet.com",
-                    "Referer": "https://rs.alarmnet.com/TotalConnectComfort/",
-                    "X-Requested-With": "XMLHttpRequest",
-                    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36",
-                    "Cookie": self._cookie
-                }
-            self._conn = httplib.HTTPSConnection("rs.alarmnet.com")
-            self._conn.request("GET", location, None, headers)
-            r3 = self._conn.getresponse()
-            if (r3.status != 200):
-                    self._logger.debug("Bad R3 status ")
+	    self._control_headers = {
+	        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; rv:31.0) Gecko/20100101 Firefox/31.0',
+		'Host': 'rs.alarmnet.com',
+		"Referer":"https://rs.alarmnet.com/TotalConnectComfort/Device/Control/"+str(address),
+		"X-Requested-With":"XMLHttpRequest",
+		'Accept': '*/*',
+		'Accept-Language': 'en-US,en;q=0.5',
+		}
 
-            self._logger.debug(r3.status)
-            self._logger.debug(r3.reason)
-            return r3.read()
 
-    def write(self, deviceid=None, request=None, *args, **kwargs):
+	    query_request=self._session.get(
+	        'https://rs.alarmnet.com/TotalConnectComfort/Device/CheckDataSession/'+
+	        str(address)+'?_='+
+		str(utc_seconds),
+		headers=self._control_headers)
+
+            return query_request.json()
+
+    def write(self, address, request, *args, **kwargs):
+        self._logger.debug('Writing to thermostat> ')
+        print "Write called!"
+	print "address",address
         t = datetime.datetime.now()
         utc_seconds = (time.mktime(t.timetuple()))
         utc_seconds = int(utc_seconds * 1000)
-        location = "/TotalConnectComfort/Device/SubmitControlScreenChanges"
-        headers = {
-            "Accept": 'application/json; q=0.01',
-            "DNT": "1",
-            "Accept-Encoding": "gzip,deflate,sdch",
-            'Content-Type': 'application/json; charset=UTF-8',
-            "Cache-Control": "max-age=0",
-            "Accept-Language": "en-US,en,q=0.8",
-            "Connection": "keep-alive",
-            "Host": "rs.alarmnet.com",
-            #"Referer": "https://rs.alarmnet.com/TotalConnectComfort/" + deviceid,
-            "X-Requested-With": "XMLHttpRequest",
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36",
-            #'Referer': "/TotalConnectComfort/Device/CheckDataSession/" + deviceid,
-            'Referer': 'https://rs.alarmnet.com/TotalConnectComfort/Device/Control/' + deviceid,
-            "Cookie": self._cookie
-        }
+        request['DeviceID'] = int(address)
+	r=self._session.post(
+	    'https://rs.alarmnet.com/TotalConnectComfort/Device/SubmitControlScreenChanges',
+	    data=request,
+	    headers=self._control_headers)
 
-        request["DeviceID"] = deviceid
-        rawj = json.dumps(request)
-        
-        self._logger.debug(location)
-        self._logger.debug(headers)
-        self._logger.debug(request)
-        self._logger.debug(rawj)
+	#print "response:",r4.status,rawj,address
+        if (r.status_code != 200): 
+            print "Bad R4 status ", r.status_code, r.reason
+            return False
 
-        #self._conn = httplib.HTTPSConnection("rs.alarmnet.com")
-        
-        #self._conn.request("POST", location, rawj, headers)
-        #r4 = self._conn.getresponse()
-        #if (r4.status != 200): 
-        #    print "Bad R4 status ", r4.status, r4.reason
-        #    return False
-        '''
-        Host: rs.alarmnet.com
-        User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0
-        Accept: application/json, text/javascript, */*; q=0.01
-        Accept-Language: en-US,en;q=0.5
-        Accept-Encoding: gzip, deflate
-        DNT: 1
-        Content-Type: application/json; charset=utf-8
-        X-Requested-With: XMLHttpRequest
-        Referer: https://rs.alarmnet.com/TotalConnectComfort/Device/Control/xxxxxx
-        Content-Length: 174
-        Cookie: __utma=95700044.1876926805.1393956240.1393956240.1402712414.2; __utmz=95700044.1393956240.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); thlang=en-US; ASP.NET_SessionId=nzaw2rg3mlv0xwwh0eu2zvco; TrueHomeCheckCookie=; __utmb=95700044.500.10.1402712414; __utmc=95700044; __RequestVerificationToken_L1RvdGFsQ29ubmVjdENvbWZvcnQ_=qHpN+ogUBNZ2Z0/8AVI+8dkdgBk9CTflbvrcdQIhuSuDEWYROXaRLPyBW/bl0KzMVr1m20Di24ElCFkkatYMErJPKXTVjzCnO0AfMkU2HkZKIzFwEJUYFp1CND934KUAHUIGIUUMJod3SonJKKh5Ikwb/Lm7oDEyH9yuzoK2J/4=; .ASPXAUTH_TH_A=89DF272D3E8B9B2CD724E3221B43DC5DEDF3829EA5B9283B2C2D5F5D541F3A4C33A753AC619053E51C631D9D2EF1937269F5C7D50AFDED4F1A14C4DCE5B8129F784C41CE61E8628713807DC7C184D8B6F4CB3F74D015DA5A93F97E3A1F5B7D7967A66F22C5CA87D9A9649529F2F273BC31E02D24867C9BCFAF4707E59A23335F9438CA31256CA128A38CDEECC9CD2B1CBE221ECFEBDAD605B769CA2C6DF423EDA8A87BA94DFCA6C69714183C4C879A8629572A69B88CB9E29094E60C7E9AF35F
-        Connection: keep-alive
-        Pragma: no-cache
-        Cache-Control: no-cache
-        
-        {"DeviceID":xxxxxxx,"SystemSwitch":null,"HeatSetpoint":null,"CoolSetpoint":null,"HeatNextPeriod":null,"CoolNextPeriod":null,"StatusHeat":null,"StatusCool":null,"FanMode":null}
-        '''
+	print "Okay!"
+	self._logger.debug('Done >')
 
         return True
 
-    def read(self, deviceid=None, *args, **kwargs):
-        return self._query(deviceid)
+    def read(self, address=None, *args, **kwargs):
+        return self._query(address)
 
     @property
     def username(self):
@@ -175,15 +134,24 @@ class HoneywellWebsite(Interface):
 
 
 class HoneywellThermostat(HAInterface):
-    VERSION = '0.0.3'
+    VERSION = '0.0.4'
+
+    FANAUTO = 0
+    FANON = 1
+
+    SYSTEMOFF = 2
+    SYSTEMHEAT = 1
+    SYSTEMCOOL = 3
+    SYSTEMAUTO = 4
+
 
     def _init(self, *args, **kwargs):
         super(HoneywellThermostat, self)._init(*args, **kwargs)
-        self._deviceid = kwargs.get('deviceid', None)
+        self._address = kwargs.get('address', None)
 
         self._cookie = None
-        self._iteration = 0
         self._poll_secs = kwargs.get('poll', 360)
+        self._iteration = self._poll_secs + 1
         self._retries = kwargs.get('retries', 5)
 
         self._username = self._interface.username
@@ -200,13 +168,14 @@ class HoneywellThermostat(HAInterface):
         self._last_temp = None
         self._CoolSetpoint = None
         self._HeatSetpoint = None
+	self._setpoint = None
         self._StatusCool = None             # off-0 temp-1 perm-2
         self._StatusHeat = None             # off-0 temp-1 perm-2
         self._TemporaryHoldUntilTime = None  # minutes since midnight
         #value used when on temp
         #import datetime; str(timedelta(minutes=1410))
         self._request = {
-            "DeviceID": self._deviceid,
+            "DeviceID": int(self._address),
             "SystemSwitch": None,
             "HeatSetpoint": None,
             "CoolSetpoint": None,
@@ -240,9 +209,10 @@ class HoneywellThermostat(HAInterface):
 
         if not self._iteration < self._poll_secs:
             self._iteration = 0
-            self._logger.debug('DeviceId:' + self._deviceid)
-            response = self._interface.read(deviceid=self._deviceid)
-            j = json.loads(response)
+            self._logger.debug('DeviceId:' + self._address)
+            #response = self._interface.read(address=self._address)
+            #j = json.loads(response)
+	    j = self._interface.read(address=self._address)
             fanData = j['latestData']['fanData']
             self._fanMode = fanData['fanMode']
 
@@ -256,37 +226,57 @@ class HoneywellThermostat(HAInterface):
             self._StatusCool = uiData["StatusCool"]
             self._StatusHeat = uiData["StatusHeat"]
             self._TemporaryHoldUntilTime = uiData["TemporaryHoldUntilTime"]
+	    
+            print j
+            #self._WeatherTemp = j['weather']['Temperature']
 
-            command = None
-            if self._SystemSwitchPosition == 2:
+            if j['communicationLost'] == "True":
+	        self.logger.error('Communication lost to thermostat>')
+		
+            state = None
+	    self._logger.debug("Mode reported> "+str(self._SystemSwitchPosition))
+            if self._SystemSwitchPosition == self.SYSTEMOFF:
                 self._logger.debug("system off!")
-                command = Command.OFF
+                state = State.OFF
 
-            elif self._SystemSwitchPosition == 1:
+            elif self._SystemSwitchPosition == self.SYSTEMHEAT:
                 self._logger.debug("heat on!")
-                command = Command.HEAT
+                state = State.HEAT
                 self._setpoint = self._HeatSetpoint
 
-            elif self._SystemSwitchPosition == 3:
+            elif self._SystemSwitchPosition == self.SYSTEMCOOL:
                 self._logger.debug("cool on!")
-                command = Command.COOL
+                state = State.COOL
                 self._setpoint = self._CoolSetpoint
 
-            elif self._SystemSwitchPosition == 4:
-                command = Command.AUTOMATIC
-                if self._last_temp < self._HeatSetpoint:
+            elif self._SystemSwitchPosition >= self.SYSTEMAUTO:
+                state = State.AUTOMATIC
+                if current_temp < self._HeatSetpoint:
                     self._logger.debug("auto: heat on!")
                     self._setpoint = self._HeatSetpoint
-                elif self._last_temp > self._CoolSetpoint:
+                elif current_temp > self._CoolSetpoint:
                     self._logger.debug("auto: cool on!")
+		elif abs(self._HeatSetpoint - current_temp) < abs(self._CoolSetpoint - current_temp):
+		    #closer to Heat than cool
+		    self._logger.debug("auto: closer to needing heat")
+		    self._setpoint = self._HeatSetpoint
+		else:
+		    self._logger.debug("auto: closer to needing cool")
+		    self._setpoint = self._CoolSetpoint
+            
+	    self._logger.debug('State is> '+str(state))
+            #self._onCommand(command=command, address=self._address)
 
-            self._onCommand(command=command, address=self._deviceid)
-
-            if self._last_temp != current_temp:
-                self._onCommand(
-                                (Command.LEVEL, current_temp),
-                                address=self._deviceid
-                                )
+            #f self._last_temp != current_temp:
+	    #   self._logger.debug("Updating temp status")
+                #elf._onCommand(
+            #                   (Command.LEVEL, current_temp),
+            #                   address=self._address 
+            #                   )
+            self._onState(state=[("temp",current_temp),("setpoint",self._setpoint),state],address=self._address)
+            #self._onState(state=("setpoint",self._setpoint,state),address=self._address)
+	    #state=state,setpoint=self._setpoint),address=self._address)
+	    
 
         else:
             self._iteration += 1
@@ -296,50 +286,64 @@ class HoneywellThermostat(HAInterface):
         self._request['HeatSetPoint'] = 65
         self._request['StatusCool'] = 2
         self._request['StatusHeat'] = 2
-        return self._interface.write(deviceid=self._deviceid,
+        return self._interface.write(address=self._address,
                                      request=self._request)
 
     def automatic(self, *args, **kwargs):
         self._fan(mode="On")
         self._system(mode="Auto")
-        return self._interface.write(deviceid=self._deviceid,
+        return self._interface.write(address=self._address,
                                          request=self._request)
 
     def _fan(self, mode="On"):
         if mode == "On":
-            self._request['FanMode'] = 1
+            self._request['FanMode'] = self.FANON
         else:
-            self._request['FanMode'] = 0
+            self._request['FanMode'] = self.FANAUTO
         return
 
     def _system(self, mode="Auto"):
         if mode == "Auto":
-            self._request['SystemSwitch'] = 4
+            self._request['SystemSwitch'] = self.SYSTEMAUTO
         elif mode == "Cool":
-            self._request['SystemSwitch'] = 3
+            self._request['SystemSwitch'] = self.SYSTEMCOOL
         elif mode == "Heat":
-            self._request['SystemSwitch'] = 1
+            self._request['SystemSwitch'] = self.SYSTEMHEAT
         elif mode == "Off":
-            self._request['SystemSwitch'] = 2
+            self._request['SystemSwitch'] = self.SYSTEMOFF
         return
 
     def circulate(self, *args, **kwargs):
         self._fan(mode="On")
-        return self._interface.write(deviceid=self._deviceid,
+	print "Circ Devid: " + self._address, self._request
+        return self._interface.write(address=self._address,
                                          request=self._request)
 
     def still(self, *args, **kwargs):
         self._fan(mode="Auto")
-        return self._interface.write(deviceid=self._deviceid,
+	print "Still Devid: " + self._address, self._request
+        return self._interface.write(address=self._address,
                                          request=self._request)
         
     def setpoint(self, address, level, *args, **kwargs):
-        # Need to include logic warmer/colder on auto mode 
-        if self._request['SystemSwitch'] == 3:
+        if self._request['SystemSwitch'] == self.SYSTEMCOOL:
             self._request['CoolSetPoint'] = level
             
-        if self._request['SystemSwitch'] == 1:
+        if self._request['SystemSwitch'] == self.SYSTEMHEAT:
             self._request['HeatSetPoint'] = level  
-            
-        return self._interface.write(deviceid=self._deviceid,
+
+	if self._request['SystemSwitch'] == self.SYSTEMAUTO:
+	    if level < self._request['CoolSetPoint']:
+	        self._request['CoolSetPoint'] = level
+	    if level > self._request['HeatSetPoint']:
+	        self._request['HeatSetPoint'] = level
+	
+	if self._request['SystemSwitch'] == self.SYSTEMOFF:
+	    self.logger.error('Not right')
+
+        return self._interface.write(address=self._address,
                                          request=self._request)     
+
+    def status(self, *args, **kwargs):
+        self._iteration = self._poll_secs + 1
+	return 
