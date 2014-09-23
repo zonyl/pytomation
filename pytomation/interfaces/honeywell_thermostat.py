@@ -101,6 +101,7 @@ class HoneywellWebsite(Interface):
             return query_request.json()
 
     def write(self, address, request, *args, **kwargs):
+        self._login()
         self._logger.debug('Writing to thermostat> ')
         print "Write called!"
 	print "address",address
@@ -263,19 +264,10 @@ class HoneywellThermostat(HAInterface):
 		    self._logger.debug("auto: closer to needing cool")
 		    self._setpoint = self._CoolSetpoint
             
+            self._onState(state=state ,address=self._address)
+            self._onState(state=(State.SETPOINT,self._setpoint) ,address=self._address)
+            self._onState(state=(State.LEVEL,current_temp) ,address=self._address)
 	    self._logger.debug('State is> '+str(state))
-            #self._onCommand(command=command, address=self._address)
-
-            #f self._last_temp != current_temp:
-	    #   self._logger.debug("Updating temp status")
-                #elf._onCommand(
-            #                   (Command.LEVEL, current_temp),
-            #                   address=self._address 
-            #                   )
-            #self._onState(("temp",current_temp),address=self._address)
-            self._onState(state=[("temp",current_temp),("setpoint",self._setpoint),("mode",state)],address=self._address)
-            #self._onState(state=[("temp",current_temp),("setpoint",self._setpoint),("mode",state)],address=self._address)
-	    
 
         else:
             self._iteration += 1
