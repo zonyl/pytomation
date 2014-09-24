@@ -8,13 +8,20 @@ var currentTheme;
 var auth;
 var onServer = false;
 var resizeTimer;
+var ws;
 
 var init = function () {
     load_settings();
     if (currentTheme !== 'a') theme_changed(currentTheme);
     get_device_data();
     
-    //resize slider, taking the hidden text box into accout
+    //Create web socket hook for device state changes
+    ws = new WebSocket("ws://" + serverName + "/api/state");
+    ws.onmessage = function(e) {
+            send_command_callback($.parseJSON(e.data));
+    };
+    
+    //resize sliders, taking the hidden text box into accout
     $(window).resize(function() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function() {
@@ -151,10 +158,17 @@ function get_device_data_callback(data) {
 }
 
 function get_device_data() {
+    var url;
+    if (serverName === '') {
+        url = "/api/devices";
+    } else {
+        url = "http://" + serverName + "/api/devices";
+    };
+    
     if (auth) {
         $.ajax({
             dataType: "json",
-            url: serverName + "/api/devices",
+            url: url,
             headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
             crossDomain: true,
             context: document.body,
@@ -166,7 +180,7 @@ function get_device_data() {
     } else {
         $.ajax({
             dataType: "json",
-            url: serverName + "/api/devices",
+            url: url,
             crossDomain: true,
             context: document.body,
             type: 'GET',
@@ -191,12 +205,13 @@ function reload_device_grid() {
     else {
         deviceList = rooms[room.value];
         var values = deviceData[room.value];
-        var buttonLabel = values['name'] + '<br />' + values['state'];
-        var rowData = "<tr class='deviceRow'>";
-        rowData += "<td><div data-id='" + values['id'] + "' class='singleDevice'><a href='#commands' class='commandPopupToggle' style='display: none;'></a>";
-        rowData += "<button data-mini='true' data-role='button' class='toggle' command='toggle' deviceId='" + room.value + "'>" + buttonLabel + "</button>";
-        rowData += "</div></td><tr>";
-        devicesLong.push(rowData);
+        var buttonLabel = values['state'];
+        if (buttonLabel !== 'unknown') {
+            var rowData = "<tr class='deviceRow'><td><div data-id='" + values['id'] + "' class='singleDevice'>";
+            rowData += "<button data-mini='true' data-role='button' class='room_toggle' command='toggle' deviceId='" + room.value + "'>" + buttonLabel + "</button>";
+            rowData += "</div></td><tr>";
+            devicesLong.push(rowData);
+        }
     }
     $.each(deviceList, function(deviceID, values) {
         if (select.value === 'All' || values['type_name'] === select.value) {
@@ -285,8 +300,7 @@ function reload_device_grid() {
                 }); //each
                 rowData += '</select></td><td style="width:1em;padding-left:.5em">' + tempTransitionLabel + '</td><td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="decrementSetpoint" data-iconpos="notext" data-role="button" data-icon="minus"></a></div></td>';
                 rowData += '<td style="width:3em"><button data-mini="true" data-role="button" class="toggle" command="toggle" deviceId="' + deviceID + '">' + buttonLabel + "</button></td>";
-                rowData += '<td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="incrementSetpoint" data-iconpos="notext" data-role="button" data-icon="plus"></a></div></td></tr></table>';
-                deviceColumn = 2;
+                rowData += '<td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="incrementSetpoint" data-iconpos="notext" data-role="button" data-icon="plus"></a></div></td></tr></table></tr>';
             } else {
                 rowData += "<button data-mini='true' data-role='button' class='toggle' command='toggle' deviceId='" + deviceID + "'>" + buttonLabel + "</button>";
                 if (values['type_name'] === 'Light') 
@@ -295,19 +309,22 @@ function reload_device_grid() {
                     rowData += "</div></td>";
             }
             
-            if (deviceColumn === 2) {
-                rowData+= "</tr>";
-                deviceColumn = 1;
-            }
-            else
-                deviceColumn = 2;
             if (values['type_name'] === 'Thermostat'){
                 devicesLong.push(rowData);
             } else {
+                if (deviceColumn === 2) {
+                    rowData+= "</tr>";
+                    deviceColumn = 1;
+                }
+                else
+                    deviceColumn = 2;
                 devices.push(rowData);
             }
         } // if type
     }); // each device
+    if (deviceColumn === 2 ) {
+        devices.push("<td><div class='singleDevice' style='border-style: none;'></td></tr>");
+    }
     if (devices) {
         $("#tableDevices").find("tr").remove();
         $("#tableDevices").append(devices.join('')).trigger('create');
@@ -317,6 +334,7 @@ function reload_device_grid() {
         $("#tableDevicesLong").append(devicesLong.join('')).trigger('create');
     }
     $(".toggle").click(on_device_command);
+    $(".room_toggle").click(on_device_command);
     $(".decrementSetpoint").click(decrementSetpoint);
     $(".incrementSetpoint").click(incrementSetpoint);
     $(".ui-slider").mouseup(send_level);
@@ -388,6 +406,7 @@ function send_level() {
 } // send level
 
 function send_command_callback(data) {
+    if (data === 'success') return;
     var id = data['id'];
     var state = data['state'];
     var name = data['name'];
@@ -396,7 +415,7 @@ function send_command_callback(data) {
     var setpoint = 0;
     var mode = 'off';
     var temp = 0;
-    deviceData[id] = data;
+    deviceData[id]['state'] = state;
     if (data['type_name'] === 'Thermostat') {
         $.each(state, function(stateIndex, statePart) {
             if (statePart[0] === 'temp') temp = statePart[1] + '°';
@@ -449,35 +468,46 @@ function send_command_callback(data) {
             sliderValue = state[1];
         } // slider level
         $('div[data-id="' + id + '"] button.toggle').html(buttonLabel);
+        if (data['type_name'] === 'Room') {
+            buttonLabel = data['state'];
+            if (buttonLabel === 'unknown') buttonLabel = "Occupancy Unknown";
+            $('div[data-id="' + id + '"] button.room_toggle').html(buttonLabel);
+        }
         $('#slider' + id).val(sliderValue);
         $('#slider' + id).slider('refresh');
     } // if type name
 }
 
 function send_command(deviceID, command) {
+    var url;
+    if (serverName === '') {
+        url = "/api/device/" + deviceID;
+    } else {
+        url = "http://" + serverName + "/api/device/" + deviceID;
+    };
     if (auth) {
         $.ajax({
             dataType: "json",
-            url: serverName + "/api/device/" + deviceID,
+            url: url,
             headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
             crossDomain: true,
             context: document.body,
             type: 'POST',
             data: { command: command },
             error: function(jqXHR, status, errorThrown){
-                alert(errorThrown);
+                alert(status + errorThrown);
             } //error
         }).done(send_command_callback); //done
     } else {
         $.ajax({
             dataType: "json",
-            url: serverName + "/api/device/" + deviceID,
+            url: url,
             crossDomain: true,
             context: document.body,
             type: 'POST',
             data: { command: command },
             error: function(jqXHR, status, errorThrown){
-                alert(errorThrown);
+                alert(status + errorThrown);
             } //error
         }).done(send_command_callback); //done
     }

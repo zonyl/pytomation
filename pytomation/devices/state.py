@@ -21,16 +21,25 @@ class State(object):
     CLOSED = "close"
     LIGHT = "light"
     DARK = "dark"
-    ACTIVE = 'activate'
-    INACTIVE = 'deactivate'
-    OCCUPIED = 'occupy'
-    VACANT = 'vacate'
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'
+    OCCUPIED = 'occupied'
+    VACANT = 'vacant'
     HEAT = 'heat'
     COOL = 'cool'
     CIRCULATE = 'circulate'
     AUTOMATIC = 'automatic'
     HOLD = 'hold'
-    
+
+class CommandStateMap(object):
+    state_to_command = {
+        State.ACTIVE: Command.ACTIVATE,
+        State.INACTIVE: Command.DEACTIVATE,
+        State.OCCUPIED: Command.OCCUPY,
+        State.VACANT: Command.VACATE
+    }
+
+    command_to_state = {v: k for k, v in state_to_command.items()}
 
 class Attribute(object):
     MAPPED = 'mapped'
@@ -51,6 +60,7 @@ class StateDevice(PytomationObject):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS,
                 Command.TOGGLE, Command.AUTOMATIC, Command.MANUAL, Command.INITIAL, Command.STATUS]
+    _delegates_state_change = []
     
     def __init__(self, *args, **kwargs):
         self._command_lock = thread.allocate_lock()
@@ -270,9 +280,17 @@ class StateDevice(PytomationObject):
         # Try to map the same state ID
         try:
 #            state = getattr(State, command)
-            primary = command
             if isinstance(command, tuple):
-                primary = command[0]
+                primary = CommandStateMap.command_to_state.get(command[0], None)
+                if primary:
+                    tlist = list(command)
+                    tlist[0] = primary
+                    return tuple(tlist)
+                else:
+                    primary = command[0]
+            else:
+                command = CommandStateMap.command_to_state.get(command, command)
+                primary = command
             for attribute in dir(State):
                 if getattr(State, attribute) == primary:
                     return command
@@ -286,9 +304,17 @@ class StateDevice(PytomationObject):
     def _state_to_command(self, state, command):
         try:
 #            return Command['state']
-            primary = state
             if isinstance(state, tuple):
-                primary = state[0]
+                primary = CommandStateMap.state_to_command(state[0], None)
+                if primary:
+                    tlist = list(state)
+                    tlist[0] = primary
+                    return tuple(tlist)
+                else:
+                    primary = state[0]
+            else:
+                state = CommandStateMap.state_to_command.get(state, state)
+                primary = state
             for attribute in dir(Command):
                 if getattr(Command, attribute) == primary:
                     return state
@@ -469,7 +495,7 @@ class StateDevice(PytomationObject):
                                                                                    source=source.name if source else None,
                                                                                    delegate=delegate.name,
                                                                            ))
-<<<<<<< HEAD
+
 
     def device_list(self):
         if len(self._devices) == 0:
@@ -479,19 +505,26 @@ class StateDevice(PytomationObject):
             device_ids.append(device.type_id)
         return device_ids
 
-=======
-                
+
     def _delegate_state_change(self, state, *args, **kwargs):
         for _delegate in self._delegates_state_change:
             try:
-                _delegate(state, 
+                _delegate(state,
                           prev=kwargs.get('prev', None),
-                          source=kwargs.get('source',None))
+                          source=kwargs.get('source',None),
+                          device=self)
             except Exception, ex:
                 pass
-            
-        
->>>>>>> db64d622752b2eca9093841543dcf3b93f9d703e
+        for _delegate in StateDevice._delegates_state_change:
+            try:
+                _delegate(state,
+                          prev=kwargs.get('prev', None),
+                          source=kwargs.get('source',None),
+                          device=self)
+            except Exception, ex:
+                pass
+
+
     def devices(self, *args, **kwargs):
         devices = args[0]
 
@@ -894,7 +927,12 @@ class StateDevice(PytomationObject):
     def onStateChanged(self, func):
         self._delegates_state_change.append(func)
         return True
-    
+
+    @staticmethod
+    def onStateChanged(func):
+        StateDevice._delegates_state_change.append(func)
+        return True
+
     @staticmethod
     def dump_garbage():
         """

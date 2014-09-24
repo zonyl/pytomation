@@ -5,6 +5,13 @@ button.toggle, button.command {
     margin-bottom: 0px;
     margin-top:0px;
 }
+button.room_toggle {
+    width:100%;
+    margin-bottom: 0px;
+    margin-top:0px;
+    padding-bottom: 2px;
+    padding-top: 2px;
+}
 table {
   width: 100%;
   table-layout:fixed;

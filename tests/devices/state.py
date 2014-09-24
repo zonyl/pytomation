@@ -812,4 +812,12 @@ class StateTests(TestCase):
         s1.on()
         s1.onStateChanged(custom.method)
         s1.off()
-        custom.method.assert_called_with(State.OFF, source=None, prev=State.ON)
+        custom.method.assert_called_with(State.OFF, source=None, prev=State.ON, device=s1)
+
+    def test_static_onStateChanged(self):
+        s1 = StateDevice()
+        custom = Mock()
+        s1.on()
+        StateDevice.onStateChanged(custom.method)
+        s1.off()
+        custom.method.assert_called_with(State.OFF, source=None, prev=State.ON, device=s1)
