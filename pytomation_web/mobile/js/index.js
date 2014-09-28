@@ -9,17 +9,12 @@ var auth;
 var onServer = false;
 var resizeTimer;
 var ws;
+var upgradeConnection;
 
 var init = function () {
     load_settings();
     if (currentTheme !== 'a') theme_changed(currentTheme);
     get_device_data();
-    
-    //Create web socket hook for device state changes
-    ws = new WebSocket("ws://" + serverName + "/api/state");
-    ws.onmessage = function(e) {
-            send_command_callback($.parseJSON(e.data));
-    };
     
     //resize sliders, taking the hidden text box into accout
     $(window).resize(function() {
@@ -73,7 +68,6 @@ function load_settings() {
     settingsForm.elements["password"].value = password;
     
     if (currentTheme === null) currentTheme = 'a';
-    if (typeof userName === 'undefined' || userName === '') auth=false; else auth = true;
 } //Load Settings
 
 function save_settings() {
@@ -158,6 +152,34 @@ function get_device_data_callback(data) {
 }
 
 function get_device_data() {
+    if (typeof userName === 'undefined' || userName === '') auth=false; else auth = true;
+    //Create web socket hook for device state changes
+    if (ws){
+        try {
+            ws.close();
+        }
+        catch (e) {} 
+    }
+    try {
+        ws = new WebSocket("ws://" + serverName + "/api/state");
+    }
+    catch(e){}
+    
+    ws.onmessage = function(e) {
+        update_device_state($.parseJSON(e.data));
+    };
+    ws.onerror = function(e) {
+        upgradeConnection = false;
+        get_device_data_ajax();
+    };
+    ws.onopen = function(e) {
+        upgradeConnection = true;
+        //ToDo: add get_device_data_ws()
+        get_device_data_ajax();
+    };
+}
+
+function get_device_data_ajax() {
     var url;
     if (serverName === '') {
         url = "/api/devices";
@@ -400,12 +422,56 @@ function on_device_command(eventObject) {
     return false;
 } //on device command
 
+function send_command(deviceID, command) {
+    if (upgradeConnection) {
+        //ToDo: add send_command_ws(deviceID, command)
+        send_command_ajax(deviceID, command);
+    } else {
+        send_command_ajax(deviceID, command);
+    }
+}
+
+function send_command_ajax(deviceID, command) {
+    var url;
+    if (serverName === '') {
+        url = "/api/device/" + deviceID;
+    } else {
+        url = "http://" + serverName + "/api/device/" + deviceID;
+    };
+    if (auth) {
+        $.ajax({
+            dataType: "json",
+            url: url,
+            headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
+            crossDomain: true,
+            context: document.body,
+            type: 'POST',
+            data: { command: command },
+            error: function(jqXHR, status, errorThrown){
+                alert(status + errorThrown);
+            } //error
+        }).done(update_device_state); //done
+    } else {
+        $.ajax({
+            dataType: "json",
+            url: url,
+            crossDomain: true,
+            context: document.body,
+            type: 'POST',
+            data: { command: command },
+            error: function(jqXHR, status, errorThrown){
+                alert(status + errorThrown);
+            } //error
+        }).done(update_device_state); //done
+    }
+} // send command
+
 function send_level() {
     var deviceID = $(this).children('input').attr('deviceId');
     send_command(deviceID,'level,' + $(this).children('input').val());
 } // send level
 
-function send_command_callback(data) {
+function update_device_state(data) {
     if (data === 'success') return;
     var id = data['id'];
     var state = data['state'];
@@ -477,38 +543,3 @@ function send_command_callback(data) {
         $('#slider' + id).slider('refresh');
     } // if type name
 }
-
-function send_command(deviceID, command) {
-    var url;
-    if (serverName === '') {
-        url = "/api/device/" + deviceID;
-    } else {
-        url = "http://" + serverName + "/api/device/" + deviceID;
-    };
-    if (auth) {
-        $.ajax({
-            dataType: "json",
-            url: url,
-            headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
-            crossDomain: true,
-            context: document.body,
-            type: 'POST',
-            data: { command: command },
-            error: function(jqXHR, status, errorThrown){
-                alert(status + errorThrown);
-            } //error
-        }).done(send_command_callback); //done
-    } else {
-        $.ajax({
-            dataType: "json",
-            url: url,
-            crossDomain: true,
-            context: document.body,
-            type: 'POST',
-            data: { command: command },
-            error: function(jqXHR, status, errorThrown){
-                alert(status + errorThrown);
-            } //error
-        }).done(send_command_callback); //done
-    }
-} // send command
