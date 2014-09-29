@@ -158,7 +158,7 @@ function get_device_data() {
         try {
             ws.close();
         }
-        catch (e) {alert(e)} 
+        catch (e) {alert(e);} 
     }
     try {
         if (auth) {
@@ -166,21 +166,26 @@ function get_device_data() {
         } else {
             ws = new WebSocket("ws://" + serverName + "/api/state");
         }
+        
+        ws.onmessage = function(e) {
+            update_device_state($.parseJSON(e.data));
+        };
+        ws.onerror = function(e) {
+            upgradeConnection = false;
+            get_device_data_ajax();
+        };
+        ws.onopen = function(e) {
+            upgradeConnection = true;
+            //ToDo: add get_device_data_ws()
+            get_device_data_ajax();
+        };
     }
-    catch(e){}
-    
-    ws.onmessage = function(e) {
-        update_device_state($.parseJSON(e.data));
-    };
-    ws.onerror = function(e) {
+    catch(e){
+        //can't do web sockets
         upgradeConnection = false;
         get_device_data_ajax();
-    };
-    ws.onopen = function(e) {
-        upgradeConnection = true;
-        //ToDo: add get_device_data_ws()
-        get_device_data_ajax();
-    };
+    }
+    
 }
 
 function get_device_data_ajax() {
