@@ -158,10 +158,14 @@ function get_device_data() {
         try {
             ws.close();
         }
-        catch (e) {} 
+        catch (e) {alert(e)} 
     }
     try {
-        ws = new WebSocket("ws://" + serverName + "/api/state");
+        if (auth) {
+            ws = new WebSocket("ws://" + userName + ':' + password + '@' + serverName + "/api/state");
+        } else {
+            ws = new WebSocket("ws://" + serverName + "/api/state");
+        }
     }
     catch(e){}
     

@@ -5,12 +5,16 @@ Author(s):
 David Heaps - king.dopey.10111@gmail.com
 """
 
+import mimetypes
+import os
+import base64
+
 from geventwebsocket import WebSocketServer, WebSocketApplication, Resource
+
 from .ha_interface import HAInterface
 from pytomation.common.pytomation_api import PytomationAPI
 from pytomation.common import config
 from pytomation.devices import StateDevice
-import mimetypes, os
 
 
 class PytoWebSocketApp(WebSocketApplication):
@@ -22,8 +26,8 @@ class PytoWebSocketApp(WebSocketApplication):
     def on_message(self, message):
         pass
         #todo: Allow for API access via websocket message
-        #return self._api.get_response(path='/' + apicommand), source=PytoWebSocketServer,
-        #                              method=method, data=data, type=self._api.WEBSOCKET)
+        #ws.send(self._api.get_response(path='/' + apicommand), source=PytoWebSocketServer,
+        #                              method=method, data=data, type=self._api.WEBSOCKET))
         #todo: Future plain text (voice) command hook
 
     def on_close(self, reason):
@@ -48,9 +52,8 @@ class PytoWebSocketServer(HAInterface):
         self.ws = WebSocketServer(
             (self._address, self._port),
             Resource({'/api/state': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app})
-        )
+            , pre_start_hook=auth_hook)
         """
-        todo: Add pre_start_hook for header access and authentication
         todo: For SSL (possibly check for existence), pass  **ssl_args
             {   "certfile": "[path to mycert.crt]"),
                 "keyfile": "[path to mykey.key]"),
@@ -90,8 +93,6 @@ class PytoWebSocketServer(HAInterface):
 
             mime = mimetypes.guess_type(http_file)
             start_response("200 OK", [("Content-Type", mime[0]), ('Access-Control-Allow-Origin', '*')])
-            #with open(http_file, "rb") as f:
-            #    binary_file = f.read()
             return open(http_file, "rb")
         else:
             start_response("404 Not Found", [("Content-Type", "text/html"), ('Access-Control-Allow-Origin', '*')])
@@ -103,3 +104,21 @@ class PytoWebSocketServer(HAInterface):
             for client in self.ws.clients.values():
                 message = self._api.get_state_changed_message(state, source, prev, device)
                 client.ws.send(message)
+
+
+def auth_hook(web_socket_handler):
+    if config.auth_enabled == 'Y':
+        auth = web_socket_handler.headers.get('Authorization', None)
+        if not auth:
+            if web_socket_handler.command == 'OPTIONS':
+                web_socket_handler.start_response("200 OK",
+                                                  [("Access-Control-Allow-Headers", "Authorization"),
+                                                   ('Access-Control-Allow-Origin', '*')])
+            else:
+                web_socket_handler.start_response("401 Unauthorized", [('WWW-Authenticate', 'Basic realm=\"Pytomation\"'), ('Access-Control-Allow-Origin', '*')])
+        elif auth != 'Basic ' + base64.b64encode(config.admin_user + ":" + config.admin_password):
+            web_socket_handler.start_response("401 Unauthorized", [('WWW-Authenticate', 'Basic realm=\"Pytomation\"'), ('Access-Control-Allow-Origin', '*')])
+        else:
+            return True
+    else:
+        return True
