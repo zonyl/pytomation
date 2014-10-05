@@ -161,24 +161,7 @@ function get_device_data() {
         catch (e) {alert(e);} 
     }
     try {
-        if (auth) {
-            ws = new WebSocket("ws://" + userName + ':' + password + '@' + serverName + "/api/state");
-        } else {
-            ws = new WebSocket("ws://" + serverName + "/api/state");
-        }
-        
-        ws.onmessage = function(e) {
-            update_device_state($.parseJSON(e.data));
-        };
-        ws.onerror = function(e) {
-            upgradeConnection = false;
-            get_device_data_ajax();
-        };
-        ws.onopen = function(e) {
-            upgradeConnection = true;
-            //ToDo: add get_device_data_ws()
-            get_device_data_ajax();
-        };
+        setup_ws_connection();
     }
     catch(e){
         //can't do web sockets
@@ -186,6 +169,47 @@ function get_device_data() {
         get_device_data_ajax();
     }
     
+}
+
+function setup_ws_connection() {
+    if (auth) {
+        ws = new WebSocket("ws://" + userName + ':' + password + '@' + serverName + "/api/bridge");
+    } else {
+        ws = new WebSocket("ws://" + serverName + "/api/bridge");
+    }
+
+    ws.onmessage = function(e) {
+        data = e.data;
+        data = $.parseJSON(data);
+        if (data !== 'success') { //just an ack from command
+            if(typeof data.previous_state === "undefined"){
+                //this isn't a device state update, so it's a device list update
+                get_device_data_callback(data);
+            }
+            else{ //must be a device state update
+                update_device_state(data);
+            }
+        }
+    };
+    ws.onerror = function(e) {
+        upgradeConnection = false;
+        get_device_data_ajax();
+    };
+    ws.onopen = function(e) {
+        upgradeConnection = true;
+        ws.send(JSON.stringify({
+            path: "devices"
+        }));
+    };
+}
+
+function check_ws_connection(){
+    if (ws.readyState === 1) {
+        return true;
+    }
+    else {
+        setup_ws_connection();
+    }
 }
 
 function get_device_data_ajax() {
@@ -433,8 +457,11 @@ function on_device_command(eventObject) {
 
 function send_command(deviceID, command) {
     if (upgradeConnection) {
-        //ToDo: add send_command_ws(deviceID, command)
-        send_command_ajax(deviceID, command);
+        check_ws_connection();
+        ws.send(JSON.stringify({
+            path: "device/" + deviceID,
+            command: command
+        }));
     } else {
         send_command_ajax(deviceID, command);
     }
