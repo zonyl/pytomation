@@ -6,7 +6,7 @@ import urllib
 #from collections import OrderedDict
 
 class PytomationAPI(PytomationObject):
-    VERSION = '2.0'
+    VERSION = '2.1'
     JSON = 'json'
     WEBSOCKET = 'websocket'
 
@@ -20,6 +20,24 @@ class PytomationAPI(PytomationObject):
     def get_response(self, method="GET", path=None, type=None, data=None, source=None):
         response = None
         type = type.lower() if type else self.JSON
+        if type == self.WEBSOCKET:
+            try:
+                data = json.loads(data)
+            except Exception, ex:
+                pass
+            path = data['path']
+            try:
+                data = data['command']
+                data = 'command=' + data if data else None
+            except Exception, ex:
+                #If no command just send back data being requested
+                data = None
+                type = self.JSON
+            method = "post" if data else "get"
+            #todo: Future plain text (voice) command hook
+            #if websocket_data['type'].lower() == 'voice'
+            #   decode voice commands and recall get_response
+
         method = method.lower()
         levels = path.split('/')
         if data:

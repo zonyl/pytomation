@@ -24,11 +24,8 @@ class PytoWebSocketApp(WebSocketApplication):
         print "WebSocket Client connected"
 
     def on_message(self, message):
-        pass
-        #todo: Allow for API access via websocket message
-        #ws.send(self._api.get_response(path='/' + apicommand), source=PytoWebSocketServer,
-        #                              method=method, data=data, type=self._api.WEBSOCKET))
-        #todo: Future plain text (voice) command hook
+        if message:
+            self.ws.send(self._api.get_response(data=message, type=self._api.WEBSOCKET))
 
     def on_close(self, reason):
         print("WebSocket Client disconnected: ")
@@ -51,7 +48,7 @@ class PytoWebSocketServer(HAInterface):
     def run(self):
         self.ws = WebSocketServer(
             (self._address, self._port),
-            Resource({'/api/state': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app})
+            Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app})
             , pre_start_hook=auth_hook)
         """
         todo: For SSL (possibly check for existence), pass  **ssl_args
