@@ -1,6 +1,7 @@
 from .pyto_logging import PytoLogging
 
 class PytomationObject(object):
+    """ Common PytomationObject """
     instances = []
     def __init__(self, *args, **kwargs):
         self._type_id = None

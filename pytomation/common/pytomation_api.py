@@ -6,6 +6,9 @@ import urllib
 #from collections import OrderedDict
 
 class PytomationAPI(PytomationObject):
+    """
+    Provides a REST WebAPI for Pytomation.
+    """
     VERSION = '2.0'
     JSON = 'json'
     WEBSOCKET = 'websocket'
@@ -59,6 +62,9 @@ class PytomationAPI(PytomationObject):
 
     @staticmethod
     def get_devices(path=None, *args, **kwargs):
+        """
+        Returns all devices and status in JSON.
+        """
         devices = []
         for (k, v) in pytomation_system.get_instances_detail().iteritems():
             try:
@@ -77,6 +83,9 @@ class PytomationAPI(PytomationObject):
 
     @staticmethod
     def get_device(levels, *args, **kwargs):
+        """
+        Returns one device's status in JSON.
+        """
         id = levels[1]
         detail = pytomation_system.get_instance_detail(id)
         detail.update({'id': id})
@@ -84,6 +93,9 @@ class PytomationAPI(PytomationObject):
         return detail
     
     def update_device(self, levels, data=None, source=None, *args, **kwargs):
+        """
+        Issues command in POST from JSON format.
+        """
         command = None
         response = None
         if not source:
