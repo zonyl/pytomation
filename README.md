@@ -10,7 +10,7 @@ that.  It is supported on any platform that support Python ( Windows, Mac OS-X, 
 Pytomation currently has support for the following hardware interfaces with 
 more planned in the future.
 
-   - [Insteon](http://www.insteon.com/) / X10 (2412N, 2412S)
+   - [Insteon](http://www.insteon.com/) / X10 (2412N, 2412S, 2413U)
    - [UPB](http://www.pulseworx.com/products/products_.htm) Universal Powerline Bus (Serial PIM)
    - [Belkin WeMo](http://www.belkin.com/us/Products/home-automation/c/wemo-home-automation)  WeMo Wifi Switches 
    - [JDS Stargate](http://www.jdstechnologies.com/stargate.html) (RS232 / RS485)
