@@ -305,7 +305,7 @@ class StateDevice(PytomationObject):
         try:
 #            return Command['state']
             if isinstance(state, tuple):
-                primary = CommandStateMap.state_to_command(state[0], None)
+                primary = CommandStateMap.state_to_command.get(state[0], None)
                 if primary:
                     tlist = list(state)
                     tlist[0] = primary
