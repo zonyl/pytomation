@@ -41,21 +41,25 @@ class PytoWebSocketServer(HAInterface):
         super(PytoWebSocketServer, self).__init__(self._address, *args, **kwargs)
         self.unrestricted = True  # To override light object restrictions
         self.ws = None
+        try:
+            self._ssl_path = config.ssl_path
+        except Exception:
+            self._ssl_path = None
 
     def _init(self, *args, **kwargs):
         super(PytoWebSocketServer, self)._init(*args, **kwargs)
 
     def run(self):
-        self.ws = WebSocketServer(
+        if self._ssl_path:
+            self.ws = WebSocketServer(
             (self._address, self._port),
-            Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app})
-            , pre_start_hook=auth_hook)
-        """
-        todo: For SSL (possibly check for existence), pass  **ssl_args
-            {   "certfile": "[path to mycert.crt]"),
-                "keyfile": "[path to mykey.key]"),
-            }
-        """
+            Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app}),
+            pre_start_hook=auth_hook, keyfile=self._ssl_path + '/server.key', certfile=self._ssl_path + '/server.crt')
+        else:
+            self.ws = WebSocketServer(
+                (self._address, self._port),
+                Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app}),
+                pre_start_hook=auth_hook)
 
         print "Serving WebSocket Connection on", self._address, "port", self._port, "..."
         StateDevice.onStateChanged(self.broadcast_state)
@@ -74,6 +78,10 @@ class PytoWebSocketServer(HAInterface):
     def http_file_app(self, environ, start_response):
         path_info = environ['PATH_INFO']
         http_file = self._path + path_info
+        if self._ssl_path:
+            protocol = 'https://'
+        else:
+            protocol = 'http://'
 
         if os.path.exists(http_file):
             if os.path.isdir(http_file):
@@ -81,9 +89,9 @@ class PytoWebSocketServer(HAInterface):
                     http_file += 'index.html'
                 else:
                     if path_info.startswith('/'):
-                        location = 'http://' + self._address + ':' + str(self._port) + path_info + '/'
+                        location = protocol + self._address + ':' + str(self._port) + path_info + '/'
                     else:
-                        location = 'http://' + self._address + ':' + str(self._port) + '/' + path_info + '/'
+                        location = protocol + self._address + ':' + str(self._port) + '/' + path_info + '/'
                     start_response("302 Found",
                                    [("Location", location), ('Access-Control-Allow-Origin', '*')])
                     return ''
@@ -96,7 +104,7 @@ class PytoWebSocketServer(HAInterface):
             return "404 Not Found"
 
     def broadcast_state(self, state, source, prev, device):
-        # todo: add queue system and separate thread to avoid blocking on long network operations
+        # TODO: add queue system and separate thread to avoid blocking on long network operations
         if self.ws:
             for client in self.ws.clients.values():
                 message = self._api.get_state_changed_message(state, source, prev, device)
@@ -116,6 +124,6 @@ def auth_hook(web_socket_handler):
         elif auth != 'Basic ' + base64.b64encode(config.admin_user + ":" + config.admin_password):
             web_socket_handler.start_response("401 Unauthorized", [('WWW-Authenticate', 'Basic realm=\"Pytomation\"'), ('Access-Control-Allow-Origin', '*')])
         else:
-            return True
+            return False
     else:
-        return True
+        return False

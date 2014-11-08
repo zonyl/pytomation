@@ -32,6 +32,7 @@ admin_password = 'mation'
 http_address = "0.0.0.0"
 http_port = 8080
 http_path = "./pytomation_web"
+#ssl_path = "./ssl"
 telnet_port = None
 loop_time = 1
 

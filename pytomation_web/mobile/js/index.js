@@ -154,12 +154,6 @@ function get_device_data_callback(data) {
 function get_device_data() {
     if (typeof userName === 'undefined' || userName === '') auth=false; else auth = true;
     //Create web socket hook for device state changes
-    if (ws){
-        try {
-            ws.close();
-        }
-        catch (e) {alert(e);} 
-    }
     try {
         setup_ws_connection();
     }
@@ -172,10 +166,24 @@ function get_device_data() {
 }
 
 function setup_ws_connection() {
-    if (auth) {
-        ws = new WebSocket("ws://" + userName + ':' + password + '@' + serverName + "/api/bridge");
+    if (ws){
+        try {
+            ws.close();
+        }
+        catch (e) {fake = true;} 
+    }
+    if(serverName.substring(0,5) === 'https'){
+        protocol = 'wss://';
+        websocketserver = serverName.substring(8, serverName.length);
     } else {
-        ws = new WebSocket("ws://" + serverName + "/api/bridge");
+        protocol = 'ws://';
+        websocketserver = serverName.substring(7, serverName.length);
+    }
+    
+    if (auth) {
+        ws = new WebSocket(protocol + userName + ':' + password + '@' + websocketserver + "/api/bridge");
+    } else {
+        ws = new WebSocket(protocol + websocketserver + "/api/bridge");
     }
 
     ws.onmessage = function(e) {
@@ -217,7 +225,7 @@ function get_device_data_ajax() {
     if (serverName === '') {
         url = "/api/devices";
     } else {
-        url = "http://" + serverName + "/api/devices";
+        url = serverName + "/api/devices";
     };
     
     if (auth) {
@@ -472,7 +480,7 @@ function send_command_ajax(deviceID, command) {
     if (serverName === '') {
         url = "/api/device/" + deviceID;
     } else {
-        url = "http://" + serverName + "/api/device/" + deviceID;
+        url = serverName + "/api/device/" + deviceID;
     };
     if (auth) {
         $.ajax({
