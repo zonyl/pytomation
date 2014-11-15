@@ -41,28 +41,24 @@ class PytoWebSocketServer(HAInterface):
         super(PytoWebSocketServer, self).__init__(self._address, *args, **kwargs)
         self.unrestricted = True  # To override light object restrictions
         self.ws = None
-        try:
-            self._ssl_path = config.ssl_path
-        except Exception:
-            self._ssl_path = None
 
     def _init(self, *args, **kwargs):
         super(PytoWebSocketServer, self)._init(*args, **kwargs)
 
     def run(self):
-        if self._ssl_path:
+        try:
             self.ws = WebSocketServer(
             (self._address, self._port),
             Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app}),
-            pre_start_hook=auth_hook, keyfile=self._ssl_path + '/server.key', certfile=self._ssl_path + '/server.crt')
-        else:
+            pre_start_hook=auth_hook, keyfile=config.ssl_path + '/server.key', certfile=config.ssl_path + '/server.crt')
+        except:
             self.ws = WebSocketServer(
                 (self._address, self._port),
                 Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app}),
                 pre_start_hook=auth_hook)
 
         print "Serving WebSocket Connection on", self._address, "port", self._port, "..."
-        StateDevice.onStateChanged(self.broadcast_state)
+        StateDevice.onStateChangedGlobal(self.broadcast_state)
         self.ws.serve_forever()
 
     def api_app(self, environ, start_response):

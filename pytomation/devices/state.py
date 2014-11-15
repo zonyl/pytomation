@@ -929,7 +929,7 @@ class StateDevice(PytomationObject):
         return True
 
     @staticmethod
-    def onStateChanged(func):
+    def onStateChangedGlobal(func):
         StateDevice._delegates_state_change.append(func)
         return True
 
