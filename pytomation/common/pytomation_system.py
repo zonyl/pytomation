@@ -10,7 +10,7 @@ def get_instances():
 
 def get_instances_detail():
     details = {}
-    for object in get_instances():
+    for object in PytomationObject.instances.itervalues():
         object_detail = {'instance': object,
                          'name': object.name,
                          'type_name': object.type_name,
@@ -29,21 +29,20 @@ def get_instances_detail():
     return details
 
 def get_instance_detail(object_id):
-    for object in PytomationObject.instances:
-        if object.type_id == object_id:
-            object_detail = {'instance': object,
-                             'name': object.name,
-                             'type_name': object.type_name,
-                             }
-            try:
-                object_detail.update({'commands': object.COMMANDS})
-                object_detail.update({'state': object.state})
-                object_detail.update({'devices': object.device_list()})
-            except Exception, ex:
-                # Not a state device
-                pass
+    object = PytomationObject.instances[object_id]
+    object_detail = {'instance': object,
+                     'name': object.name,
+                     'type_name': object.type_name,
+                     }
+    try:
+        object_detail.update({'commands': object.COMMANDS})
+        object_detail.update({'state': object.state})
+        object_detail.update({'devices': object.device_list()})
+    except Exception, ex:
+        # Not a state device
+        pass
 
-            return object_detail
+    return object_detail
 
 def start(loop_action=None, loop_time=1, admin_user=None, admin_password=None, telnet_port=None, 
           http_address=None, http_port=None, http_path=None):

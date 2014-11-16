@@ -49,12 +49,12 @@ class PytoWebSocketServer(HAInterface):
         try:
             self.ws = WebSocketServer(
             (self._address, self._port),
-            Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app}),
+            Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/api/voice': self.api_app, '/': self.http_file_app}),
             pre_start_hook=auth_hook, keyfile=config.ssl_path + '/server.key', certfile=config.ssl_path + '/server.crt')
         except:
             self.ws = WebSocketServer(
                 (self._address, self._port),
-                Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/': self.http_file_app}),
+                Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/api/voice': self.api_app, '/': self.http_file_app}),
                 pre_start_hook=auth_hook)
 
         print "Serving WebSocket Connection on", self._address, "port", self._port, "..."

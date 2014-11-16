@@ -4,6 +4,8 @@ from pytomation.interfaces import Command
 class Thermostat(InterfaceDevice):
     STATES = [State.UNKNOWN, State.OFF, State.HEAT, State.COOL, State.LEVEL, State.CIRCULATE, State.STILL, State.AUTOMATIC, State.HOLD, State.VACANT, State.OCCUPIED, State.SETPOINT]
     COMMANDS = [Command.AUTOMATIC, Command.MANUAL, Command.COOL, Command.HEAT, Command.HOLD, Command.SCHEDULE, Command.OFF, Command.LEVEL, Command.STATUS, Command.CIRCULATE, Command.STILL, Command.VACATE, Command.OCCUPY, Command.SETPOINT]
+    DEFAULT_COMMAND = Command.STATUS
+    DEFAULT_NUMERIC_COMMAND = Command.SETPOINT
     
     def __init__(self, *args, **kwargs):
         for level in range(60,90):

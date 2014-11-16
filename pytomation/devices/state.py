@@ -60,6 +60,8 @@ class StateDevice(PytomationObject):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS,
                 Command.TOGGLE, Command.AUTOMATIC, Command.MANUAL, Command.INITIAL, Command.STATUS]
+    DEFAULT_COMMAND = Command.TOGGLE
+    DEFAULT_NUMERIC_COMMAND = Command.LEVEL
     _delegates_state_change = []
     
     def __init__(self, *args, **kwargs):

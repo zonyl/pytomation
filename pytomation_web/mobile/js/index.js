@@ -10,21 +10,36 @@ var onServer = false;
 var resizeTimer;
 var ws;
 var upgradeConnection;
+var shake;
 
-var init = function () {
+//document.addEventListener("deviceready", init, false);
+
+function init() {
     load_settings();
     if (currentTheme !== 'a') theme_changed(currentTheme);
-    get_device_data();
     
     //resize sliders, taking the hidden text box into accout
     $(window).resize(function() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function() {
-        var device_width = $(window).innerWidth();
-        device_width=(device_width / 2) - 38;
-        $('.ui-slider-track ').width(device_width);
-    }, 200);
-});
+            var device_width = $(window).innerWidth();
+            device_width=(device_width / 2) - 38;
+            $('.ui-slider-track ').width(device_width);
+        }, 200);
+    }); //resizeTimer
+    
+    // Voice Command pulldown
+    if(navigator.userAgent.indexOf('Android') !== -1){
+        $(".iscroll-wrapper", $('#main')).bind( {
+            iscroll_onpulldown : doVoice
+        } );
+    } 
+    else {
+        $(".iscroll-wrapper").data("mobileIscrollview").destroy();
+        $(".iscroll-pulldown").remove();
+    } // Voice Command pulldown
+    
+    get_device_data();
 }; // init
 $(document).ready(init);
 
@@ -53,6 +68,10 @@ function theme_changed(selectedTheme){
         $(this).attr('data-theme',selectedTheme);
     });
     $('#commands').attr('data-theme', selectedTheme).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme).trigger('create');
+    if (selectedTheme > 'e') 
+        $('.iscroll-pulldown').css('background','#000000');
+    else
+        $('.iscroll-pulldown').css('background','#FFFFFF');
     currentTheme = selectedTheme;
 } //theme changed
 
@@ -509,6 +528,64 @@ function send_command_ajax(deviceID, command) {
         }).done(update_device_state); //done
     }
 } // send command
+
+function doVoice(event, data) {
+    var maxMatches = 3;
+    window.plugins.speechrecognizer.startRecognize(function(result){
+        send_voice_command(result);
+        data.iscrollview.refresh();
+    }, function(errorMessage){
+        alert("Error message: " + errorMessage);
+        data.iscrollview.refresh();
+    }, maxMatches, 'Speak now');
+};
+
+function send_voice_command(command) {
+    if (upgradeConnection) {
+        check_ws_connection();
+        ws.send(JSON.stringify({
+            path: "voice",
+            command: command
+        }));
+    } else {
+        send_voice_command_ajax(command);
+    }
+}
+
+function send_voice_command_ajax(command) {
+    var url;
+    if (serverName === '') {
+        url = "/api/voice";
+    } else {
+        url = serverName + "/api/voice";
+    };
+    if (auth) {
+        $.ajax({
+            dataType: "json",
+            url: url,
+            headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
+            crossDomain: true,
+            context: document.body,
+            type: 'POST',
+            data: { command: command },
+            error: function(jqXHR, status, errorThrown){
+                alert(status + errorThrown);
+            } //error
+        }).done(update_device_state); //done
+    } else {
+        $.ajax({
+            dataType: "json",
+            url: url,
+            crossDomain: true,
+            context: document.body,
+            type: 'POST',
+            data: { command: command },
+            error: function(jqXHR, status, errorThrown){
+                alert(status + errorThrown);
+            } //error
+        }).done(update_device_state); //done
+    }
+} // send voice command
 
 function send_level() {
     var deviceID = $(this).children('input').attr('deviceId');

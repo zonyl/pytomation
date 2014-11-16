@@ -3,10 +3,9 @@ from .pytomation_object import PytomationObject
 import pytomation_system
 import json
 import urllib
-#from collections import OrderedDict
 
 class PytomationAPI(PytomationObject):
-    VERSION = '2.1'
+    VERSION = '3.0'
     JSON = 'json'
     WEBSOCKET = 'websocket'
 
@@ -15,7 +14,41 @@ class PytomationAPI(PytomationObject):
                    ('get', 'devices'): PytomationAPI.get_devices,
                    ('get', 'device'): PytomationAPI.get_device,
                    ('post', 'device'): self.update_device,
+                   ('post', 'voice'): self.translate_voice_command
         }
+        
+    def translate_voice_command(self, levels, data, source):
+        for command in data:
+            command =  command.lower()
+            for dev_name in self.sorted_names_by_length:
+                if command.find(dev_name) != -1:
+                    #remove the name from command so it doesn't interfere
+                    #with the next search
+                    command = command.replace(dev_name,'')
+                    dev_id = self.name_to_id_map[dev_name]
+                    device = self.instances[dev_id]
+                    levels = ['device', dev_id]
+                    for device_command in device.COMMANDS:
+                        if command.find(device_command) != -1:
+                            command = command.replace(device_command,'')
+                            try:
+                                numeric_command = ''.join(ele for ele in command if ele.isdigit())
+                                if numeric_command:
+                                    device_command = device_command + ',' + numeric_command
+                            except:
+                                pass
+                            return self.update_device(levels, 'command=' + device_command, source)
+                    try:
+                        numeric_command = ''.join(ele for ele in command if ele.isdigit())
+                        if numeric_command:
+                            device_command = device.DEFAULT_NUMERIC_COMMAND + ',' + numeric_command
+                            return self.update_device(levels, 'command=' + device_command, source)
+                        else:
+                            return self.update_device(levels, 'command=' + device.DEFAULT_COMMAND, source)
+                    except:
+                        return self.update_device(levels, 'command=' + device.DEFAULT_COMMAND, source)
+        #Maybe we should ask the internet from here?
+        return json.dumps("I'm sorry, can you please repeat that?") 
 
     def get_response(self, method="GET", path=None, type=None, data=None, source=None):
         response = None
@@ -25,21 +58,24 @@ class PytomationAPI(PytomationObject):
                 data = json.loads(data)
             except Exception, ex:
                 pass
+            
             path = data['path']
+            
             try:
                 data = data['command']
-                data = 'command=' + data if data else None
+                if path != 'voice':
+                    data = 'command=' + data if data else None
             except Exception, ex:
                 #If no command just send back data being requested
                 data = None
                 type = self.JSON
             method = "post" if data else "get"
-            #todo: Future plain text (voice) command hook
-            #if websocket_data['type'].lower() == 'voice'
-            #   decode voice commands and recall get_response
-
+        elif path == 'voice':
+            data = urllib.unquote(data).replace('&', '').replace('+', ' ').split("command[]=")
+            
         method = method.lower()
         levels = path.split('/')
+        
         if data:
             if isinstance(data, list):
                 tdata = []
