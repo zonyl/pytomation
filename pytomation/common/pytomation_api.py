@@ -14,10 +14,10 @@ class PytomationAPI(PytomationObject):
                    ('get', 'devices'): PytomationAPI.get_devices,
                    ('get', 'device'): PytomationAPI.get_device,
                    ('post', 'device'): self.update_device,
-                   ('post', 'voice'): self.translate_voice_command
+                   ('post', 'voice'): self.run_voice_command
         }
         
-    def translate_voice_command(self, levels, data, source):
+    def run_voice_command(self, levels, data, source):
         for command in data:
             command =  command.lower()
             for dev_name in self.sorted_names_by_length:
