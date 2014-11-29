@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.pytomation.homecontrol" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Home Control</name>
+    <description>
+        A mobile app to send commands to pytomation
+    </description>
+    <author email="king.dopey.10111@gmail.com">
+        David Heaps
+    </author>
+    <content src="index.html" />
+    <access origin="*" />
+</widget>

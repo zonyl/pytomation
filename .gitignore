@@ -36,7 +36,3 @@ htmlcov
 .idea/*
 .bash_history
 
-#Android build files
-ant-build/
-ant.properties #contains certificate key and pass
-private/*
