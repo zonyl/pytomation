@@ -59,9 +59,11 @@ Debian packages are available for pySerial, pytz, pythone-gevent, and python-ope
 
 For other operating systems, search your package manager for the equivalent packages or use pip to install the Python dependencies.
 
-Build openzwave and python-openzwave:
+Build openzwave and python-openzwave
 ====================================
-Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. There is also a binary avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz (I haven't tested). The following is extracted from the python-openzwave INSTALL_MAN.txt.
+Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. There is also a binary avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz (I haven't tested). 
+
+The following is extracted from the python-openzwave INSTALL_MAN.txt:
 
     sudo apt-get install mercurial subversion python-pip python-dev python-setuptools python-louie python-sphinx make build-essential libudev-dev g++
     sudo pip install cython==0.14
@@ -78,13 +80,16 @@ Go to the openzwave directory and build it:
     cd ../../../..
 
 Build python-openzwave:
+
     python setup-lib.py build
     python setup-api.py build
 
 
 And install them:
+
    sudo python setup-lib.py install
    sudo python setup-api.py install
+
 ====================================
 
 The remaining dependencies can be installed with `pip`. Pip is a tool for installing and managing Python packages, such as those found in the Python Package Index.
