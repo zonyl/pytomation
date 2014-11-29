@@ -59,6 +59,25 @@ Debian packages are available for pySerial, pytz, pythone-gevent, and python-ope
 
 For other operating systems, search your package manager for the equivalent packages or use pip to install the Python dependencies.
 
+The remaining dependencies can be installed with `pip`. Pip is a tool for installing and managing Python packages, such as those found in the Python Package Index.
+
+Again, under Debian distributions you can install the python-pip package: 
+
+    sudo apt-get install python-pip
+
+Once pip is installed it is easy to install the rest of the dependencies with the following commands:
+
+    sudo pip install pyephem
+
+To use the optional websocket server:
+
+    sudo pip install gevent-websocket
+
+The gevent-websocket server is pretty fast, but can be accelerated further by installing wsaccel and ujson or simplejson
+
+    sudo pip install wsaccel ujson
+
+
 Build openzwave and python-openzwave
 ====================================
 Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. There is also a binary avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz (I haven't tested). 
@@ -89,25 +108,6 @@ And install them:
 
     sudo python setup-lib.py install
     sudo python setup-api.py install
-
-
-The remaining dependencies can be installed with `pip`. Pip is a tool for installing and managing Python packages, such as those found in the Python Package Index.
-
-Again, under Debian distributions you can install the python-pip package: 
-
-    sudo apt-get install python-pip
-
-Once pip is installed it is easy to install the rest of the dependencies with the following commands:
-
-    sudo pip install pyephem
-
-To use the optional websocket server:
-
-    sudo pip install gevent-websocket
-
-The gevent-websocket server is pretty fast, but can be accelerated further by installing wsaccel and ujson or simplejson
-
-    sudo pip install wsaccel ujson
 
 
 ####INSTALL
