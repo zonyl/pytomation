@@ -11,6 +11,9 @@ twisted
 #eusful==0.6
 #pyenest
 requests
+gevent-websocket
+wsaccel
+ujson
 -e git://github.com/jcollie/pyjnest.git#egg=pyjnest
 -e git+https://github.com/zonyl/pyharmony.git#egg=pyharmony
 interruptingcow

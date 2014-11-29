@@ -87,8 +87,8 @@ Build python-openzwave:
 
 And install them:
 
-   sudo python setup-lib.py install
-   sudo python setup-api.py install
+    sudo python setup-lib.py install
+    sudo python setup-api.py install
 
 
 The remaining dependencies can be installed with `pip`. Pip is a tool for installing and managing Python packages, such as those found in the Python Package Index.
@@ -97,11 +97,19 @@ Again, under Debian distributions you can install the python-pip package:
 
     sudo apt-get install python-pip
 
-Once pip is installed it is easy to install the rest of the dependencies with the following commands.
+Once pip is installed it is easy to install the rest of the dependencies with the following commands:
 
     sudo pip install pyephem
 
-    
+To use the optional websocket server:
+
+    sudo pip install gevent-websocket
+
+The gevent-websocket server is pretty fast, but can be accelerated further by installing wsaccel and ujson or simplejson
+
+    sudo pip install wsaccel ujson
+
+
 ####INSTALL
 
 You are now ready to install pytomation. First, clone the pytomation git repository. Change into the pytomation repo directory and run `./install.sh`. You may have to make it executable with the command `chmod +x ./install.sh` first. Install.sh can take an optional argument which points to an alternate installation directory:
