@@ -90,7 +90,6 @@ And install them:
    sudo python setup-lib.py install
    sudo python setup-api.py install
 
-====================================
 
 The remaining dependencies can be installed with `pip`. Pip is a tool for installing and managing Python packages, such as those found in the Python Package Index.
 
