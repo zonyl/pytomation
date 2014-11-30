@@ -32,6 +32,25 @@ more planned in the future.
    - Ube Wifi Devices
    - CoralStar WiFi Devices
 
+### FEATURES
+   - Written in Python
+   - REST API
+   - Mobile Web and Android clients w/ continuous device state updates (web-sockets)
+   - Voice Commands from Android (“Home Control” app)
+   - Local Telnet and Web access
+   - Unique language to describe devices and actions
+   - Smart objects: Doors, Lights, Motion, Photocell etc.
+   - Optional “Mainloop” programming, for more complicated control
+   - Optional “Event driven” programming, for complex actions when a device state changes
+   - Time of day on and off control
+   - Delays for time off
+   - Idle command, device will return to "idle" state
+   - Map one command to another with optional source and time
+   - Good hardware support with more coming
+   - Very easy to add new hardware drivers
+   - Good documentation complete with examples
+   - Much more
+
 ---
 
 ###INSTALLATION
