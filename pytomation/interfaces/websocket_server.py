@@ -43,15 +43,20 @@ class PytoWebSocketServer(HAInterface):
         self.ws = None
 
     def _init(self, *args, **kwargs):
+        self._ssl_path = None
+        try:
+            self._ssl_path = config.ssl_path
+        except:
+            pass
         super(PytoWebSocketServer, self)._init(*args, **kwargs)
 
     def run(self):
-        try:
+        if self._ssl_path:
             self.ws = WebSocketServer(
             (self._address, self._port),
             Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/api/voice': self.api_app, '/': self.http_file_app}),
-            pre_start_hook=auth_hook, keyfile=config.ssl_path + '/server.key', certfile=config.ssl_path + '/server.crt')
-        except:
+            pre_start_hook=auth_hook, keyfile=self._ssl_path + '/server.key', certfile=self._ssl_path + '/server.crt')
+        else:
             self.ws = WebSocketServer(
                 (self._address, self._port),
                 Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/api/voice': self.api_app, '/': self.http_file_app}),
