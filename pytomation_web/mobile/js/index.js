@@ -1,5 +1,7 @@
 //Global Variables
 var serverName;
+var serverName2;
+var currentSever;
 var userName;
 var password;
 var deviceData = {};
@@ -39,7 +41,7 @@ function init() {
         $(".iscroll-pulldown").remove();
     } // Voice Command pulldown
     
-    get_device_data();
+    get_device_data_ajax();
 }; // init
 $(document).ready(init);
 
@@ -75,30 +77,44 @@ function theme_changed(selectedTheme){
     currentTheme = selectedTheme;
 } //theme changed
 
+function get_storage_item(key) {
+    item = window.localStorage.getItem(key)
+    if (item==='null' || item === null) return ''; 
+    else return item;
+}
+
 function load_settings() {
-    serverName = window.localStorage.getItem("serverName");
-    userName = window.localStorage.getItem("userName");
-    password = window.localStorage.getItem("password");
-    currentTheme = window.localStorage.getItem("currentTheme");
+    serverName = get_storage_item("serverName");
+    serverName2 = get_storage_item("serverName2");
+    userName = get_storage_item("userName");
+    password = get_storage_item("password");
+    currentTheme = get_storage_item("currentTheme");
+    currentServer = serverName;
 
     var settingsForm = document.forms['settingsForm'];
     settingsForm.elements["serverName"].value = serverName;
+    settingsForm.elements["serverName2"].value = serverName2;
     settingsForm.elements["userName"].value = userName;
     settingsForm.elements["password"].value = password;
     
-    if (currentTheme === null) currentTheme = 'a';
+    if (currentTheme === '') currentTheme = 'a';
+    auth = (userName!=='');
 } //Load Settings
 
 function save_settings() {
     var settingsForm = document.forms['settingsForm'];
     serverName = settingsForm.elements["serverName"].value;
+    serverName2 = settingsForm.elements["serverName2"].value;
     userName = settingsForm.elements["userName"].value;
     password = settingsForm.elements["password"].value;
     window.localStorage.setItem("serverName", serverName);
+    window.localStorage.setItem("serverName2", serverName2);
     window.localStorage.setItem("userName", userName);
     window.localStorage.setItem("password", password);
     window.localStorage.setItem("currentTheme", currentTheme);
-    get_device_data();
+    currentServer = serverName;
+    auth = (userName!=='');
+    get_device_data_ajax();
 } //Save Settings
 
 function get_device_data_callback(data) {
@@ -168,66 +184,68 @@ function get_device_data_callback(data) {
         }
     }
     reload_device_grid();
+    setup_ws_connection();
 }
 
-function get_device_data() {
-    if (typeof userName === 'undefined' || userName === '') auth=false; else auth = true;
-    //Create web socket hook for device state changes
+function setup_ws_connection() {
     try {
-        setup_ws_connection();
+        if (ws){
+            try {
+                ws.close();
+            }
+            catch (e) {fake = true;} 
+        }
+        if (onServer) {
+            var loc = window.location, new_url, path;
+            if (loc.protocol === "https:") {
+                new_url = "wss:";
+            } else {
+                new_url = "ws:";
+            }
+            new_url += "//" + loc.host + "/api/bridge";
+            ws = new WebSocket(new_url);
+        } else {
+            if(currentServer.substring(0,5) === 'https'){
+                protocol = 'wss://';
+                websocketserver = currentServer.substring(8, serverName.length);
+            } else {
+                protocol = 'ws://';
+                websocketserver = currentServer.substring(7, serverName.length);
+            }
+
+            if (auth) {
+                ws = new WebSocket(protocol + userName + ':' + password + '@' + websocketserver + "/api/bridge");
+            } else {
+                ws = new WebSocket(protocol + websocketserver + "/api/bridge");
+            }
+        }
+        ws.onmessage = function(e) {
+            data = e.data;
+            data = $.parseJSON(data);
+            if (data !== 'success') { //just an ack from command
+                if(typeof data.previous_state === "undefined"){
+                    //this isn't a device state update, so it's a device list update
+                    get_device_data_callback(data);
+                }
+                else{ //must be a device state update
+                    update_device_state(data);
+                }
+            }
+        };
+        ws.onerror = function(e) {
+            upgradeConnection = false;
+            alert("upgrade Failed");
+        };
+        ws.onopen = function(e) {
+            upgradeConnection = true;
+        };
     }
     catch(e){
         //can't do web sockets
         upgradeConnection = false;
-        get_device_data_ajax();
+        alert("upgrade Failed");
     }
     
-}
-
-function setup_ws_connection() {
-    if (ws){
-        try {
-            ws.close();
-        }
-        catch (e) {fake = true;} 
-    }
-    if(serverName.substring(0,5) === 'https'){
-        protocol = 'wss://';
-        websocketserver = serverName.substring(8, serverName.length);
-    } else {
-        protocol = 'ws://';
-        websocketserver = serverName.substring(7, serverName.length);
-    }
-    
-    if (auth) {
-        ws = new WebSocket(protocol + userName + ':' + password + '@' + websocketserver + "/api/bridge");
-    } else {
-        ws = new WebSocket(protocol + websocketserver + "/api/bridge");
-    }
-
-    ws.onmessage = function(e) {
-        data = e.data;
-        data = $.parseJSON(data);
-        if (data !== 'success') { //just an ack from command
-            if(typeof data.previous_state === "undefined"){
-                //this isn't a device state update, so it's a device list update
-                get_device_data_callback(data);
-            }
-            else{ //must be a device state update
-                update_device_state(data);
-            }
-        }
-    };
-    ws.onerror = function(e) {
-        upgradeConnection = false;
-        get_device_data_ajax();
-    };
-    ws.onopen = function(e) {
-        upgradeConnection = true;
-        ws.send(JSON.stringify({
-            path: "devices"
-        }));
-    };
 }
 
 function check_ws_connection(){
@@ -241,10 +259,10 @@ function check_ws_connection(){
 
 function get_device_data_ajax() {
     var url;
-    if (serverName === '') {
+    if (currentServer === '') {
         url = "/api/devices";
     } else {
-        url = serverName + "/api/devices";
+        url = currentServer + "/api/devices";
     };
     
     if (auth) {
@@ -256,7 +274,12 @@ function get_device_data_ajax() {
             context: document.body,
             type: 'GET',
             error: function(jqXHR, status, errorThrown){
-                $("#settingsButton").click();
+                if (currentServer !== serverName2) {
+                    currentServer = serverName2;
+                    get_device_data_ajax();
+                } else {
+                    $("#settingsButton").click();
+                }
             } //error
         }).done(get_device_data_callback);
     } else {
@@ -267,7 +290,12 @@ function get_device_data_ajax() {
             context: document.body,
             type: 'GET',
             error: function(jqXHR, status, errorThrown){
-                alert(errorThrown);
+                if (currentServer !== serverName2) {
+                    currentServer = serverName2;
+                    get_device_data_ajax();
+                } else {
+                    $("#settingsButton").click();
+                }
             } //error
         }).done(get_device_data_callback);
     } // if auth
@@ -496,10 +524,10 @@ function send_command(deviceID, command) {
 
 function send_command_ajax(deviceID, command) {
     var url;
-    if (serverName === '') {
+    if (currentServer === '') {
         url = "/api/device/" + deviceID;
     } else {
-        url = serverName + "/api/device/" + deviceID;
+        url = currentServer + "/api/device/" + deviceID;
     };
     if (auth) {
         $.ajax({
@@ -554,10 +582,10 @@ function send_voice_command(command) {
 
 function send_voice_command_ajax(command) {
     var url;
-    if (serverName === '') {
+    if (currentServer === '') {
         url = "/api/voice";
     } else {
-        url = serverName + "/api/voice";
+        url = currentServer + "/api/voice";
     };
     if (auth) {
         $.ajax({
