@@ -297,6 +297,8 @@ function recalc_device_content_size(){
         LeftDevice.height(ContentHeight);
         RightDevice.height(ContentHeight);
     });
+    
+    $(".iscroll-wrapper").data("mobileIscrollview").refresh();
 }
 
 function get_device_data_ajax() {
