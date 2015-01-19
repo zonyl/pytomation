@@ -144,14 +144,19 @@ or
 
     sudo chown pyto:pyto /dev/yourzwavestick
     sudo chmod 770 /dev/yourzwavestick
+    
+#### Make Permissions Permanent 
+Add the following either `/etc/udev/rules.d` or `/lib/udev/rules.d` (Simmilar procedure can be used for other serial interfaces. `lsusb -v` can grab the neccessary ATTRS info.)
+
+    SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ATTRS{serial}=="0001", SYMLINK+="zwave", GROUP="pyto", OWNER="pyto"
 
 #### ozwsh (OpenZWave Shell, for testing)
 
     sudo pip install urwid louie
     /ozwsh.sh --device=/dev/yourzwavestick
 
-####INSTALL
-
+INSTALL
+=======
 You are now ready to install pytomation. First, clone the pytomation git repository. Change into the pytomation repo directory and run `./install.sh`. You may have to make it executable with the command `chmod +x ./install.sh` first. Install.sh can take an optional argument which points to an alternate installation directory:
 
      ./install.sh /some/other/folder/pytomation
