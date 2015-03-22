@@ -99,9 +99,9 @@ The gevent-websocket server is pretty fast, but can be accelerated further by in
 
 Build openzwave and python-openzwave
 ====================================
-Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. There is also a binary avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz (I haven't tested). 
+Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. The instructions below list how to build from the development repositories. There is also prepared source avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz, but that didn't work for me.
 
-The following is extracted from the python-openzwave INSTALL_MAN.txt:
+The following was extracted and adapted from the python-openzwave INSTALL_MAN.txt:
 
     sudo apt-get install mercurial subversion python-pip python-dev python-setuptools python-louie python-sphinx make build-essential libudev-dev g++
     sudo pip install cython==0.14
@@ -109,28 +109,54 @@ The following is extracted from the python-openzwave INSTALL_MAN.txt:
     sudo pip install sphinxcontrib-nwdiag sphinxcontrib-seqdiag
 
     hg clone https://code.google.com/p/python-openzwave/
+    cd python-openzwave
     svn checkout http://open-zwave.googlecode.com/svn/trunk/ openzwave
 
-Go to the openzwave directory and build it:
+#### Method 1 (Install Everything via Scripts)
 
-    cd openzwave/cpp/build/linux
+    ./compile.sh
+    sudo ./install.sh
+
+#### Method 2 (Install Manually)
+If you installed everthing, stop here. Otherwise, go to the openzwave directory and build it:
+
+    cd openzwave/cpp/build
     make
-    cd ../../../..
+    cd ../../..
 
 Build python-openzwave:
 
     python setup-lib.py build
     python setup-api.py build
 
-
 And install them:
 
     sudo python setup-lib.py install
     sudo python setup-api.py install
 
+#### Permissions
+Like with all other interfaces. Make sure the pyto user account owns or otherwise has permissions to use the device. You may want to give your own usr account access as well.
 
-####INSTALL
+    sudo chown youruseraccount:pyto /dev/yourzwavestick
+    sudo chmod 770 /dev/yourzwavestick
 
+or
+
+    sudo chown pyto:pyto /dev/yourzwavestick
+    sudo chmod 770 /dev/yourzwavestick
+    
+#### Make Permissions Permanent 
+Add the following either `/etc/udev/rules.d` or `/lib/udev/rules.d` (Simmilar procedure can be used for other serial interfaces. `lsusb -v` can grab the neccessary ATTRS info.)
+
+    SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ATTRS{serial}=="0001", SYMLINK+="zwave", GROUP="pyto", OWNER="pyto"
+
+#### ozwsh (OpenZWave Shell, for testing)
+
+    sudo pip install urwid louie
+    /ozwsh.sh --device=/dev/yourzwavestick
+
+INSTALL
+=======
 You are now ready to install pytomation. First, clone the pytomation git repository. Change into the pytomation repo directory and run `./install.sh`. You may have to make it executable with the command `chmod +x ./install.sh` first. Install.sh can take an optional argument which points to an alternate installation directory:
 
      ./install.sh /some/other/folder/pytomation
