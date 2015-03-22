@@ -8,7 +8,7 @@ function reload_device_grid()
 	var devices = []
 	$.ajax({
 	  dataType: "json",
-	  url: "/api/devices",
+	  url: "api/devices",
 	  context: document.body,
 	  type: 'GET',
 	}).done(function( data ) {
@@ -90,7 +90,7 @@ function on_device_command(eventObject)
 	$.ajax({
 	  dataType: "json",
 //	  url: "/api/device/" + deviceID + "/" + command,
-	  url: "/api/device/" + deviceID,
+	  url: "api/device/" + deviceID,
 	  context: document.body,
 	  type: 'POST',
 	  data: { command: command },
