@@ -65,6 +65,7 @@ Pytomation also requires the following packages to be installed for normal opera
  - pySerial - Support for RS232 serial interfaces.
  - Pyephem - High-precision astronomy computations for sunrise/sunset.
  - Pytz - World timezone definitions.
+ - APScheduler - Advanced Python Scheduler
 
 Optional Packages:
  - python-gevent - A coroutine-based Python networking library (PytoWebSocketServer)
@@ -74,7 +75,7 @@ Additional packages are required for development and testing. See `requirements.
 
 Debian packages are available for pySerial, pytz, pythone-gevent, and python-openssl. They can be installed with : 
 
-    sudo apt-get install git python-serial python-tz python-gevent python-openssl
+    sudo apt-get install git python-dev python-serial python-tz python-gevent python-openssl
 
 For other operating systems, search your package manager for the equivalent packages or use pip to install the Python dependencies.
 
@@ -86,7 +87,8 @@ Again, under Debian distributions you can install the python-pip package:
 
 Once pip is installed it is easy to install the rest of the dependencies with the following commands:
 
-    sudo pip install pyephem
+    sudo pip install pyephem 
+    sudo pip install APScheduler
 
 To use the optional websocket server:
 
