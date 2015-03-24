@@ -1,0 +1,198 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This an API guide to Pytomation's API\n\n[Learn about Pytomati
+on](http://pytomation.com).\n",
+        "version": "3.0",
+        "title": "Pytomation",
+        "license": {
+            "name": "GNU General Public License, version 1",
+            "url": "http://www.gnu.org/licenses/gpl-1.0.html"
+        }
+    },
+    "basePath": "/api",
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "paths": {
+        "/devices": {
+            "get": {
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Get all devices",
+                "description": "",
+                "operationId": "get_devices",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/device/{deviceId}": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "summary": "Get device status",
+                "description": "Returns status from a device e.g. Light20",
+                "operationId": "getDeviceById",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "deviceId",
+                        "description": "ID of device to be inquired",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Status"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "404": {
+                        "description": "Pet not found"
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "device"
+                ],
+                "summary": "Sends command to device",
+                "description": "",
+                "operationId": "sendCommandtoDevice",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "deviceId",
+                        "description": "ID of device to be controlled",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "command",
+                        "description": "Updated status of the pet",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "securityDefinitions": {
+        "basicAuth": {
+            "type": "basic",
+            "description": "HTTP Basic Authenication"
+        }
+    },
+    "definitions": {
+        "Commands": {
+            "properties": {
+                "commands": {
+                    "type": "string"
+                }
+            }
+        },
+        "Status": {
+            "properties": {
+                "commands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Commands"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "description": "User defined device name"
+                },
+                "type_name": {
+                    "type": "string",
+                    "description": "Device type name"
+                },
+                "state": {
+                    "type": "string",
+                    "description": "Current state of device"
+                },
+                "devices": {
+                    "type": "string",
+                    "description": "Unknown"
+                },
+                "id": {
+                    "type": "string",
+                    "description": "Pytomation Object Name"
+                }
+        },
+        "Status": {
+            "properties": {
+                "commands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Commands"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "description": "User defined device name"
+                },
+                "type_name": {
+                    "type": "string",
+                    "description": "Device type name"
+                },
+                "state": {
+                    "type": "string",
+                    "description": "Current state of device"
+                },
+                "devices": {
+                    "type": "string",
+                    "description": "Unknown"
+                },
+                "id": {
+                    "type": "string",
+                    "description": "Pytomation Object Name"
+                }
+            }
+        }
+    }
+}
