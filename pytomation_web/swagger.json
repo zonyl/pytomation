@@ -1,19 +1,21 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This an API guide to Pytomation's API\n\n[Learn about Pytomati
-on](http://pytomation.com).\n",
+        "description": "This an API guide to Pytomation's API\n\n[Learn about Pytomation](http://pytomation.com).\n",
         "version": "3.0",
         "title": "Pytomation",
         "license": {
-            "name": "GNU General Public License, version 1",
-            "url": "http://www.gnu.org/licenses/gpl-1.0.html"
+            "name": "GNU",
+            "url": "https://github.com/zonyl/pytomation/blob/master/LICENSE"
         }
     },
     "basePath": "/api",
     "schemes": [
         "http",
         "https"
+    ],
+    "consumes": [
+        "application/x-www-form-urlencoded"
     ],
     "paths": {
         "/devices": {
@@ -28,8 +30,11 @@ on](http://pytomation.com).\n",
                     "application/json"
                 ],
                 "responses": {
-                    "405": {
-                        "description": "Invalid input"
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/StatusCollection"
+                        }
                     }
                 },
                 "security": [
@@ -65,12 +70,6 @@ on](http://pytomation.com).\n",
                         "schema": {
                             "$ref": "#/definitions/Status"
                         }
-                    },
-                    "400": {
-                        "description": "Invalid ID supplied"
-                    },
-                    "404": {
-                        "description": "Pet not found"
                     }
                 },
                 "security": [
@@ -103,16 +102,56 @@ on](http://pytomation.com).\n",
                     {
                         "in": "formData",
                         "name": "command",
-                        "description": "Updated status of the pet",
+                        "description": "Updated status",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "responses": {
-                    "405": {
-                        "description": "Invalid input"
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Status"
+                        }
                     }
                 },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/voice": {
+            "post": {
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Allows natural speak to pytomation",
+                "description": "Example: office lamp off",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Status"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "in": "formData",
+                        "name": "command",
+                        "description": "Updated status",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
                 "security": [
                     {
                         "basicAuth": []
@@ -163,34 +202,15 @@ on](http://pytomation.com).\n",
                     "type": "string",
                     "description": "Pytomation Object Name"
                 }
+            }
         },
-        "Status": {
+        "StatusCollection": {
             "properties": {
-                "commands": {
+                "status": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Commands"
+                        "$ref": "#/definitions/Status"
                     }
-                },
-                "name": {
-                    "type": "string",
-                    "description": "User defined device name"
-                },
-                "type_name": {
-                    "type": "string",
-                    "description": "Device type name"
-                },
-                "state": {
-                    "type": "string",
-                    "description": "Current state of device"
-                },
-                "devices": {
-                    "type": "string",
-                    "description": "Unknown"
-                },
-                "id": {
-                    "type": "string",
-                    "description": "Pytomation Object Name"
                 }
             }
         }
