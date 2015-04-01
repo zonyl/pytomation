@@ -2,7 +2,10 @@ from .pyto_logging import PytoLogging
 
 class PytomationObject(object):
     """ Common PytomationObject """
-    instances = []
+    instances = {}
+    name_to_id_map = {}
+    sorted_names_by_length =[]
+    
     def __init__(self, *args, **kwargs):
         self._type_id = None
         self._po_common(*args, **kwargs)
@@ -10,9 +13,14 @@ class PytomationObject(object):
     def _po_common(self, *args, **kwargs):
         
         self._logger = PytoLogging(self.__class__.__name__)
-        self.instances.append(self)
         self._type_id = str(self.__class__.__name__) + str(len(self.instances))
+        self.instances[self._type_id] = self
         self._name = kwargs.get('name', self._type_id)
+        self.name_to_id_map[self._name.lower()] = self.type_id
+        self.sorted_names_by_length.append(self._name.lower())
+        self.sorted_names_by_length.sort(key=len)
+        self.sorted_names_by_length.reverse()
+            
         try:
             self._logger.debug('Object created: {name} {obj}'.format(
                                                                      name=self._name,

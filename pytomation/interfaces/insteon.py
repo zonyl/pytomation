@@ -795,14 +795,24 @@ class InsteonPLM(HAInterface):
                         elif (command1 == 0x11 or (command2 > 0xFD and not isGrpCleanupDirect)) and d.state != State.ON:   # some times these don't go to 0xFF
                             self._onCommand(address=destDeviceId, command=State.ON)
                         elif d.state != (State.LEVEL, command2):
-                            self._onCommand(address=destDeviceId, command=((State.LEVEL, command2)))
+                            if command2 < 0x02 and d.state != State.OFF:
+                                self._onCommand(address=destDeviceId, command=State.OFF)
+                            elif command2 > 0xFD and d.state != State.OFF:
+                                self._onCommand(address=destDeviceId, command=State.ON)
+                            else:
+                                self._onCommand(address=destDeviceId, command=(State.LEVEL, int(command2 / 2.54)))
             else: # No devices to check state, so send anyway
                 if (command1 == 0x13 or (command2 < 0x02 and not isGrpCleanupDirect )):     # Never seen one not go to zero but...
                     self._onCommand(address=destDeviceId, command=State.OFF)
                 elif (command1 == 0x11 or (command2 > 0xFD and not isGrpCleanupDirect)):   # some times these don't go to 0xFF
                     self._onCommand(address=destDeviceId, command=State.ON)
-                elif d.state != (State.LEVEL, command2):
-                    self._onCommand(address=destDeviceId, command=((State.LEVEL, command2)))
+                elif command2:
+                    if command2 < 0x02:
+                        self._onCommand(address=destDeviceId, command=State.OFF)
+                    elif command2 > 0xFD:
+                        self._onCommand(address=destDeviceId, command=State.ON)
+                    else:
+                        self._onCommand(address=destDeviceId, command=(State.LEVEL, int(command2 / 2.54)))
                 
         self.statusRequest = False            
         return (True,None)

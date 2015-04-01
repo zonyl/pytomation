@@ -9,27 +9,37 @@ var auth;
 var onServer = false;
 var resizeTimer;
 var ws;
+var upgradeConnection;
+var shake;
 
-var init = function () {
+//document.addEventListener("deviceready", init, false);
+
+function init() {
     load_settings();
     if (currentTheme !== 'a') theme_changed(currentTheme);
-    get_device_data();
-    
-    //Create web socket hook for device state changes
-    ws = new WebSocket("ws://" + serverName + "/api/state");
-    ws.onmessage = function(e) {
-            send_command_callback($.parseJSON(e.data));
-    };
     
     //resize sliders, taking the hidden text box into accout
     $(window).resize(function() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function() {
-        var device_width = $(window).innerWidth();
-        device_width=(device_width / 2) - 38;
-        $('.ui-slider-track ').width(device_width);
-    }, 200);
-});
+            var device_width = $(window).innerWidth();
+            device_width=(device_width / 2) - 38;
+            $('.ui-slider-track ').width(device_width);
+        }, 200);
+    }); //resizeTimer
+    
+    // Voice Command pulldown
+    if(navigator.userAgent.indexOf('Android') !== -1){
+        $(".iscroll-wrapper", $('#main')).bind( {
+            iscroll_onpulldown : doVoice
+        } );
+    } 
+    else {
+        $(".iscroll-wrapper").data("mobileIscrollview").destroy();
+        $(".iscroll-pulldown").remove();
+    } // Voice Command pulldown
+    
+    get_device_data();
 }; // init
 $(document).ready(init);
 
@@ -58,6 +68,10 @@ function theme_changed(selectedTheme){
         $(this).attr('data-theme',selectedTheme);
     });
     $('#commands').attr('data-theme', selectedTheme).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme).trigger('create');
+    if (selectedTheme > 'e') 
+        $('.iscroll-pulldown').css('background','#000000');
+    else
+        $('.iscroll-pulldown').css('background','#FFFFFF');
     currentTheme = selectedTheme;
 } //theme changed
 
@@ -73,7 +87,6 @@ function load_settings() {
     settingsForm.elements["password"].value = password;
     
     if (currentTheme === null) currentTheme = 'a';
-    if (typeof userName === 'undefined' || userName === '') auth=false; else auth = true;
 } //Load Settings
 
 function save_settings() {
@@ -158,11 +171,80 @@ function get_device_data_callback(data) {
 }
 
 function get_device_data() {
+    if (typeof userName === 'undefined' || userName === '') auth=false; else auth = true;
+    //Create web socket hook for device state changes
+    try {
+        setup_ws_connection();
+    }
+    catch(e){
+        //can't do web sockets
+        upgradeConnection = false;
+        get_device_data_ajax();
+    }
+    
+}
+
+function setup_ws_connection() {
+    if (ws){
+        try {
+            ws.close();
+        }
+        catch (e) {fake = true;} 
+    }
+    if(serverName.substring(0,5) === 'https'){
+        protocol = 'wss://';
+        websocketserver = serverName.substring(8, serverName.length);
+    } else {
+        protocol = 'ws://';
+        websocketserver = serverName.substring(7, serverName.length);
+    }
+    
+    if (auth) {
+        ws = new WebSocket(protocol + userName + ':' + password + '@' + websocketserver + "/api/bridge");
+    } else {
+        ws = new WebSocket(protocol + websocketserver + "/api/bridge");
+    }
+
+    ws.onmessage = function(e) {
+        data = e.data;
+        data = $.parseJSON(data);
+        if (data !== 'success') { //just an ack from command
+            if(typeof data.previous_state === "undefined"){
+                //this isn't a device state update, so it's a device list update
+                get_device_data_callback(data);
+            }
+            else{ //must be a device state update
+                update_device_state(data);
+            }
+        }
+    };
+    ws.onerror = function(e) {
+        upgradeConnection = false;
+        get_device_data_ajax();
+    };
+    ws.onopen = function(e) {
+        upgradeConnection = true;
+        ws.send(JSON.stringify({
+            path: "devices"
+        }));
+    };
+}
+
+function check_ws_connection(){
+    if (ws.readyState === 1) {
+        return true;
+    }
+    else {
+        setup_ws_connection();
+    }
+}
+
+function get_device_data_ajax() {
     var url;
     if (serverName === '') {
         url = "/api/devices";
     } else {
-        url = "http://" + serverName + "/api/devices";
+        url = serverName + "/api/devices";
     };
     
     if (auth) {
@@ -400,12 +482,117 @@ function on_device_command(eventObject) {
     return false;
 } //on device command
 
+function send_command(deviceID, command) {
+    if (upgradeConnection) {
+        check_ws_connection();
+        ws.send(JSON.stringify({
+            path: "device/" + deviceID,
+            command: command
+        }));
+    } else {
+        send_command_ajax(deviceID, command);
+    }
+}
+
+function send_command_ajax(deviceID, command) {
+    var url;
+    if (serverName === '') {
+        url = "/api/device/" + deviceID;
+    } else {
+        url = serverName + "/api/device/" + deviceID;
+    };
+    if (auth) {
+        $.ajax({
+            dataType: "json",
+            url: url,
+            headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
+            crossDomain: true,
+            context: document.body,
+            type: 'POST',
+            data: { command: command },
+            error: function(jqXHR, status, errorThrown){
+                alert(status + errorThrown);
+            } //error
+        }).done(update_device_state); //done
+    } else {
+        $.ajax({
+            dataType: "json",
+            url: url,
+            crossDomain: true,
+            context: document.body,
+            type: 'POST',
+            data: { command: command },
+            error: function(jqXHR, status, errorThrown){
+                alert(status + errorThrown);
+            } //error
+        }).done(update_device_state); //done
+    }
+} // send command
+
+function doVoice(event, data) {
+    var maxMatches = 3;
+    window.plugins.speechrecognizer.startRecognize(function(result){
+        send_voice_command(result);
+        data.iscrollview.refresh();
+    }, function(errorMessage){
+        alert("Error message: " + errorMessage);
+        data.iscrollview.refresh();
+    }, maxMatches, 'Speak now');
+};
+
+function send_voice_command(command) {
+    if (upgradeConnection) {
+        check_ws_connection();
+        ws.send(JSON.stringify({
+            path: "voice",
+            command: command
+        }));
+    } else {
+        send_voice_command_ajax(command);
+    }
+}
+
+function send_voice_command_ajax(command) {
+    var url;
+    if (serverName === '') {
+        url = "/api/voice";
+    } else {
+        url = serverName + "/api/voice";
+    };
+    if (auth) {
+        $.ajax({
+            dataType: "json",
+            url: url,
+            headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
+            crossDomain: true,
+            context: document.body,
+            type: 'POST',
+            data: { command: command },
+            error: function(jqXHR, status, errorThrown){
+                alert(status + errorThrown);
+            } //error
+        }).done(update_device_state); //done
+    } else {
+        $.ajax({
+            dataType: "json",
+            url: url,
+            crossDomain: true,
+            context: document.body,
+            type: 'POST',
+            data: { command: command },
+            error: function(jqXHR, status, errorThrown){
+                alert(status + errorThrown);
+            } //error
+        }).done(update_device_state); //done
+    }
+} // send voice command
+
 function send_level() {
     var deviceID = $(this).children('input').attr('deviceId');
     send_command(deviceID,'level,' + $(this).children('input').val());
 } // send level
 
-function send_command_callback(data) {
+function update_device_state(data) {
     if (data === 'success') return;
     var id = data['id'];
     var state = data['state'];
@@ -477,38 +664,3 @@ function send_command_callback(data) {
         $('#slider' + id).slider('refresh');
     } // if type name
 }
-
-function send_command(deviceID, command) {
-    var url;
-    if (serverName === '') {
-        url = "/api/device/" + deviceID;
-    } else {
-        url = "http://" + serverName + "/api/device/" + deviceID;
-    };
-    if (auth) {
-        $.ajax({
-            dataType: "json",
-            url: url,
-            headers: {"Authorization": "Basic " + btoa(userName + ":" + password)},
-            crossDomain: true,
-            context: document.body,
-            type: 'POST',
-            data: { command: command },
-            error: function(jqXHR, status, errorThrown){
-                alert(status + errorThrown);
-            } //error
-        }).done(send_command_callback); //done
-    } else {
-        $.ajax({
-            dataType: "json",
-            url: url,
-            crossDomain: true,
-            context: document.body,
-            type: 'POST',
-            data: { command: command },
-            error: function(jqXHR, status, errorThrown){
-                alert(status + errorThrown);
-            } //error
-        }).done(send_command_callback); //done
-    }
-} // send command

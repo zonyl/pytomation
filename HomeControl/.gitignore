@@ -1,0 +1,14 @@
+# Java class files
+*.class
+
+#Android build files
+platforms/
+ant.properties #contains certificate key and pass
+private.*
+
+
+# built application files
+*.apk
+*.ap_
+# files for the dex VM
+*.dex

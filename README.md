@@ -10,13 +10,13 @@ that.  It is supported on any platform that support Python ( Windows, Mac OS-X, 
 Pytomation currently has support for the following hardware interfaces with 
 more planned in the future.
 
-   - [Insteon](http://www.insteon.com/) / X10 (2412N, 2412S)
+   - [Insteon](http://www.insteon.com/) / X10 (2412N, 2412S, 2413U)
    - [UPB](http://www.pulseworx.com/products/products_.htm) Universal Powerline Bus (Serial PIM)
    - [Belkin WeMo](http://www.belkin.com/us/Products/home-automation/c/wemo-home-automation)  WeMo Wifi Switches 
    - [JDS Stargate](http://www.jdstechnologies.com/stargate.html) (RS232 / RS485)
    - [Radio Thermostat](http://www.radiothermostat.com/ ) WiFi Enabled Thermostat (CT30)
    - [Nest Labs](https://nest.com/) Nest thermostat
-   - [Venstar ColorTouch](http://www.venstar.com/Thermostats/ColorTouch/) Venstar ColorTouch Thermostat (5/6800)
+   - [Venstar ColorTouch](http://www.venstar.com/Thermostats/ColorTouch/) Thermostat (5/6800)
    - [Weeder](http://www.weedtech.com/) Digital I/O board (Wtdio/RS232)
    - [Logitech Harmony](http://www.myharmony.com) Universal WiFi Remote (Harmony Ultimate)
    - [WGL Designs](http://wgldesigns.com/w800.html) W800RF32 X10 RF receiver (W800/RS232)
@@ -25,12 +25,31 @@ more planned in the future.
    - Mochad X10 CM15 (USB) and CM19 (USB)
    - [Misterhouse](http://misterhouse.sourceforge.net/) Voice Commands MHSend (TCP)
    - [Spark I/O](http://www.spark.io) WiFi devices
-   - Z-Wave (Aeon Labs via pyOpenzwave) DSA02203-ZWUS 
+   - Z-Wave (Aeon Labs via python-Openzwave) DSA02203-ZWUS 
 
 ### Future
    - Weeder Analog I/O board (Wtaio/RS232)
    - Ube Wifi Devices
    - CoralStar WiFi Devices
+
+### FEATURES
+   - Written in Python
+   - REST API
+   - Mobile Web and Android clients w/ continuous device state updates (web-sockets)
+   - Voice Commands from Android (“Home Control” app)
+   - Local Telnet and Web access
+   - Unique language to describe devices and actions
+   - Smart objects: Doors, Lights, Motion, Photocell etc.
+   - Optional “Mainloop” programming, for more complicated control
+   - Optional “Event driven” programming, for complex actions when a device state changes
+   - Time of day on and off control
+   - Delays for time off
+   - Idle command, device will return to "idle" state
+   - Map one command to another with optional source and time
+   - Good hardware support with more coming
+   - Very easy to add new hardware drivers
+   - Good documentation complete with examples
+   - Much more
 
 ---
 
@@ -47,11 +66,15 @@ Pytomation also requires the following packages to be installed for normal opera
  - Pyephem - High-precision astronomy computations for sunrise/sunset.
  - Pytz - World timezone definitions.
 
+Optional Packages:
+ - python-gevent - A coroutine-based Python networking library (PytoWebSocketServer)
+ - python-openssl - Allows the PytoWebSocketServer to use native SSL (https and wss connections)
+
 Additional packages are required for development and testing. See `requirements.txt` for a more complete list.
 
-Debian packages are available for pySerial and pytz. They can be installed with : 
+Debian packages are available for pySerial, pytz, pythone-gevent, and python-openssl. They can be installed with : 
 
-    sudo apt-get install git python-serial python-tz
+    sudo apt-get install git python-serial python-tz python-gevent python-openssl
 
 For other operating systems, search your package manager for the equivalent packages or use pip to install the Python dependencies.
 
@@ -61,11 +84,51 @@ Again, under Debian distributions you can install the python-pip package:
 
     sudo apt-get install python-pip
 
-Once pip is installed it is easy to install the rest of the dependencies with the following commands.
+Once pip is installed it is easy to install the rest of the dependencies with the following commands:
 
     sudo pip install pyephem
 
-    
+To use the optional websocket server:
+
+    sudo pip install gevent-websocket
+
+The gevent-websocket server is pretty fast, but can be accelerated further by installing wsaccel and ujson or simplejson
+
+    sudo pip install wsaccel ujson
+
+
+Build openzwave and python-openzwave
+====================================
+Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. There is also a binary avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz (I haven't tested). 
+
+The following is extracted from the python-openzwave INSTALL_MAN.txt:
+
+    sudo apt-get install mercurial subversion python-pip python-dev python-setuptools python-louie python-sphinx make build-essential libudev-dev g++
+    sudo pip install cython==0.14
+    sudo pip install sphinxcontrib-blockdiag sphinxcontrib-actdiag
+    sudo pip install sphinxcontrib-nwdiag sphinxcontrib-seqdiag
+
+    hg clone https://code.google.com/p/python-openzwave/
+    svn checkout http://open-zwave.googlecode.com/svn/trunk/ openzwave
+
+Go to the openzwave directory and build it:
+
+    cd openzwave/cpp/build/linux
+    make
+    cd ../../../..
+
+Build python-openzwave:
+
+    python setup-lib.py build
+    python setup-api.py build
+
+
+And install them:
+
+    sudo python setup-lib.py install
+    sudo python setup-api.py install
+
+
 ####INSTALL
 
 You are now ready to install pytomation. First, clone the pytomation git repository. Change into the pytomation repo directory and run `./install.sh`. You may have to make it executable with the command `chmod +x ./install.sh` first. Install.sh can take an optional argument which points to an alternate installation directory:

@@ -60,6 +60,8 @@ class StateDevice(PytomationObject):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.LEVEL, Command.PREVIOUS,
                 Command.TOGGLE, Command.AUTOMATIC, Command.MANUAL, Command.INITIAL, Command.STATUS]
+    DEFAULT_COMMAND = Command.TOGGLE
+    DEFAULT_NUMERIC_COMMAND = Command.LEVEL
     _delegates_state_change = []
     
     def __init__(self, *args, **kwargs):
@@ -305,7 +307,7 @@ class StateDevice(PytomationObject):
         try:
 #            return Command['state']
             if isinstance(state, tuple):
-                primary = CommandStateMap.state_to_command(state[0], None)
+                primary = CommandStateMap.state_to_command.get(state[0], None)
                 if primary:
                     tlist = list(state)
                     tlist[0] = primary
@@ -929,7 +931,7 @@ class StateDevice(PytomationObject):
         return True
 
     @staticmethod
-    def onStateChanged(func):
+    def onStateChangedGlobal(func):
         StateDevice._delegates_state_change.append(func)
         return True
 

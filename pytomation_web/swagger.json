@@ -1,0 +1,218 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This an API guide to Pytomation's API\n\n[Learn about Pytomation](http://pytomation.com).\n",
+        "version": "3.0",
+        "title": "Pytomation",
+        "license": {
+            "name": "GNU",
+            "url": "https://github.com/zonyl/pytomation/blob/master/LICENSE"
+        }
+    },
+    "basePath": "/api",
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "consumes": [
+        "application/x-www-form-urlencoded"
+    ],
+    "paths": {
+        "/devices": {
+            "get": {
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Get all devices",
+                "description": "",
+                "operationId": "get_devices",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/StatusCollection"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/device/{deviceId}": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "summary": "Get device status",
+                "description": "Returns status from a device e.g. Light20",
+                "operationId": "getDeviceById",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "deviceId",
+                        "description": "ID of device to be inquired",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Status"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "device"
+                ],
+                "summary": "Sends command to device",
+                "description": "",
+                "operationId": "sendCommandtoDevice",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "deviceId",
+                        "description": "ID of device to be controlled",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "command",
+                        "description": "Updated status",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Status"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/voice": {
+            "post": {
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Allows natural speak to pytomation",
+                "description": "Example: office lamp off",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Status"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "in": "formData",
+                        "name": "command",
+                        "description": "Updated status",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "securityDefinitions": {
+        "basicAuth": {
+            "type": "basic",
+            "description": "HTTP Basic Authenication"
+        }
+    },
+    "definitions": {
+        "Commands": {
+            "properties": {
+                "commands": {
+                    "type": "string"
+                }
+            }
+        },
+        "Status": {
+            "properties": {
+                "commands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Commands"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "description": "User defined device name"
+                },
+                "type_name": {
+                    "type": "string",
+                    "description": "Device type name"
+                },
+                "state": {
+                    "type": "string",
+                    "description": "Current state of device"
+                },
+                "devices": {
+                    "type": "string",
+                    "description": "Unknown"
+                },
+                "id": {
+                    "type": "string",
+                    "description": "Pytomation Object Name"
+                }
+            }
+        },
+        "StatusCollection": {
+            "properties": {
+                "status": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Status"
+                    }
+                }
+            }
+        }
+    }
+}
