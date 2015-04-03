@@ -1,4 +1,6 @@
 #Limited support for PushBullet
+# by texnofobix
+# based off the Google_Voice and Kodi
 
 import requests
 import json
@@ -31,10 +33,9 @@ class PushBullet(StateDevice):
     def pushNote(self,title="Blank",body="Blank"):
 	self._headers['content-type'] = 'application/json'
 	reqbody = {u'body': body, u'type': u'note', u'title': title}
-	#print self._headers
-	#print json.dumps(reqbody)
 
 	r = requests.post(self._baseuri + '/pushes',headers=self._headers, data=json.dumps(reqbody))
+	
 	if r.status_code != 200:
 	    print r.text
 	    #print r.json
@@ -46,6 +47,5 @@ class PushBullet(StateDevice):
         self._logger.debug(str(args) + ":" + str(kwargs))
         if isinstance(command, tuple) and command[0] == Command.MESSAGE:
             self._logger.debug('Sending Message')
-            #self._kodi.GUI.ShowNotification(title=command[1], message = command[2])
 	    self.pushNote(title=command[1],body=command[2])
         super(PushBullet, self)._delegate_command(command, *args, **kwargs)
