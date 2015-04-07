@@ -1,7 +1,13 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-from ..common import config
+try:
+    from ..common import config
+except ImportError:
+    print " "
+    print ">>>> Missing or error in pytomation/common/config.py <<<<"
+    print " "
+    raise
 
 
 class PytoLogging(object):
