@@ -1,6 +1,7 @@
 from .pyto_logging import PytoLogging
 
 class PytomationObject(object):
+    """ Common PytomationObject """
     instances = {}
     name_to_id_map = {}
     sorted_names_by_length =[]

@@ -11,6 +11,9 @@ except ImportError:
 
 
 class PytoLogging(object):
+    """
+    Provides pytomation specific logging.
+    """
     loaded_handlers = []
 
     def __init__(self, *args, **kwargs):

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Pytomation Web</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"> 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+<script src="js/device_grid.js"></script>
+<script>
+$().ready(function(){
+reload_device_grid();
+});
+</script>
+</head>
+<body>
+<div class='container'>
+<div class='row'>
+<div class='col-md-11 col-md-offset-1'>
+<h1>Pytomation Web </h1>
+<a href="http://www.pytomation.com">www.pytomation.com</a><br><br>
+Devices
+<select name='listDevice' onchange='reload_device_grid()'>
+  <option value='all'>All</option>
+  <option value='Door'>Door</option>
+  <option value='Generic'>Generic</option>
+  <option selected value='Light'>Light</option>
+  <option value='Location'>Location</option>
+  <option value='Motion'>Motion</option>
+  <option value='Photocell'>Photocell</option>
+  <option value='Room'>Room</option>
+  <option value='Thermostat'>Thermostat</option>
+</select>
+<table id='tableDevices' class='table table-striped table-bordered table-hover table-condensed'>
+<thead><th>Type</th><th>Device name</th><th>State</th><th>Commands</th></thead>
+</table>
+</div>
+</div>
+</body>
+</html>
+

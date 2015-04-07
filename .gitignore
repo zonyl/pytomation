@@ -30,8 +30,8 @@ htmlcov
 
 #Mr Developer
 .mr.developer.cfg
+/instances/*.py
 
-/instances/*
 /ssl/*
 .idea/*
 .bash_history
