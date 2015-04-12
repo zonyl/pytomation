@@ -112,10 +112,7 @@ class VenstarThermostat(HAInterface):
 
                     if self._set_point != self._last_set_point:
                         self._last_set_point = self._set_point
-                        if self._mode == 3:
-                            self._onCommand(command=(Command.SETPOINT, (self._HeatSetpoint, self._CoolSetpoint)))
-                        else:
-                            self._onCommand(command=(Command.SETPOINT, self._set_point))
+                        self._onCommand(command=(Command.SETPOINT, self._set_point))
 
                     if command != self._mode:
                         self._mode = command
