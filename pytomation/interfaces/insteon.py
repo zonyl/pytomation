@@ -30,7 +30,7 @@ Usage:
 Example: (see bottom of the file) 
 
 Notes:
-    - Supports both 2412N and 2412S right now
+    - Supports 2412N, 2412S, and 2413U right now
 
 Versions and changes:
     Initial version created on Mar 26 , 2011
@@ -41,6 +41,7 @@ Versions and changes:
     2012/12/29 - 1.5 - Add support for turning scenes on and off
     2013/01/04 - 1.6 - Retry orphaned commands and deal with Modem Nak's
     2013/01/11 - 1.7 - Add status support from a linked device when manually operated
+    2015/04/14 - 1.8 - Fixed status messages
     
 '''
 import select
@@ -134,7 +135,7 @@ D2 = 01  Is response to a get data request
 
 
 class InsteonPLM(HAInterface):
-    VERSION = '1.7'
+    VERSION = '1.8'
     
     #(address:engineVersion) engineVersion 0x00=i1, 0x01=i2, 0x02=i2cs
     deviceList = {}         # Dynamically built list of devices [address,devcat,subcat,firmware,engine,name]
@@ -612,7 +613,7 @@ class InsteonPLM(HAInterface):
                         break
 
         if foundCommandHash == None:
-            self._logger.warning("Unhandled packet (couldn't find any pending command to deal with it)")
+            self._logger.warning("Unhandled packet packet (couldn't find any pending command to deal with it)")
             self._logger.warning("This could be a status message from a broadcast")
             # very few things cause this certainly a scene on or off will so that's what we assume
             
@@ -710,31 +711,31 @@ class InsteonPLM(HAInterface):
         self._logger.debug("X10> " + hex_dump(responseBytes, len(responseBytes)))
         houseCode =     (byteB & 0b11110000) >> 4 
         houseCodeDec = self._x10HouseCodes.get_key(houseCode)
-	self._logger.debug("X10> HouseCode " + houseCodeDec )
-	unitCmd = (byteC & 0b10000000) >> 7
-	if unitCmd == 0 :
-		unitCode = (byteB & 0b00001111)
-		unitCodeDec = self._x10UnitCodes.get_key(unitCode)
-		self._logger.debug("X10> UnitCode " + unitCodeDec )
-		self.lastUnit = unitCodeDec
-	else:
-                commandCode = (byteB & 0b00001111)
-		commandCodeDec = self._x10Commands.get_key(commandCode)
-		self._logger.debug("X10> Command: house: " + houseCodeDec + " unit: " + self.lastUnit + " command: " + commandCodeDec  )
-		destDeviceId = houseCodeDec.upper() + self.lastUnit
- 	        if self._devices:
-			for d in self._devices:
-			    if d.address.upper() == destDeviceId:
-				# only run the command if the state is different than current
-				if (commandCode == 0x03 and d.state != State.OFF):     # Never seen one not go to zero but...
-				    self._onCommand(address=destDeviceId, command=State.OFF)
-				elif (commandCode == 0x02 and d.state != State.ON):   # some times these don't go to 0xFF
-				    self._onCommand(address=destDeviceId, command=State.ON)
-		else: # No devices to check state, so send anyway
-			if (commandCode == 0x03 ):     # Never seen one not go to zero but...
-			    self._onCommand(address=destDeviceId, command=State.OFF)
-			elif (commandCode == 0x02):   # some times these don't go to 0xFF
-			    self._onCommand(address=destDeviceId, command=State.ON)
+        self._logger.debug("X10> HouseCode " + houseCodeDec )
+        unitCmd = (byteC & 0b10000000) >> 7
+        if unitCmd == 0 :
+            unitCode = (byteB & 0b00001111)
+            unitCodeDec = self._x10UnitCodes.get_key(unitCode)
+            self._logger.debug("X10> UnitCode " + unitCodeDec )
+            self.lastUnit = unitCodeDec
+        else:
+            commandCode = (byteB & 0b00001111)
+            commandCodeDec = self._x10Commands.get_key(commandCode)
+            self._logger.debug("X10> Command: house: " + houseCodeDec + " unit: " + self.lastUnit + " command: " + commandCodeDec  )
+            destDeviceId = houseCodeDec.upper() + self.lastUnit
+            if self._devices:
+                for d in self._devices:
+                    if d.address.upper() == destDeviceId:
+                        # only run the command if the state is different than current
+                        if (commandCode == 0x03 and d.state != State.OFF):     # Never seen one not go to zero but...
+                            self._onCommand(address=destDeviceId, command=State.OFF)
+                        elif (commandCode == 0x02 and d.state != State.ON):   # some times these don't go to 0xFF
+                            self._onCommand(address=destDeviceId, command=State.ON)
+            else: # No devices to check state, so send anyway
+                if (commandCode == 0x03 ):     # Never seen one not go to zero but...
+                    self._onCommand(address=destDeviceId, command=State.OFF)
+                elif (commandCode == 0x02):   # some times these don't go to 0xFF
+                    self._onCommand(address=destDeviceId, command=State.ON)
 
     #insteon message handlers
     def _handle_StandardDirect_IgnoreAck(self, messageBytes):
@@ -772,44 +773,51 @@ class InsteonPLM(HAInterface):
         isGrpBroadcast = (messageFlags & 0xC0) == 0xC0
         isGrpCleanupDirect = (messageFlags & 0x40) == 0x40
         # If we get an ack from a group command fire off a status request or we'll never know the on level (not off)
-        if isGrpCleanupAck | isGrpBroadcast and command1 != 0x13: #| isGrpCleanupDirect: 
-            self._logger.debug("Running status request:{0}:{1}:{2}:..........".format(isGrpCleanupAck,
-                                                                                     isGrpBroadcast,
-                                                                                     isGrpCleanupDirect))
-            time.sleep(0.1)
-            self.lightStatusRequest(destDeviceId, async=True)
-        else:   # direct command
+        if (isGrpCleanupAck or isGrpBroadcast) and command1 != 0x13 and command1 !=0x11 and command1 != 0x19: #these commands contain the level in command2
+            if command1 != 0x06: #don't ask for status on a heartbeat
+                self._logger.debug("Running status request:{0}:{1}:{2}:..........".format(isGrpCleanupAck, isGrpBroadcast, isGrpCleanupDirect))
+                time.sleep(0.1)
+                self.lightStatusRequest(destDeviceId, async=True)
+        else: # direct command
             
             self._logger.debug("Setting status for:{0}:{1}:{2}..........".format(
                                                                                  str(destDeviceId),
                                                                                  str(command1),
                                                                                  str(command2),
                                                                                  ))
-            # For now lets just handle on and off until the new state code is ready.
             if self._devices:
                 for d in self._devices:
                     if d.address.upper() == destDeviceId:
                         # only run the command if the state is different than current
-                        if (command1 == 0x13 or (command2 < 0x02 and not isGrpCleanupDirect )) and d.state != State.OFF:     # Never seen one not go to zero but...
-                            self._onCommand(address=destDeviceId, command=State.OFF)
-                        elif (command1 == 0x11 or (command2 > 0xFD and not isGrpCleanupDirect)) and d.state != State.ON:   # some times these don't go to 0xFF
-                            self._onCommand(address=destDeviceId, command=State.ON)
-                        elif d.state != (State.LEVEL, command2):
-                            if command2 < 0x02 and d.state != State.OFF:
+                        if command1 == 0x13:
+                            if d.state != State.OFF:
                                 self._onCommand(address=destDeviceId, command=State.OFF)
-                            elif command2 > 0xFD and d.state != State.OFF:
-                                self._onCommand(address=destDeviceId, command=State.ON)
+                        elif command1 == 0x11:
+                            if d.state != State.ON:
+                                if d.verify_on_level:
+                                    self.lightStatusRequest(destDeviceId, async=True)
+                                else:
+                                    self._onCommand(address=destDeviceId, command=State.ON)
+                        elif d.state != (State.LEVEL, command2):
+                            if command2 < 0x02: #Off -- Doesn't always go to 0
+                                if d.state != State.OFF: 
+                                    self._onCommand(address=destDeviceId, command=State.OFF)
+                            elif command2 > 0xFD: #On -- Doesn't always go to 255
+                                if d.state != State.ON:
+                                    self._onCommand(address=destDeviceId, command=State.ON)
                             else:
                                 self._onCommand(address=destDeviceId, command=(State.LEVEL, int(command2 / 2.54)))
             else: # No devices to check state, so send anyway
-                if (command1 == 0x13 or (command2 < 0x02 and not isGrpCleanupDirect )):     # Never seen one not go to zero but...
-                    self._onCommand(address=destDeviceId, command=State.OFF)
-                elif (command1 == 0x11 or (command2 > 0xFD and not isGrpCleanupDirect)):   # some times these don't go to 0xFF
-                    self._onCommand(address=destDeviceId, command=State.ON)
-                elif command2:
-                    if command2 < 0x02:
+                if command1 == 0x13:
+                    if d.state != State.OFF:
                         self._onCommand(address=destDeviceId, command=State.OFF)
-                    elif command2 > 0xFD:
+                elif command1 == 0x11:
+                    if d.state != State.ON:
+                        self._onCommand(address=destDeviceId, command=State.ON)
+                elif command2:
+                    if command2 < 0x02: #Off -- Doesn't always go to 0
+                        self._onCommand(address=destDeviceId, command=State.OFF)
+                    elif command2 > 0xFD: #On -- Doesn't always go to 255
                         self._onCommand(address=destDeviceId, command=State.ON)
                     else:
                         self._onCommand(address=destDeviceId, command=(State.LEVEL, int(command2 / 2.54)))
@@ -984,38 +992,38 @@ class InsteonPLM(HAInterface):
 
     def level_up(self, deviceId, timeout=None):
         if len(deviceId) != 2: #insteon device address
-		commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '15', '00')
-		return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
-	# X10 device,  command not supported,  just return
-	return
+            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '15', '00')
+            return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        # X10 device,  command not supported,  just return
+        return
 
     def level_down(self, deviceId, timeout=None):
         if len(deviceId) != 2: #insteon device address
-		commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
-		return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
-	# X10 device,  command not supported,  just return
-	return
+            commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, '16', '00')
+            return self._waitForCommandToFinish(commandExecutionDetails, timeout=timeout)
+        # X10 device,  command not supported,  just return
+        return
 
     def status(self, deviceId, timeout=None):
         if len(deviceId) != 2: #insteon device address
-		return self.lightStatusRequest(deviceId, timeout)
-	# X10 device,  command not supported,  just return
-	return
+            return self.lightStatusRequest(deviceId, timeout)
+        # X10 device,  command not supported,  just return
+        return
 
     # Activate scene with the address passed
     def active(self, address, timeout=None):
-        if len(deviceId) != 2: #insteon device address
-		commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '12', 'FF')
-		return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
-	# X10 device,  command not supported,  just return
-	return
+        if len(address) != 2: #insteon device address
+            commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '12', 'FF')
+            return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        # X10 device,  command not supported,  just return
+        return
         
     def inactive(self, address, timeout=None):
-        if len(deviceId) != 2: #insteon device address
-		commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '14', '00')
-		return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
-	# X10 device,  command not supported,  just return
-	return
+        if len(address) != 2: #insteon device address
+            commandExecutionDetails = self._sendStandardAllLinkInsteonCommand(address, '14', '00')
+            return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
+        # X10 device,  command not supported,  just return
+        return
 
     def update_status(self):
         for d in self._devices:
