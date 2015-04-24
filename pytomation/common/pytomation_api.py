@@ -6,9 +6,10 @@ import urllib
 #from collections import OrderedDict
 
 class PytomationAPI(PytomationObject):
-    VERSION = '3.0'
+    """
     Provides a REST WebAPI for Pytomation.
     """
+    VERSION = '3.0'
     JSON = 'json'
     WEBSOCKET = 'websocket'
 
