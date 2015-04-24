@@ -773,8 +773,14 @@ class InsteonPLM(HAInterface):
         isGrpBroadcast = (messageFlags & 0xC0) == 0xC0
         isGrpCleanupDirect = (messageFlags & 0x40) == 0x40
         # If we get an ack from a group command fire off a status request or we'll never know the on level (not off)
-        if (isGrpCleanupAck or isGrpBroadcast) and command1 != 0x13 and command1 !=0x11 and command1 != 0x19: #these commands contain the level in command2
-            if command1 != 0x06: #don't ask for status on a heartbeat
+        #0x06 = Reserved ... heartbeat?
+        #0x11 = on
+        #0x13 = off
+        #0x19 = light status info (in command2)
+        #0x17 = light level manual change START
+        #0x18 = light level manual change STOP
+        if (isGrpCleanupAck or isGrpBroadcast) and command1 != 0x13 and command1 !=0x11 and command1 != 0x19:
+            if command1 != 0x06 and command1 != 0x17: #don't ask for status on a heartbeat or the start of a manual change
                 self._logger.debug("Running status request:{0}:{1}:{2}:..........".format(isGrpCleanupAck, isGrpBroadcast, isGrpCleanupDirect))
                 time.sleep(0.1)
                 self.lightStatusRequest(destDeviceId, async=True)
