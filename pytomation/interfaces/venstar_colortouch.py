@@ -121,6 +121,7 @@ class VenstarThermostat(HAInterface):
                     temp = status['spacetemp']
                     if temp and temp != self._last_temp:
                         self._onCommand(command=(Command.LEVEL, temp))
+                        self._last_temp = temp
 
                     fan = status['fan']
                     if fan and int(fan) != self._fan:
