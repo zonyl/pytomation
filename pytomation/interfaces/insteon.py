@@ -804,6 +804,7 @@ class InsteonPLM(HAInterface):
                             if d.state != State.ON:
                                 if d.verify_on_level:
                                     self._logger.debug('Received "On" command and "Verify On Level" set, sending status request for: {0}..........'.format(destDeviceId))
+                                    time.sleep(0.1)
                                     self.lightStatusRequest(destDeviceId, async=True)
                                 else:
                                     self._onCommand(address=destDeviceId, command=State.ON)
