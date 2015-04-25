@@ -20,6 +20,9 @@ var isMobile;
 //document.addEventListener("deviceready", init, false);
 
 function init() {
+    //Prevents sending toggle command when opening command popup
+    $.event.special.tap.emitTapOnTaphold = false;
+    
     //set isMobile
     if (isCordovaApp)
         isMobile = true;
@@ -39,11 +42,7 @@ function init() {
     }); //resizeTimer
     
     // Voice Command pulldown
-    if(window.isAndroid && isCordovaApp){
-        $(".iscroll-wrapper", $('#main')).bind( {
-            iscroll_onpulldown : doVoice
-        } );
-    } else if (window.chrome && !isMobile) {
+    if((window.isAndroid && isCordovaApp) || (window.chrome && !isMobile)) {
         $(".iscroll-wrapper", $('#main')).bind( {
             iscroll_onpulldown : doVoice
         } );
@@ -499,8 +498,8 @@ function reload_device_grid() {
     $(".ui-slider").mouseup(send_level);
     $(".ui-slider").touchend(send_level);
     $('.thermostatMode').bind("change", changeMode);
-    if (style === "compact" && isMobile) 
-        $(".toggle").bind("taphold", commandsPopup);
+    if (style === "compact" && isMobile){
+        $(".toggle").bind("taphold", commandsPopup);}
     else
         $(".toggle").contextmenu(function(e) {
             e.preventDefault();
@@ -743,9 +742,9 @@ function incrementSetpoint(eventObject){
 
 function commandsPopup(deviceID) {
     var myDeviceID;
-    if (typeof deviceID !== 'undefined')
+     if (typeof deviceID !== 'object')
         myDeviceID = deviceID;
-    else
+    else 
         myDeviceID = $(this).attr('deviceId');
     $("#tableCommands").find("tr").remove();
     $("#tableCommands").append(build_command_list(myDeviceID, "full")).trigger('create');
