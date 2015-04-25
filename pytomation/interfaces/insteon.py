@@ -784,6 +784,8 @@ class InsteonPLM(HAInterface):
                 self._logger.debug("Running status request:{0}:{1}:{2}:..........".format(isGrpCleanupAck, isGrpBroadcast, isGrpCleanupDirect))
                 time.sleep(0.1)
                 self.lightStatusRequest(destDeviceId, async=True)
+            else:
+                self._logger.debug("Ignoring command:{0}:{1}:{2}:{3}:..........".format(command1,isGrpCleanupAck, isGrpBroadcast, isGrpCleanupDirect))
         else: # direct command
             
             self._logger.debug("Setting status for:{0}:{1}:{2}..........".format(
@@ -801,6 +803,7 @@ class InsteonPLM(HAInterface):
                         elif command1 == 0x11:
                             if d.state != State.ON:
                                 if d.verify_on_level:
+                                    self._logger.debug('Received "On" command and "Verify On Level" set, sending status request for: {0}..........'.format(destDeviceId))
                                     self.lightStatusRequest(destDeviceId, async=True)
                                 else:
                                     self._onCommand(address=destDeviceId, command=State.ON)
