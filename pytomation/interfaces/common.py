@@ -106,6 +106,8 @@ class Command(object):
     HOLD = 'hold'
     SCHEDULE = 'schedule'
     MESSAGE = 'message'
+    LOCK = 'lock'
+    UNLOCK = 'unlock'
 
 class Interface(PytomationObject):
     def __init__(self):

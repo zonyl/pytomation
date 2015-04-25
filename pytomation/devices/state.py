@@ -18,7 +18,7 @@ class State(object):
     MOTION = 'motion'
     STILL = 'still'
     OPEN = 'open'
-    CLOSED = "close"
+    CLOSED = "closed"
     LIGHT = "light"
     DARK = "dark"
     ACTIVE = 'active'
@@ -30,13 +30,18 @@ class State(object):
     CIRCULATE = 'circulate'
     AUTOMATIC = 'automatic'
     HOLD = 'hold'
+    LOCKED = 'locked'
+    UNLOCKED = 'unlocked'
 
 class CommandStateMap(object):
     state_to_command = {
         State.ACTIVE: Command.ACTIVATE,
         State.INACTIVE: Command.DEACTIVATE,
         State.OCCUPIED: Command.OCCUPY,
-        State.VACANT: Command.VACATE
+        State.VACANT: Command.VACATE,
+        State.LOCKED: Command.LOCK,
+        State.UNLOCKED: Command.UNLOCK,
+        State.CLOSED: Command.CLOSE
     }
 
     command_to_state = {v: k for k, v in state_to_command.items()}
