@@ -365,12 +365,13 @@ class InsteonPLM(HAInterface):
         return super(InsteonPLM, self)._sendInterfaceCommand(command, commandDataString, extraCommandDetails, modemCommandPrefix='\x02')
 
     def _readInterface(self, lastPacketHash):
-        #check to see if there is anyting we need to read
+        #check to see if there is anything we need to read
         firstByte = self._interface.read(1)
         try:
             if len(firstByte) == 1:
-                #got at least one byte.  Check to see what kind of byte it is (helps us sort out how many bytes we need to read now)
-                
+                #Got at least one byte; set the _lastSendTime to prevent PLM errors when a command is sent shortly after read 
+                self._lastSendTime = time.time()
+                #Check to see what kind of byte it is (helps us sort out how many bytes we need to read now) 
                 if firstByte[0] == '\x02':
                     #modem command (could be an echo or a response)
                     #read another byte to sort that out
@@ -782,7 +783,6 @@ class InsteonPLM(HAInterface):
         if (isGrpCleanupAck or isGrpBroadcast) and command1 != 0x13 and command1 !=0x11 and command1 != 0x19:
             if command1 != 0x06 and command1 != 0x17: #don't ask for status on a heartbeat or the start of a manual change
                 self._logger.debug("Running status request:{0}:{1}:{2}:..........".format(isGrpCleanupAck, isGrpBroadcast, isGrpCleanupDirect))
-                time.sleep(0.1)
                 self.lightStatusRequest(destDeviceId, async=True)
             else:
                 self._logger.debug("Ignoring command:{0}:{1}:{2}:{3}:..........".format(command1,isGrpCleanupAck, isGrpBroadcast, isGrpCleanupDirect))
@@ -804,7 +804,6 @@ class InsteonPLM(HAInterface):
                             if d.state != State.ON:
                                 if d.verify_on_level:
                                     self._logger.debug('Received "On" command and "Verify On Level" set, sending status request for: {0}..........'.format(destDeviceId))
-                                    time.sleep(0.1)
                                     self.lightStatusRequest(destDeviceId, async=True)
                                 else:
                                     self._onCommand(address=destDeviceId, command=State.ON)
@@ -949,7 +948,7 @@ class InsteonPLM(HAInterface):
             self._logger.debug("stuffing")
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
-    def on(self, deviceId, fast=None, timeout = None):
+    def on(self, deviceId, fast=None, timeout = 2.5):
         if fast == 'fast':
             cmd = '12'
         else:
@@ -958,9 +957,9 @@ class InsteonPLM(HAInterface):
             commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, cmd, 'ff')
         else: #X10 device address
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'02')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = 2.5)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
-    def off(self, deviceId, fast=None, timeout = None):
+    def off(self, deviceId, fast=None, timeout = 2.5):
         if fast == 'fast':
             cmd = '14'
         else:
@@ -969,7 +968,7 @@ class InsteonPLM(HAInterface):
             commandExecutionDetails = self._sendStandardP2PInsteonCommand(deviceId, cmd, '00')
         else: #X10 device address
             commandExecutionDetails = self._sendStandardP2PX10Command(deviceId,'03')
-        return self._waitForCommandToFinish(commandExecutionDetails, timeout = 2.5)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
     
       
     # if rate the bits 0-3 is 2 x ramprate +1, bits 4-7 on level + 0x0F
@@ -1016,7 +1015,7 @@ class InsteonPLM(HAInterface):
 
     def status(self, deviceId, timeout=None):
         if len(deviceId) != 2: #insteon device address
-            return self.lightStatusRequest(deviceId, timeout)
+            return self.lightStatusRequest(deviceId, timeout, async=True)
         # X10 device,  command not supported,  just return
         return
 

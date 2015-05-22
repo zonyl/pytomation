@@ -243,6 +243,7 @@ class Serial(Interface):
 #       self.__serialDevice = serial.Serial(serialDevicePath, 19200, timeout = 0.1) 
         try:
             self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout)
+            self.__serialDevice._writeTimeout = serialTimeout
         except serial.serialutil.SerialException, ex:
             self._disabled = True
             self.__serialDevice = None

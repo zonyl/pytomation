@@ -235,13 +235,12 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                     
 #                result = self._interface.write(bytesToSend)
                 result = self._writeInterfaceFinal(bytesToSend)
+                self._lastSendTime = time.time()
                 self._logger.debug("TransmitResult>" + str(result))
     
                 self._pendingCommandDetails[commandHash] = commandExecutionDetails
                 del self._outboundCommandDetails[commandHash]
-    
-                self._lastSendTime = time.time()
-
+                
         try:
             self._commandLock.release()
         except Exception, te:
