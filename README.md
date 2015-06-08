@@ -73,7 +73,7 @@ Optional Packages:
 
 Additional packages are required for development and testing. See `requirements.txt` for a more complete list.
 
-Debian packages are available for pySerial, pytz, pythone-gevent, and python-openssl. They can be installed with : 
+Debian packages are available for pySerial, pytz, python-gevent, and python-openssl. They can be installed with : 
 
     sudo apt-get install git python-dev python-serial python-tz python-gevent python-openssl
 
@@ -101,7 +101,7 @@ The gevent-websocket server is pretty fast, but can be accelerated further by in
 
 Build openzwave and python-openzwave
 ====================================
-Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. I highly reccomend you use the archived source code. Note that version 3.0+ no longer requires Cython, which was the source of most of the build/sef fault issues with python-openzwave. Instructions are at https://github.com/OpenZWave/python-openzwave/blob/master/INSTALL_ARCH.txt.
+Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. I highly recommend you use the archived source code. Note that version 3.0+ no longer requires Cython, which was the source of most of the build/seg fault issues with python-openzwave. Instructions are at https://github.com/OpenZWave/python-openzwave/blob/master/INSTALL_ARCH.txt.
 
 #### Permissions
 Like with all other interfaces. Make sure the pyto user account owns or otherwise has permissions to use the device. You may want to give your own usr account access as well.
@@ -115,7 +115,7 @@ or
     sudo chmod 770 /dev/yourzwavestick
     
 #### Make Permissions Permanent 
-Add the following either `/etc/udev/rules.d` or `/lib/udev/rules.d` (Simmilar procedure can be used for other serial interfaces. `lsusb -v` can grab the neccessary ATTRS info.)
+Add the following either `/etc/udev/rules.d` or `/lib/udev/rules.d` (Similar procedure can be used for other serial interfaces. `lsusb -v` can grab the necessary ATTRS info.)
 
     SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ATTRS{serial}=="0001", SYMLINK+="zwave", GROUP="pyto", OWNER="pyto"
 
@@ -134,7 +134,7 @@ The install.sh command does the following:
  
   - Confirms where you are installing Pytomation to.
   - Makes a "pyto" user and creates the home directory.
-  - Copies all the necessary files into Pytomations HOME.
+  - Copies all the necessary files into Pytomation's HOME.
   - Creates an /etc/init.d/pytomation init script for starting Pytomation on boot.
   - Configures pytomation to start automatically at boot time
 
