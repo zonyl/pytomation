@@ -101,40 +101,7 @@ The gevent-websocket server is pretty fast, but can be accelerated further by in
 
 Build openzwave and python-openzwave
 ====================================
-Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. The instructions below list how to build from the development repositories. There is also prepared source avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz, but that didn't work for me.
-
-The following was extracted and adapted from the python-openzwave INSTALL_MAN.txt:
-
-    sudo apt-get install mercurial subversion python-pip python-dev python-setuptools python-louie python-sphinx make build-essential libudev-dev g++
-    sudo pip install cython==0.14
-    sudo pip install sphinxcontrib-blockdiag sphinxcontrib-actdiag
-    sudo pip install sphinxcontrib-nwdiag sphinxcontrib-seqdiag
-
-    hg clone https://code.google.com/p/python-openzwave/
-    cd python-openzwave
-    svn checkout http://open-zwave.googlecode.com/svn/trunk/ openzwave
-
-#### Method 1 (Install Everything via Scripts)
-
-    ./compile.sh
-    sudo ./install.sh
-
-#### Method 2 (Install Manually)
-If you installed everthing, stop here. Otherwise, go to the openzwave directory and build it:
-
-    cd openzwave/cpp/build
-    make
-    cd ../../..
-
-Build python-openzwave:
-
-    python setup-lib.py build
-    python setup-api.py build
-
-And install them:
-
-    sudo python setup-lib.py install
-    sudo python setup-api.py install
+Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. I highly reccomend you use the archived source code. Note that version 3.0+ no longer requires Cython, which was the source of most of the build/sef fault issues with python-openzwave. Instructions are at https://github.com/OpenZWave/python-openzwave/blob/master/INSTALL_ARCH.txt.
 
 #### Permissions
 Like with all other interfaces. Make sure the pyto user account owns or otherwise has permissions to use the device. You may want to give your own usr account access as well.
