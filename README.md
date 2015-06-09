@@ -101,7 +101,15 @@ The gevent-websocket server is pretty fast, but can be accelerated further by in
 
 Build openzwave and python-openzwave
 ====================================
-Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. I highly recommend you use the archived source code. Note that version 3.0+ no longer requires Cython, which was the source of most of the build/seg fault issues with python-openzwave. Instructions are at https://github.com/OpenZWave/python-openzwave/blob/master/INSTALL_ARCH.txt.
+Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. It's highly recommend you use the archived source code. Version 3.0+ no longer requires Cython, which was the source of most of the build/seg fault issues with python-openzwave. 3.0beta2 has been tested to work on both a 64bit Ubuntu 14.04 system and a Raspberry PI. Instructions are at https://github.com/OpenZWave/python-openzwave/blob/master/INSTALL_ARCH.txt.
+
+The config for OpenZwave will be located in the extracted archive, at openzwave/config. I recommend copying the config to your system /etc:
+
+    sudo cp -R openzwave/config /etc/openzwave
+    sudo chown -R pyto:root /etc/openzwave
+    sudo chmod 660 /etc/openzwave/options.xml
+
+Also note that if you have any security devices in your Zwave network, you will need to set the NetworkKey option in options.xml. That network key is why it's recommend to change the file permissions on options.xml, so only root and the pyto user can read it. 
 
 #### Permissions
 Like with all other interfaces. Make sure the pyto user account owns or otherwise has permissions to use the device. You may want to give your own usr account access as well.

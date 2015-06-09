@@ -40,7 +40,7 @@ class Open_zwave(HAInterface):
     def __init__(self, *args, **kwargs):
         self._serialDevicePath = kwargs.get('serialDevicePath', None)
         self._options = ZWaveOption(self._serialDevicePath, \
-          config_path="/usr/local/etc/openzwave/", \
+          config_path=kwargs.get('config_path', "/etc/openzwave/"), \
           user_path=".", cmd_line="")
         self._options.set_log_file("OZW_Log.log")
         self._options.set_append_log_file(False)
