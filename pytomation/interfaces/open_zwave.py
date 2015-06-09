@@ -34,7 +34,7 @@ class Open_zwave(HAInterface):
     def louie_node_update(self, network, node):
         self._logger.info('>>>>>>> Hello from node : %s.' % node)
 
-    def louie_value_update(self, snetwork, node, value):
+    def louie_value_update(self, network, node, value):
         self._logger.info('>>>>>>> Hello from value : %s.' % value)
 
     def __init__(self, *args, **kwargs):
