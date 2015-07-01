@@ -11,6 +11,8 @@ var auth;
 var onServer = false;
 var resizeTimer;
 var ws;
+var wsAttempts = 0;
+var wsRetrying = false;
 var upgradeConnection;
 var style = "compact";
 var changingStyle = false;
@@ -205,6 +207,7 @@ function get_device_data_callback(data) {
 
 function setup_ws_connection() {
     try {
+        wsAttempts += 1;
         if (ws){
             try {
                 ws.close();
@@ -250,18 +253,27 @@ function setup_ws_connection() {
         };
         ws.onerror = function(e) {
             upgradeConnection = false;
-            alert("upgrade Failed");
+            wsRetrying = true;
+            if (wsAttempts === 0) setup_ws_connection();
+            else if (wsAttempts < 20) setTimeout(setup_ws_connection,3000);
+            else if (wsAttempts < 60) setTimeout(setup_ws_connection,10000);
+            else setTimeout(setup_ws_connection,60000);
         };
         ws.onopen = function(e) {
             upgradeConnection = true;
+            wsAttempts = 0;
+            if (wsRetrying) {
+                wsRetrying = false;
+                ws.send(JSON.stringify({
+                    path: "devices"
+                }));
+            }
         };
     }
     catch(e){
         //can't do web sockets
         upgradeConnection = false;
-        alert("upgrade Failed");
     }
-    
 }
 
 function check_ws_connection(){
@@ -726,7 +738,7 @@ function decrementSetpoint(eventObject){
     deviceID = $(this).attr('deviceId');
     var setpoint = 0;
     $.each(deviceData[deviceID]['state'], function(stateIndex, statePart) {
-        if (statePart[0] === 'setpoint') {setpoint = statePart[1] - 1;}
+        if (statePart[0] === 'setpoint') {setpoint = --statePart[1];}
     }); //each
     send_command(deviceID,'setpoint,' + setpoint);
 }
@@ -735,7 +747,7 @@ function incrementSetpoint(eventObject){
     deviceID = $(this).attr('deviceId');
     var setpoint = 0;
     $.each(deviceData[deviceID]['state'], function(stateIndex, statePart) {
-        if (statePart[0] === 'setpoint') {setpoint = statePart[1] + 1;}
+        if (statePart[0] === 'setpoint') {setpoint = ++statePart[1];}
     }); //each
     send_command(deviceID,'setpoint,' + setpoint);
 }
