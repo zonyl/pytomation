@@ -17,7 +17,7 @@ from .ha_interface import HAInterface
 from .common import Interface, Command
 
 class VenstarThermostat(HAInterface):
-    VERSION = '1.0.0'
+    VERSION = '1.0.1'
 
     def _init(self, *args, **kwargs):
         super(VenstarThermostat, self)._init(*args, **kwargs)
@@ -31,6 +31,7 @@ class VenstarThermostat(HAInterface):
         self._last_state = None
         self._schedule = None
         self._away = None
+        self._SetPointDelta = None
 
         responses = self._interface.read()
         self._logger.debug("[Venstar Thermostat] API> " + str(responses))
@@ -66,7 +67,6 @@ class VenstarThermostat(HAInterface):
         # We need to dial back how often we check the thermostat.. Lets not bombard it!
         if not self._iteration < self._poll_secs:
             self._iteration = 0
-            #self._logger.error(self._interface.host)
             #check to see if there is anything we need to read
             responses = self._interface.read('query/info')
             if len(responses) != 0:
@@ -81,6 +81,7 @@ class VenstarThermostat(HAInterface):
                     self._schedule = status['schedule']
                     self._CoolSetpoint = status['cooltemp']
                     self._HeatSetpoint = status['heattemp']
+                    self._SetPointDelta = status['setpointdelta']
                     if state == 1 or state == 2: self._last_state = state
                     if mode == 0:
                         command = Command.OFF
@@ -102,6 +103,8 @@ class VenstarThermostat(HAInterface):
                         else: #hasn't turned on yet, try and guess
                             if self._last_temp > self._CoolSetpoint:
                                 self._set_point = self._CoolSetpoint
+                            if self._last_temp < self._HeatSetpoint:
+                                self._set_point = self._CoolSetpoint
                             else:
                                 self._set_point = self._HeatSetpoint
 
@@ -118,6 +121,7 @@ class VenstarThermostat(HAInterface):
                     temp = status['spacetemp']
                     if temp and temp != self._last_temp:
                         self._onCommand(command=(Command.LEVEL, temp))
+                        self._last_temp = temp
 
                     fan = status['fan']
                     if fan and int(fan) != self._fan:
@@ -130,7 +134,7 @@ class VenstarThermostat(HAInterface):
         else:
             self._iteration+=1
             time.sleep(1) # one sec iteration
-
+            
     def _writeInterfaceFinal(self, data):
         return self._interface.read(data)
 
@@ -169,6 +173,20 @@ class VenstarThermostat(HAInterface):
         commandExecutionDetails = self._sendInterfaceCommand(command)
         return True
 
+    def warmer(self):
+        self._last_set_point = self._set_point
+        self._set_point += 1
+        self._CoolSetpoint += 1
+        self._HeatSetpoint += 1
+        return self._send_state()
+    
+    def cooler(self):
+        self._last_set_point = self._set_point
+        self._set_point -= 1
+        self._CoolSetpoint -= 1
+        self._HeatSetpoint -= 1
+        return self._send_state()
+    
     def heat(self, *args, **kwargs):
         self._mode = Command.HEAT
         self._last_state = 1
@@ -212,11 +230,17 @@ class VenstarThermostat(HAInterface):
         return self._send_state()
 
     def setpoint(self, address, level, timeout=2.0):
+        setpoint_change = level - self._set_point
         self._set_point = level
         if self._last_state == 1:
             self._HeatSetpoint = level
-        else:
+            self._CoolSetpoint = level + self._SetPointDelta
+        elif self._last_state == 2:
             self._CoolSetpoint = level
+            self._HeatSetpoint = level - self._SetPointDelta
+        else:
+            self._CoolSetpoint += setpoint_change
+            self._HeatSetpoint += setpoint_change
         return self._send_state()
 
     def version(self):

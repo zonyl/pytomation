@@ -65,6 +65,7 @@ Pytomation also requires the following packages to be installed for normal opera
  - pySerial - Support for RS232 serial interfaces.
  - Pyephem - High-precision astronomy computations for sunrise/sunset.
  - Pytz - World timezone definitions.
+ - APScheduler - Advanced Python Scheduler
 
 Optional Packages:
  - python-gevent - A coroutine-based Python networking library (PytoWebSocketServer)
@@ -72,9 +73,9 @@ Optional Packages:
 
 Additional packages are required for development and testing. See `requirements.txt` for a more complete list.
 
-Debian packages are available for pySerial, pytz, pythone-gevent, and python-openssl. They can be installed with : 
+Debian packages are available for pySerial, pytz, python-gevent, and python-openssl. They can be installed with : 
 
-    sudo apt-get install git python-serial python-tz python-gevent python-openssl
+    sudo apt-get install git python-dev python-serial python-tz python-gevent python-openssl
 
 For other operating systems, search your package manager for the equivalent packages or use pip to install the Python dependencies.
 
@@ -86,7 +87,8 @@ Again, under Debian distributions you can install the python-pip package:
 
 Once pip is installed it is easy to install the rest of the dependencies with the following commands:
 
-    sudo pip install pyephem
+    sudo pip install pyephem 
+    sudo pip install APScheduler
 
 To use the optional websocket server:
 
@@ -99,38 +101,39 @@ The gevent-websocket server is pretty fast, but can be accelerated further by in
 
 Build openzwave and python-openzwave
 ====================================
-Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. There is also a binary avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz (I haven't tested). 
+Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. It's highly recommend you use the archived source code. Version 3.0+ no longer requires Cython, which was the source of most of the build/seg fault issues with python-openzwave. 3.0beta2 has been tested to work on both a 64bit Ubuntu 14.04 system and a Raspberry PI. Instructions are at https://github.com/OpenZWave/python-openzwave/blob/master/INSTALL_ARCH.txt.
 
-The following is extracted from the python-openzwave INSTALL_MAN.txt:
+The config for OpenZwave will be located in the extracted archive, at openzwave/config. I recommend copying the config to your system /etc:
 
-    sudo apt-get install mercurial subversion python-pip python-dev python-setuptools python-louie python-sphinx make build-essential libudev-dev g++
-    sudo pip install cython==0.14
-    sudo pip install sphinxcontrib-blockdiag sphinxcontrib-actdiag
-    sudo pip install sphinxcontrib-nwdiag sphinxcontrib-seqdiag
+    sudo cp -R openzwave/config /etc/openzwave
+    sudo chown -R pyto:root /etc/openzwave
+    sudo chmod 660 /etc/openzwave/options.xml
 
-    hg clone https://code.google.com/p/python-openzwave/
-    svn checkout http://open-zwave.googlecode.com/svn/trunk/ openzwave
+Also note that if you have any security devices in your Zwave network, you will need to set the NetworkKey option in options.xml. That network key is why it's recommend to change the file permissions on options.xml, so only root and the pyto user can read it. 
 
-Go to the openzwave directory and build it:
+#### Permissions
+Like with all other interfaces. Make sure the pyto user account owns or otherwise has permissions to use the device. You may want to give your own usr account access as well.
 
-    cd openzwave/cpp/build/linux
-    make
-    cd ../../../..
+    sudo chown youruseraccount:pyto /dev/yourzwavestick
+    sudo chmod 770 /dev/yourzwavestick
 
-Build python-openzwave:
+or
 
-    python setup-lib.py build
-    python setup-api.py build
+    sudo chown pyto:pyto /dev/yourzwavestick
+    sudo chmod 770 /dev/yourzwavestick
+    
+#### Make Permissions Permanent 
+Add the following either `/etc/udev/rules.d` or `/lib/udev/rules.d` (Similar procedure can be used for other serial interfaces. `lsusb -v` can grab the necessary ATTRS info.)
 
+    SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ATTRS{serial}=="0001", SYMLINK+="zwave", GROUP="pyto", OWNER="pyto"
 
-And install them:
+#### ozwsh (OpenZWave Shell, for testing)
 
-    sudo python setup-lib.py install
-    sudo python setup-api.py install
+    sudo pip install urwid louie
+    /ozwsh.sh --device=/dev/yourzwavestick
 
-
-####INSTALL
-
+INSTALL
+=======
 You are now ready to install pytomation. First, clone the pytomation git repository. Change into the pytomation repo directory and run `./install.sh`. You may have to make it executable with the command `chmod +x ./install.sh` first. Install.sh can take an optional argument which points to an alternate installation directory:
 
      ./install.sh /some/other/folder/pytomation
@@ -139,7 +142,7 @@ The install.sh command does the following:
  
   - Confirms where you are installing Pytomation to.
   - Makes a "pyto" user and creates the home directory.
-  - Copies all the necessary files into Pytomations HOME.
+  - Copies all the necessary files into Pytomation's HOME.
   - Creates an /etc/init.d/pytomation init script for starting Pytomation on boot.
   - Configures pytomation to start automatically at boot time
 

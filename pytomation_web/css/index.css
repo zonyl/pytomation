@@ -28,12 +28,17 @@ div.ui-slider {
     left: -53px;
     clear: both;
 }
-.singleDevice {
+.singleDevice, .singleDevice2 {
     border-style: groove;
     border-width: thin;
     padding-left: 1px;
     padding-right: 0px;
     width:100%;
+}
+.commandContent{
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
 }
 #mainContent{
     padding: 0 0 0 0;
@@ -47,4 +52,10 @@ div.ui-slider {
 .ui-select {
     margin-top: 0;
     margin-bottom: 2px;
+}
+.command {
+    margin-top: 0;
+    margin-bottom: 3px;
+    margin-left: 2px;
+    margin-right: 0;
 }
