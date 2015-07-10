@@ -25,22 +25,22 @@ class Open_zwave(HAInterface):
     ready = False
     nodesdisplayed = False
 
-    def louie_network_ready(network):
-	self._logger.info(">>>>>>> Hello from network : I'm ready : %d nodes were found." % self._network.nodes_count)     
-	self._logger.info(">>>>>>> Hello from network : my controller is : %s" % self._network.controller)
-	dispatcher.connect(self.louie_node_update, ZWaveNetwork.SIGNAL_NODE)
-	dispatcher.connect(self.louie_value_update, ZWaveNetwork.SIGNAL_VALUE)
+    def louie_network_ready(self, network):
+        self._logger.info(">>>>>>> Hello from network : I'm ready : %d nodes were found." % self._network.nodes_count)     
+        self._logger.info(">>>>>>> Hello from network : my controller is : %s" % self._network.controller)
+        dispatcher.connect(self.louie_node_update, ZWaveNetwork.SIGNAL_NODE)
+        dispatcher.connect(self.louie_value_update, ZWaveNetwork.SIGNAL_VALUE)
 
-    def louie_node_update(network, node):
-    	self._logger.info('>>>>>>> Hello from node : %s.' % node)
+    def louie_node_update(self, network, node):
+        self._logger.info('>>>>>>> Hello from node : %s.' % node)
 
-    def louie_value_update(network, node, value):
-    	self._logger.info('>>>>>>> Hello from value : %s.' % value)
+    def louie_value_update(self, network, node, value):
+        self._logger.info('>>>>>>> Hello from value : %s.' % value)
 
     def __init__(self, *args, **kwargs):
         self._serialDevicePath = kwargs.get('serialDevicePath', None)
         self._options = ZWaveOption(self._serialDevicePath, \
-          config_path="/usr/local/etc/openzwave/", \
+          config_path=kwargs.get('config_path', "/etc/openzwave/"), \
           user_path=".", cmd_line="")
         self._options.set_log_file("OZW_Log.log")
         self._options.set_append_log_file(False)
@@ -48,12 +48,12 @@ class Open_zwave(HAInterface):
         #self._options.set_save_log_level(log)
         self._options.set_save_log_level('Info')
         self._options.set_logging(True)
-	self._options.set_notify_transactions(True)
+        self._options.set_notify_transactions(True)
         self._options.lock()
 
         self._network = ZWaveNetwork(self._options, log=None,autostart=False)
-	dispatcher.connect(self.louie_network_ready, ZWaveNetwork.SIGNAL_NETWORK_READY)
-	self._network.start()
+        dispatcher.connect(self.louie_network_ready, ZWaveNetwork.SIGNAL_NETWORK_READY)
+        self._network.start()
         super(Open_zwave, self).__init__(self, *args, **kwargs)
 
     def _printNetwork(self, node):
@@ -93,7 +93,6 @@ class Open_zwave(HAInterface):
             and not self.ready):
             self.ready = True
             self._logger.info("Network Ready")
-	    self._logger.info("********************************* NETWORK READY ************************************")
         if not self.awake:
             time.sleep(1.0)
             self._logger.debug("Not awaked")
@@ -119,28 +118,28 @@ class Open_zwave(HAInterface):
                           self._network.controller.library_description)
 
     def on(self, address):
-	node = int(address)
-	for val in self._network.nodes[node].get_switches() :
-		self._logger.info("Activate switch")
-		self._network.nodes[node].set_switch(val,True)
+        node = int(address)
+        for val in self._network.nodes[node].get_switches() :
+            self._logger.info("Activate switch")
+            self._network.nodes[node].set_switch(val,True)
 
-	for val in self._network.nodes[node].get_dimmers() :
-		self._logger.info("Activate dimmer : %s" % self._network.nodes[node])
-		self._network.nodes[node].set_dimmer(val,99)
+        for val in self._network.nodes[node].get_dimmers() :
+            self._logger.info("Activate dimmer : %s" % self._network.nodes[node])
+            self._network.nodes[node].set_dimmer(val,99)
 
 
     def off(self, address):
-	node = int(address)
-	for val in self._network.nodes[node].get_switches() :
-		self._logger.info("Activate switch")
-		self._network.nodes[node].set_switch(val,False)
+        node = int(address)
+        for val in self._network.nodes[node].get_switches() :
+            self._logger.info("Activate switch")
+            self._network.nodes[node].set_switch(val,False)
 
-	for val in self._network.nodes[node].get_dimmers() :
-		self._logger.info("Activate dimmer : %s" % self._network.nodes[node])
-		self._network.nodes[node].set_dimmer(val,0)
+        for val in self._network.nodes[node].get_dimmers() :
+            self._logger.info("Activate dimmer : %s" % self._network.nodes[node])
+            self._network.nodes[node].set_dimmer(val,0)
 
     def status(self, address):
-	node = int(address)
-	for val in self._network.nodes[node].get_dimmers() :
-	   level = self._network.nodes[nodeid].get_dimmer_level(val)
+        node = int(address)
+        for val in self._network.nodes[node].get_dimmers() :
+            level = self._network.nodes[node].get_dimmer_level(val)
 

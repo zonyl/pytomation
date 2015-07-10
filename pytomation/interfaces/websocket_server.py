@@ -8,6 +8,7 @@ David Heaps - king.dopey.10111@gmail.com
 import mimetypes
 import os
 import base64
+import collections
 
 from geventwebsocket import WebSocketServer, WebSocketApplication, Resource
 
@@ -40,10 +41,10 @@ class PytoWebSocketServer(HAInterface):
         self._path = kwargs.get('path', config.http_path)
         super(PytoWebSocketServer, self).__init__(self._address, *args, **kwargs)
         self.unrestricted = True  # To override light object restrictions
-        self.ws = None
 
     def _init(self, *args, **kwargs):
         self._ssl_path = None
+        self.ws = None
         try:
             self._ssl_path = config.ssl_path
         except:
@@ -52,9 +53,15 @@ class PytoWebSocketServer(HAInterface):
 
     def run(self):
         if self._ssl_path:
+            resource= collections.OrderedDict()
+            resource['/api/bridge'] = PytoWebSocketApp
+            resource['/api/device*'] = self.api_app
+            resource['/api/voice'] = self.api_app
+            resource['/'] = self.http_file_app
+            
             self.ws = WebSocketServer(
             (self._address, self._port),
-            Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/api/voice': self.api_app, '/': self.http_file_app}),
+            Resource(resource),
             pre_start_hook=auth_hook, keyfile=self._ssl_path + '/server.key', certfile=self._ssl_path + '/server.crt')
         else:
             self.ws = WebSocketServer(
