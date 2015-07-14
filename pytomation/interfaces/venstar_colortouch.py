@@ -40,10 +40,10 @@ class VenstarThermostat(HAInterface):
         else:
             self._away_type = "away"
 
-        self._iteration = 0
         #the delay to poll the thermostat
-        self._poll_secs = kwargs.get('poll', 60)
-
+        self._poll_secs = kwargs.get('poll', 5)
+        self._iteration = self._poll_secs + 1
+        
         try:
             self._host = self._interface.host
         except Exception, ex:
@@ -232,15 +232,8 @@ class VenstarThermostat(HAInterface):
     def setpoint(self, address, level, timeout=2.0):
         setpoint_change = level - self._set_point
         self._set_point = level
-        if self._last_state == 1:
-            self._HeatSetpoint = level
-            self._CoolSetpoint = level + self._SetPointDelta
-        elif self._last_state == 2:
-            self._CoolSetpoint = level
-            self._HeatSetpoint = level - self._SetPointDelta
-        else:
-            self._CoolSetpoint += setpoint_change
-            self._HeatSetpoint += setpoint_change
+        self._CoolSetpoint += setpoint_change
+        self._HeatSetpoint += setpoint_change    
         return self._send_state()
 
     def version(self):
