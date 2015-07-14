@@ -279,8 +279,14 @@ class StateDevice(PytomationObject):
     def toggle_state(self):
         if self.state == State.ON:
             state = State.OFF
-        else:
+        elif self.state == State.OFF:
             state = State.ON
+        elif self.state == State.LOCKED:
+            state = State.UNLOCKED
+        elif self.state == State.UNLOCKED:
+            state = State.LOCKED
+        else:
+            state = State.OFF #default to toggle off, to account for dimmed lights
         return state
     
     def _command_to_state(self, command, state):
