@@ -10,6 +10,7 @@ from .scene import *
 from .attributes import *
 from .room import *
 from .thermostat import *
+from .lock import *
 try:
     from .xmpp_client import *
 except:
