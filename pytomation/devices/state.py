@@ -348,9 +348,15 @@ class StateDevice(PytomationObject):
             except Exception, ex:
                 getattr(self, 'devices')( kwargs['devices'])
 
+        if kwargs.get('commands', None):
+            self.COMMANDS = kwargs.get('commands')
+
+        if kwargs.get('states', None):
+            self.COMMANDS = kwargs.get('states')
+
         # run through the rest
         for k, v in kwargs.iteritems():
-            if k.lower() != 'devices':
+            if k.lower() not in ('devices','commands','states'):
                 attribute = getattr(self, k)
                 if not attribute:
                     self._logger.error('Keyword: "{0}" not found in object construction.'.format(k))
