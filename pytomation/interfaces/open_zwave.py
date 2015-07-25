@@ -37,29 +37,43 @@ class Open_zwave(HAInterface):
         for lockvalue in self.get_door_locks(node.node_id).values():
             if lockvalue.value_id == value.value_id:
                 if value.data:
-                    self._onCommand(address=node.node_id, command=Command.LOCK)
+                    self._onCommand(address=str(node.node_id), command=Command.LOCK)
                 else:
-                    self._onCommand(address=node.node_id, command=Command.UNLOCK)
+                    self._onCommand(address=str(node.node_id), command=Command.UNLOCK)
         for val in self._network.nodes[node.node_id].get_switches():
-            if val.value_id == value.value_id:
-                level = value.data
-                if level:
-                    self._onCommand(address=node.node_id, command=Command.ON)
+            if val == value.value_id:
+                if value.data:
+                    self._onCommand(address=str(node.node_id), command=Command.ON)
                 else:
-                    self._onCommand(address=node.node_id, command=Command.OFF)
+                    self._onCommand(address=str(node.node_id), command=Command.OFF)
         for val in self._network.nodes[node.node_id].get_dimmers() :
-            level = self._network.nodes[node].get_dimmer_level(val)
-            if level < 2:
-                self._onCommand(address=node.node_id, command=Command.OFF)
-            elif level > 98:
-                self._onCommand(address=node.node_id, command=Command.ON)
-            else:
-                self._onCommand(address=node.node_id, command=(Command.LEVEL,level))
+            if val == value.value_id:
+                #Poll dimmer to ensure ramp up/down completes
+                level = value.data
+                if self.dimmer_polled_value.has_key(val):
+                    self._logger.debug('>>>>>>> Hello from level : {} {}'.format(level, self.dimmer_polled_value[val]))
+                    if level == self.dimmer_polled_value[val]:
+                        del self.dimmer_polled_value[val]
+                        if level < 2:
+                            self._onCommand(address=str(node.node_id), command=Command.OFF)
+                        elif level > 98:
+                            self._onCommand(address=str(node.node_id), command=Command.ON)
+                        else:
+                            self._onCommand(address=str(node.node_id), command=(Command.LEVEL,level))
+                    else:
+                        self.dimmer_polled_value[val] = level
+                        time.sleep(1)
+                        value.refresh()
+                else:
+                    time.sleep(1)
+                    self.dimmer_polled_value[val] = level
+                    value.refresh()
 
     def __init__(self, *args, **kwargs):
         self._serialDevicePath = kwargs.get('serialDevicePath', None)
         self._configpath = kwargs.get('config_path', "/etc/openzwave/")
         super(Open_zwave, self).__init__(self, *args, **kwargs)
+        self.dimmer_polled_value = {}
 
     def _init(self, *args, **kwargs):
         self.awake = False
