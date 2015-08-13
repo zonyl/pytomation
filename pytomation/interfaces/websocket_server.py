@@ -52,13 +52,12 @@ class PytoWebSocketServer(HAInterface):
         super(PytoWebSocketServer, self)._init(*args, **kwargs)
 
     def run(self):
-        if self._ssl_path:
-            resource= collections.OrderedDict()
-            resource['/api/bridge'] = PytoWebSocketApp
-            resource['/api/device*'] = self.api_app
-            resource['/api/voice'] = self.api_app
-            resource['/'] = self.http_file_app
-            
+        resource = collections.OrderedDict()
+        resource['/api/bridge'] = PytoWebSocketApp
+        resource['/api/device*'] = self.api_app
+        resource['/api/voice'] = self.api_app
+        resource['/'] = self.http_file_app
+        if self._ssl_path:            
             self.ws = WebSocketServer(
             (self._address, self._port),
             Resource(resource),
@@ -66,7 +65,7 @@ class PytoWebSocketServer(HAInterface):
         else:
             self.ws = WebSocketServer(
                 (self._address, self._port),
-                Resource({'/api/bridge': PytoWebSocketApp, '/api/device*': self.api_app, '/api/voice': self.api_app, '/': self.http_file_app}),
+                Resource(resource),
                 pre_start_hook=auth_hook)
 
         print "Serving WebSocket Connection on", self._address, "port", self._port, "..."
