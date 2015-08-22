@@ -132,11 +132,11 @@ class StateDevice(PytomationObject):
     
     def _set_state(self, value, *args, **kwargs):
         source = kwargs.get('source', None)
-        if value != self._state:
-            self._previous_state = self._state
-            self._delegate_state_change(value, prev=self._state, source=source)
+        self._previous_state = self._state
         self._last_set = datetime.now()
-        self._state = value
+        if value != self._state:
+            self._state = value
+            self._delegate_state_change(value, prev=self._state, source=source)
         return self._state
     
     def __getattr__(self, name):
