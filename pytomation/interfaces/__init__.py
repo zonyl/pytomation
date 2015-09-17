@@ -14,7 +14,10 @@ from .mochad import *
 from .mh_send import *
 from .hw_thermostat import *
 from .venstar_colortouch import *
-from .websocket_server import *
+try:
+    from .websocket_server import *
+except:
+    print 'unable to load websocket server'
 try:
     from .wemo import *
 except:
@@ -48,3 +51,4 @@ try:
 except:
     print "Could not load Open Zwave library"
 from .arp import *
+from .foscam_interface import *

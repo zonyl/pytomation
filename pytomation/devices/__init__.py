@@ -23,7 +23,7 @@ try:
     from .kodi import *
 except:
     print "Could not import Kodi/XBMC"
-try: 
+try:
     from .pushbullet import *
 except:
     print "Missing python-requests"

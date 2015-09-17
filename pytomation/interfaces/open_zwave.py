@@ -17,6 +17,7 @@ try:
     from louie import dispatcher, All
 except:
     print ("Error importing Openzwave and/or Python-Openzwave")
+    raise
 
 
 class Open_zwave(HAInterface):
