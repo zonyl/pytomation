@@ -19,7 +19,7 @@ class Foscam(HAInterface):
         self._port = kwargs.get('port', None)
         self._username = kwargs.get('username', None)
         self._password = kwargs.get('password', None)
-        self._interface = FoscamCamera(host=self._host, port=self._port, usr=self._username, pwd=self._password)
+        self._interface = FoscamCamera(host=self._host, port=self._port, usr=self._username, pwd=self._password, verbose=False)
 
     def _readInterface(self, lastPacketHash):
         motion = self._interface.get_dev_state()[1]['motionDetectAlarm'][0]

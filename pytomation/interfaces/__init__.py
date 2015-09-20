@@ -43,12 +43,19 @@ try:
 except:
     print "Could not import RPI library"
 try:    
-    from .honeywell_thermostat import *
+    #from .honeywell_thermostat import *
+    from .honeywelltcc import *
 except:
     print "Could not load Honeywell Thermostat library"
 try:
     from .open_zwave import *
 except:
     print "Could not load Open Zwave library"
-from .arp import *
-from .foscam_interface import *
+try:
+    from .arp import *
+except:
+    print "Could not load Arp scanning library"
+try:
+    from .foscam_interface import *
+except:
+    print "Could not load foscam interface library"
