@@ -11,7 +11,7 @@ class Arp(HAInterface):
 	VERSION = '0.0.1'
 
 	_iteration = 0
-	_poll_secs = 15
+	_poll_secs = 60
 	rawdata = None
 	arping = None
 
@@ -32,13 +32,14 @@ class Arp(HAInterface):
 			#datadic = {}
 		
 			for line in data:
-				address = line[addressstart:15].strip()
+				ipaddress = line[addressstart:15].strip()
 				hwaddress = line[hwaddressstart:(hwaddressstart + 18)].strip()
 				if hwaddress != "(incomplete)" and hwaddress != "HWaddress" and hwaddress != "": 
 
 					#datadic[hwaddress]=address
 					try:
-						arping = subprocess.check_output(["arping","-q","-c 1",address])
+						#arping = subprocess.check_output(["arping","-q","-c 3","-w 50",address])
+						arping = subprocess.check_output(["ping","-c 1",'-w 1',ipaddress])
 						arping = True
 						#self._onState(state=State.ON, address=hwaddress)
 						self._onCommand(command=Command.ON, address=hwaddress)
