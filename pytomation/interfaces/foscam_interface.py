@@ -11,7 +11,7 @@ class Foscam(HAInterface):
     MOTIONDETECTION_ALERT = '2'
 
     _iteration = 0
-    _poll_secs = 15
+    _poll_secs = 30
 
     def __init__(self, *args, **kwargs):
         super(Foscam, self).__init__(None, *args, **kwargs)

@@ -49,3 +49,6 @@ class PushBullet(StateDevice):
             self._logger.debug('Sending Message')
 	    self.pushNote(title=command[1],body=command[2])
         super(PushBullet, self)._delegate_command(command, *args, **kwargs)
+
+    def message(self, *args, **kwargs):
+	self.pushNote(title="Test Message", body="Pytomation test")
