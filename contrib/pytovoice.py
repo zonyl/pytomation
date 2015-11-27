@@ -21,7 +21,7 @@ with sr.Microphone() as source:                # use the default microphone as t
     print("Thinking about what you said...")
 
 try:
-    phrase = r.recognize(audio)
+    phrase = r.recognize_google(audio)
 except LookupError:                            # speech is unintelligible
     print("Could not understand audio")
 
@@ -29,5 +29,5 @@ print("You said " + phrase)    # recognize speech using Google Speech Recognitio
 phrase = (phrase,)
 command = {'command': phrase}
 r = requests.post(server + "/api/voice", data=json.dumps(command), headers = {'content-type': 'application/json', 
-											'Authorization': 'Basic ' + base64.b64encode(username + ":" + password)})
+                                            'Authorization': 'Basic ' + base64.b64encode(username + ":" + password)}, verify=False)
 print(r)
