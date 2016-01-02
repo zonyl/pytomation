@@ -464,7 +464,7 @@ function reload_device_grid() {
                             rowData += "<option value='automatic'>automatic</option>";
                 }); //each
                 rowData += '</select></td><td style="width:1em;padding-left:.5em">' + tempTransitionLabel + '</td><td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="decrementSetpoint" data-iconpos="notext" data-role="button" data-icon="minus"></a></div></td>';
-                rowData += '<td style="width:3em"><button data-mini="true" data-role="button" class="toggle" command="toggle" deviceId="' + deviceID + '">' + buttonLabel + "</button></td>";
+                rowData += '<td style="width:3em"><button data-mini="true" data-role="button" class="thermSetpoint" deviceId="' + deviceID + '">' + buttonLabel + "</button></td>";
                 rowData += '<td style="width:2em"><a href="#" deviceId="' + deviceID + '" class="incrementSetpoint" data-iconpos="notext" data-role="button" data-icon="plus"></a></div></td></tr></table></tr>';
             } else {
                 rowData += "<button data-mini='true' data-role='button' class='toggle' command='toggle' deviceId='" + deviceID + "'>" + buttonLabel + "</button>";
