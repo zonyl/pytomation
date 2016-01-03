@@ -34,6 +34,8 @@ function init() {
     //fix for Dolphin not being detected as mobile
     if (window.isAndroid) isMobile = true;
     
+    $('.colorSelect').click(theme_changed);
+    
     load_settings();
     if (currentTheme !== 'a') theme_changed(currentTheme);
     
@@ -58,6 +60,11 @@ function init() {
 $(document).ready(init);
 
 function theme_changed(selectedTheme){
+    // If called from html element get element theme value
+    if(typeof selectedTheme === "object") selectedTheme = this.getAttribute('data-pytoTheme');
+    $('.ui-overlay-' + currentTheme).each(function(){
+        $(this).removeClass('ui-overlay-' + currentTheme).addClass('ui-overlay-' + selectedTheme);    
+    });
     $('.ui-body-' + currentTheme).each(function(){
         $(this).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme);    
     });
@@ -71,19 +78,19 @@ function theme_changed(selectedTheme){
     $('#main').find('*[data-theme]').each(function(index){
         $(this).attr('data-theme',selectedTheme);
     });
-    $('#main').attr('data-theme', selectedTheme).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme).trigger('create');
+    $('#main').attr('data-theme', selectedTheme).removeClass('ui-page-theme-' + currentTheme).addClass('ui-page-theme-' + selectedTheme).trigger('create');
 
     $('#settings').find('*[data-theme]').each(function(index){
         $(this).attr('data-theme',selectedTheme);
     });
-    $('#settings').attr('data-theme', selectedTheme).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme).trigger('create');
+    $('#settings').attr('data-theme', selectedTheme).removeClass('ui-page-theme-' + currentTheme).addClass('ui-page-theme-' + selectedTheme).trigger('create');
 
     $('#commands').find('*[data-theme]').each(function(index){
         $(this).attr('data-theme',selectedTheme);
     });
-    $('#commands').attr('data-theme', selectedTheme).removeClass('ui-body-' + currentTheme).addClass('ui-body-' + selectedTheme).trigger('create');
+    $('#commands').attr('data-theme', selectedTheme).removeClass('ui-page-theme-' + currentTheme).addClass('ui-page-theme-' + selectedTheme).trigger('create');
     if (selectedTheme > 'e') 
-        $('.iscroll-pulldown').css('background','#000000');
+        $('.iscroll-pulldown').css('background','#F9F9F9');
     else
         $('.iscroll-pulldown').css('background','#FFFFFF');
     currentTheme = selectedTheme;

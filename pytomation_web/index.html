@@ -5,6 +5,7 @@
         <meta name="format-detection" content="telephone=no" />
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
         <meta name="msapplication-tap-highlight" content="no" />
+        <!-- 'unsafe-inline' -->
         <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src 'self' data: filesystem:; connect-src *"/>
         <link rel="stylesheet" href="css/jquery.mobile.iscrollview.css" />
         <link rel="stylesheet" href="css/jquery.mobile.iscrollview-pull.css" />
@@ -86,38 +87,38 @@
             </p>
             <p>
                 Select a theme: <br />
-                <a href="#" onclick='theme_changed("a")' class="colorSelect" style="background-color: #38C;"></a>  <!-- (default) Blue/White -->
-                <a href="#" onclick='theme_changed("a")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="a" class="colorSelect" style="background-color: #38C;"></a>  <!-- (default) Blue/White -->
+                <a href="#" data-pytoTheme="a" class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
 
-                <a href="#" onclick='theme_changed("b")' class="colorSelect" style="background-color: #3CF;"></a>  <!-- Light Blue/White -->
-                <a href="#" onclick='theme_changed("b")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="b" class="colorSelect" style="background-color: #3CF;"></a>  <!-- Light Blue/White -->
+                <a href="#" data-pytoTheme="b" class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
 
-                <a href="#" onclick='theme_changed("c")' class="colorSelect" style="background-color: #009245;"></a>  <!-- Dark Green/White -->
-                <a href="#" onclick='theme_changed("c")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="c" class="colorSelect" style="background-color: #009245;"></a>  <!-- Dark Green/White -->
+                <a href="#" data-pytoTheme="c" class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
 
-                <a href="#" onclick='theme_changed("d")' class="colorSelect" style="background-color: #8CC63F;"></a>  <!-- Lime Green/White -->
-                <a href="#" onclick='theme_changed("d")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="d" class="colorSelect" style="background-color: #8CC63F;"></a>  <!-- Lime Green/White -->
+                <a href="#" data-pytoTheme="d" class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
 
-                <a href="#" onclick='theme_changed("e")' class="colorSelect" style="background-color: #C1272D;"></a>  <!-- Red/White -->
-                <a href="#" onclick='theme_changed("e")' class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="e" class="colorSelect" style="background-color: #C1272D;"></a>  <!-- Red/White -->
+                <a href="#" data-pytoTheme="e" class="colorSelect" style="background-color: #ffffff;margin-right: 5px;"></a>
                 
                 <br />
                 <br />
                 
-                <a href="#" onclick='theme_changed("f")' class="colorSelect" style="background-color: #38C;"></a>  <!-- Blue/Black -->
-                <a href="#" onclick='theme_changed("f")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="f" class="colorSelect" style="background-color: #38C;"></a>  <!-- Blue/Black -->
+                <a href="#" data-pytoTheme="f" class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
 
-                <a href="#" onclick='theme_changed("g")' class="colorSelect" style="background-color: #3CF;"></a>  <!-- Light Blue/Black -->
-                <a href="#" onclick='theme_changed("g")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="g" class="colorSelect" style="background-color: #3CF;"></a>  <!-- Light Blue/Black -->
+                <a href="#" data-pytoTheme="g" class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
 
-                <a href="#" onclick='theme_changed("h")' class="colorSelect" style="background-color: #009245;"></a>  <!-- Dark Green/Black -->
-                <a href="#" onclick='theme_changed("h")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="h" class="colorSelect" style="background-color: #009245;"></a>  <!-- Dark Green/Black -->
+                <a href="#" data-pytoTheme="h" class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
 
-                <a href="#" onclick='theme_changed("i")' class="colorSelect" style="background-color: #8CC63F;"></a>  <!-- Lime Green/Black -->
-                <a href="#" onclick='theme_changed("i")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="i" class="colorSelect" style="background-color: #8CC63F;"></a>  <!-- Lime Green/Black -->
+                <a href="#" data-pytoTheme="i" class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
 
-                <a href="#" onclick='theme_changed("j")' class="colorSelect" style="background-color: #C1272D;"></a>  <!-- Red/Black -->
-                <a href="#" onclick='theme_changed("j")' class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
+                <a href="#" data-pytoTheme="j" class="colorSelect" style="background-color: #C1272D;"></a>  <!-- Red/Black -->
+                <a href="#" data-pytoTheme="j" class="colorSelect" style="background-color: #000000;margin-right: 5px;"></a>
                 <br />
             </p>
             <div class="ui-field-contain">
