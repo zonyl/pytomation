@@ -14,6 +14,7 @@ requests
 gevent-websocket
 wsaccel
 ujson
+phue
 -e git://github.com/jcollie/pyjnest.git#egg=pyjnest
 -e git+https://github.com/zonyl/pyharmony.git#egg=pyharmony
 interruptingcow
