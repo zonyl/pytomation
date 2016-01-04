@@ -26,6 +26,7 @@ more planned in the future.
    - [Misterhouse](http://misterhouse.sourceforge.net/) Voice Commands MHSend (TCP)
    - [Spark I/O](http://www.spark.io) WiFi devices
    - Z-Wave (Aeon Labs via python-Openzwave) DSA02203-ZWUS 
+   - [Phillips HUE](http://www.meethue.com) Phillips HUE, Zigbee lighting
 
 ### Future
    - Weeder Analog I/O board (Wtaio/RS232)
