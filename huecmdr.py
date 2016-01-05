@@ -23,6 +23,9 @@
 
 # Release history
 # Jan 04, 2016 - V1.0  Initial release
+# Jan 05, 2016 - V1.1  Remove test values left in by mistake.
+
+
 import curses, time, sys, math, datetime
 import json, os, socket, httplib
 import locale, serial
@@ -46,8 +49,8 @@ code = locale.getpreferredencoding()
 IP_ADDRESS = None
 
 #================= End of user setable values ================================
-VERSION = '1.0'
-VERSION_DATE = 'Jan 04,2016'
+VERSION = '1.1'
+VERSION_DATE = 'Jan 05,2016'
 
 CURSOR_INVISIBLE = 0    # no cursor
 CURSOR_NORMAL = 1       # Underline cursor
@@ -427,21 +430,6 @@ class Hue():
             cl.append("{0:<4}{1:<9}{2:<19}{3:<23}{4}".format(l, lights[l]['modelid'], lights[l]['name'], \
                                                          lights[l]['type'], lights[l]['manufacturername']))
 
-        for l in lights:
-            cl.append("{0}".format(l))
-            cl.append("{0}{1}".format(l,'a'))
-            cl.append("{0}{1}".format(l,'b'))
-            cl.append("{0}{1}".format(l,'c'))
-            cl.append("{0}{1}".format(l,'d'))
-            cl.append("{0}{1}".format(l,'e'))
-            cl.append("{0}{1}".format(l,'f'))
-            cl.append("{0}{1}".format(l,'g'))
-            cl.append("{0}{1}".format(l,'h'))
-            cl.append("{0}{1}".format(l,'i'))
-            cl.append("{0}{1}".format(l,'j'))
-            cl.append("{0}{1}".format(l,'k'))
-            
-        cl.append('end')
         #TERM = curses.termname()
         
         try:
@@ -539,7 +527,7 @@ class Hue():
                 scn.touchwin()
                 scn.refresh()
                 curses.curs_set(1)
-                break
+                return None
 
 
     def popup_error(self, scn, text):
@@ -592,7 +580,7 @@ class Hue():
 
         
     def popup_menu(self, scn):
-        cmds = 'aAnNcClLqQsS'
+        cmds = 'aAgGnNcClLqQsS'
         c = 0
         text = """
                     Huecmdr Command Summary
@@ -603,15 +591,15 @@ class Hue():
     Add new bulb to Bridge...................N
     Adjust colours...........................C
     List bulbs connected to Bridge...........L
+    List groups configured in Bridge.........G
     Exit Huecmdr.............................Q
-    
-    
+        
 
     Press command key, can be upper or lower case. [   ]
 
-    Currently Selected:  Light [  cc  ]
+    Currently Selected:  Light [      ] - Group [      ]
         """
-#Currently Selected:  Light [      ] - Group [      ]
+
         try:
             popup = curses.newwin(19, 64, 2, 6)
             popup.addstr(1, 1, text)
@@ -622,10 +610,10 @@ class Hue():
             else:
                 popup.addstr(16,34,"{0:0>2}".format(self.light))
             
-#            if self.group == None:
-#                popup.addstr(16,50,str(self.group))
-#            else:
-#                popup.addstr(16,51,"{0:0>2}".format(self.group))
+            if self.group == None:
+                popup.addstr(16,50,str(self.group))
+            else:
+                popup.addstr(16,51,"{0:0>2}".format(self.group))
 
             popup.nodelay(0)
             curses.curs_set(CURSOR_INVISIBLE)
@@ -704,7 +692,8 @@ class Hue():
             elif c == 's' or c == 'S':
                 if hub != False:
                     line = self.select_light(scn, hub)
-                    self.light = int(line[0:2])
+                    if line != None:
+                        self.light = int(line[0:2])
             elif c == 'n' or c == 'N':
                 if hub != False:
                     self.add_new_bulb(scn, hub)
