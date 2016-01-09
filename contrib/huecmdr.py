@@ -1,5 +1,4 @@
 #! /usr/bin/python2
-# -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
 #  Huecmdr - Phillips HUE Bridge Utility
 #
@@ -24,20 +23,15 @@
 # Release history
 # Jan 04, 2016 - V1.0  Initial release
 # Jan 05, 2016 - V1.1  Remove test values left in by mistake.
+# Jan 07, 2016 - V1.2  Added Group support and light on/off in colours
 
 
 import curses, time, sys, math, datetime
 import json, os, socket, httplib
-import locale, serial
 
 from phue import Bridge
 from colorpy import colormodels
 from collections import namedtuple
-
-# This must be set to output unicode characters
-locale.setlocale(locale.LC_ALL, '')
-code = locale.getpreferredencoding()
-
 
 # Registering with your HUE Bridge from Python
 # 1) from phue import Bridge
@@ -49,8 +43,8 @@ code = locale.getpreferredencoding()
 IP_ADDRESS = None
 
 #================= End of user setable values ================================
-VERSION = '1.1'
-VERSION_DATE = 'Jan 05,2016'
+VERSION = '1.2'
+VERSION_DATE = 'Jan 07,2016'
 
 CURSOR_INVISIBLE = 0    # no cursor
 CURSOR_NORMAL = 1       # Underline cursor
@@ -107,10 +101,40 @@ class Hue():
     #stdscr.addstr(12,5,"Follow this link to easily authorize your computer with your web browser.")
     #stdscr.addstr(13,5,"http://www.developers.meethue.com/documentation/getting-started")
 
+    # not an exact reverse of rgb2xy
+    def xy2rgb(self, x, y, bri=1):
+        xyPoint = XYPoint(x, y)
+
+        # Calculate XYZ values Convert using the following formulas:
+        Y = bri
+        X = (Y / xyPoint.y) * xyPoint.x
+        Z = (Y / xyPoint.y) * (1 - xyPoint.x - xyPoint.y)
+
+        # Convert to RGB using Wide RGB D65 conversion.
+        r =  X * 1.612 - Y * 0.203 - Z * 0.302
+        g = -X * 0.509 + Y * 1.412 + Z * 0.066
+        b =  X * 0.026 - Y * 0.072 + Z * 0.962
+
+        # Apply reverse gamma correction.
+        r, g, b = map(
+            lambda x: (12.92 * x) if (x <= 0.0031308) else ((1.0 + 0.055) * pow(x, (1.0 / 2.4)) - 0.055),
+            [r, g, b]
+        )
+
+        # Bring all negative components to zero.
+        r, g, b = map(lambda x: max(0, x), [r, g, b])
+
+        # If one component is greater than 1, weight components by that value.
+        max_component = max(r, g, b)
+        if max_component > 1:
+            r, g, b = map(lambda x: x / max_component, [r, g, b])
+
+        r, g, b = map(lambda x: int(x * 255), [r, g, b])
+
+        return (r, g, b)
+
 
     def rgb2xy(self, red, green, blue):
-        """Returns an XYPoint object containing the closest available CIE 1931 coordinates
-        based on the RGB input values."""
     
         r = ((red + 0.055) / (1.0 + 0.055))**2.4 if (red > 0.04045) else (red / 12.92)
         g = ((green + 0.055) / (1.0 + 0.055))**2.4 if (green > 0.04045) else (green / 12.92)
@@ -180,20 +204,21 @@ class Hue():
         scn.refresh()
 
 
-    def request(self, mode='GET', data=None):
-        connection = httplib.HTTPConnection(address, timeout=10)
+    def request(self, scn, mode='GET', address=None, data=None):
+        connection = httplib.HTTPConnection(self.ip, timeout=10)
 
         try:
             if mode == 'GET' or mode == 'DELETE':
-                connection.request(mode, self.ip)
+                connection.request(mode, address)
             if mode == 'PUT' or mode == 'POST':
-                connection.request(mode, self.ip, data)
+                connection.request(mode, address, data)
 
         except socket.timeout:
             error = "{} Request to {} timed out.".format(mode, self.ip)
             raise PhueRequestTimeout(None, error)
 
         result = connection.getresponse()
+
         connection.close()
         result_str = result.read()
 
@@ -237,9 +262,7 @@ class Hue():
 # {u'lastscan': u'2015-12-31T21:18:52', u'5': {u'name': u'Hue white lamp 2'}}
 
     def add_new_bulb(self, scn, hub):
-        lights = self.request('POST', '/api/' + self.username + '/lights/')
-        time.sleep(70)
-        newlights = self.request('GET', '/api/' + self.username + '/lights/new')
+        lights = self.request(scn, 'POST', '/api/' + self.username + '/lights/')
         try:
             popup = curses.newwin(7, 40, 10, 20)
             popup.addstr(2, 5, "Searching for new lights...")
@@ -249,12 +272,15 @@ class Hue():
             popup.refresh()
         except:
             pass
+        
         t = 70
         while t:
             popup.addstr(2,34,"{0:<2}".format(t))
             popup.refresh()
             time.sleep(1)
             t -= 1 
+        newlights = self.request(scn,'GET', '/api/' + self.username + '/lights/new')
+        
         if len(newlights) > 1:
             popup.addstr(3,5, "Found new lights...", curses.A_BOLD)
             popup.addstr(4,5, "Press any key to continue...")
@@ -271,17 +297,47 @@ class Hue():
         scn.refresh()
         
     def adjust_colours(self, scn, hub):
-        if self.light == None:
-            self.popup_error(scn, "You haven't selected a light yet...")
+        if self.light == None and self.group == None:
+            self.popup_error(scn, "You haven't selected a light or group yet...")
             return
         value = [0,0,0,0,0,0,0,0,0]
         data = ('Hue             :', 'Saturation      :',' ',\
                 'Red             :', 'Green           :', 'Blue            :', ' ',\
                 'Temperature     :', 'Brightness      :')
-        popup = self.popup_dialog(scn, hub, data, 'Adjust HUE colours')
+        popup = self.popup_colour_dialog(scn, hub, data, 'Adjust HUE colours')
 
         idx = 0
         popup.addstr(idx+3,9,data[idx],curses.A_REVERSE)
+        popup.addstr(idx+3,36,'[  Light or Group  ]')
+        popup.addstr(idx+4,36,'[ 00 ] [ ON ][ OFF ]')
+        if self.light != None:
+            state = hub.get_light(self.light, 'on')
+
+            value[0] = hub.get_light(self.light, 'hue')
+            popup.addstr(3,28,str(value[0]))
+            value[1] = hub.get_light(self.light, 'sat')
+            popup.addstr(4,28,str(value[1]))
+
+            value[7] = hub.get_light(self.light, 'ct')
+            popup.addstr(10,28,str(value[7]))
+            value[8] = hub.get_light(self.light, 'bri')
+            popup.addstr(11,28,str(value[8]))
+
+            xy = hub.get_light(self.light, 'xy')
+            value[3],value[4],value[5] = self.xy2rgb(xy[0], xy[1], value[8])
+            popup.addstr(6,28,str(value[3]))
+            popup.addstr(7,28,str(value[4]))
+            popup.addstr(8,28,str(value[5]))
+
+        else:  # it's a group
+            state = hub.get_group(self.group, 'on')
+            popup.addstr(4,38,"{0:0>2}".format(self.group))
+
+        if state:
+            popup.addstr(4,45,'ON', curses.A_REVERSE)
+        else:
+            popup.addstr(4,51,'OFF', curses.A_REVERSE)
+        
         popup.addstr(6, 35,"-+")
         popup.addstr(7, 35," |--Hex value->")
         popup.addstr(8, 35,"-+")
@@ -317,7 +373,7 @@ class Hue():
                     high = 500
                 if value[idx] < high - 50:
                     value[idx] += 50
-                    popup.addstr(idx+3,30,str(value[idx]) + '  ')
+                    popup.addstr(idx+3,28,str(value[idx]) + '  ')
                     if i == 'R' or i == 'G' or i == 'B':
                         popup.addstr(7, 52, self.tohex(value[3],value[4],value[5]))
                     popup.refresh()
@@ -329,10 +385,26 @@ class Hue():
                     low = 153
                 if value[idx] > low + 50:
                     value[idx] -= 50
-                    popup.addstr(idx+3,30,str(value[idx]) + '  ')
+                    popup.addstr(idx+3,28,str(value[idx]) + '  ')
                     if i == 'R' or i == 'G' or i == 'B':
                         popup.addstr(7, 52, self.tohex(value[3],value[4],value[5]))
                     popup.refresh()
+
+            elif c == curses.KEY_LEFT:
+                if self.light != None:
+                    result = hub.set_light(self.light, 'on', True)
+                else:  # it's a group
+                    result = hub.set_group(self.group, 'on', True)
+                popup.addstr(4,45,'ON', curses.A_REVERSE)
+                popup.addstr(4,51,'OFF', curses.A_NORMAL)
+                
+            elif c == curses.KEY_RIGHT:
+                if self.light != None:
+                    result = hub.set_light(self.light, 'on', False)
+                else:  # it's a group
+                    result = hub.set_group(self.group, 'on', False)
+                popup.addstr(4,45,'ON', curses.A_NORMAL)
+                popup.addstr(4,51,'OFF', curses.A_REVERSE)
 
             elif curses.keyname(c) == '+':
                 i = data[idx][:1] 
@@ -344,7 +416,7 @@ class Hue():
                     high = 500
                 if value[idx] < high:
                     value[idx] += 1
-                    popup.addstr(idx+3,30,str(value[idx]) + '  ')
+                    popup.addstr(idx+3,28,str(value[idx]) + '  ')
                     if i == 'R' or i == 'G' or i == 'B':
                         popup.addstr(7, 52, self.tohex(value[3],value[4],value[5]))
                     popup.refresh()
@@ -356,7 +428,7 @@ class Hue():
                     low = 153
                 if value[idx] > low:
                     value[idx] -= 1
-                    popup.addstr(idx+3,30,str(value[idx]) + '  ')
+                    popup.addstr(idx+3,28,str(value[idx]) + '  ')
                     if i == 'R' or i == 'G' or i == 'B':
                         popup.addstr(7, 52, self.tohex(value[3],value[4],value[5]))
                     popup.refresh()
@@ -374,8 +446,14 @@ class Hue():
                     xy = self.rgb2xy(value[3], value[4], value[5])
                     cmd =  {'transitiontime' : 0, 'on' : True, 'xy' : xy}
                     
-                result = hub.set_light(self.light, cmd)
+                if self.light:
+                    result = hub.set_light(self.light, cmd)
+                elif self.group:
+                    result = hub.set_group(self.group, cmd)
+                popup.addstr(4,45,'ON', curses.A_REVERSE)
+                popup.addstr(4,51,'OFF', curses.A_NORMAL)
 
+                    
             elif curses.keyname(c) in "0123456789":
                 i = data[idx][:1]
                 if i == 'H':
@@ -389,13 +467,16 @@ class Hue():
                 if i == 'T' and value[idx] < 153:
                     value[idx] = 153
                     
-                popup.addstr(idx+3,30,str(value[idx]) + '   ')
+                popup.addstr(idx+3,28,str(value[idx]) + '   ')
                 if i == 'R' or i == 'G' or i == 'B':
                     popup.addstr(7, 52, self.tohex(value[3],value[4],value[5]))
                 popup.refresh()
 
             elif curses.keyname(c) == 'q' or curses.keyname(c) == 'Q':
-                hub.set_light(self.light, 'on', False)
+                if self.light:
+                    hub.set_light(self.light, 'on', False)
+                elif self.group:
+                    hub.set_group(self.group, 'on', False)
                 break
         self.popup_destroy(scn, popup)
                 
@@ -420,17 +501,159 @@ class Hue():
         self.showdata(scn, data)
         curses.curs_set(CURSOR_NORMAL)
 
-    def select_light(self, scn, hub):
+#>>> b.get_group()
+#{}
+#>>> b.create_group('Sofa',[1,2])
+#[{u'success': {u'id': u'1'}}]
+
+#>>> b.get_group()
+#{u'1': {u'action': {u'on': False, u'hue': 14910, u'colormode': u'ct', u'effect': u'none', u'alert': u'none', 
+#u'xy': [0.4596, 0.4105], u'bri': 1, u'ct': 370, u'sat': 144}, u'lights': [u'1', u'2'], u'type': u'LightGroup', 
+#u'name': u'Sofa'}}
+
+#>>> b.get_group(1)
+#{u'action': {u'on': False, u'hue': 14910, u'colormode': u'ct', u'effect': u'none', u'alert': u'none', u'xy': [0.4596, 0.4105], u'bri': 1, u'ct': 370, u'sat': 144}, u'lights': [u'1', u'2'], u'type': u'LightGroup', u'name': u'Sofa'}
+#c['1']['lights']
+
+    def list_groups(self, scn, hub):
+        curses.curs_set(CURSOR_INVISIBLE)
+
+        data = []
+        lights = []
+        data.append("{0:<4}{1:<25}{2}\n".format('ID', 'Name', 'Lights'))
+        data.append("{0:=<78}".format('='))
+        groups = hub.get_group()
+        
+        for g in groups:
+            for l in groups[g]['lights']:   #dump unicode chars
+                lights.append(int(l))
+            data.append("{0:<4}{1:<25}{2}\n".format(g, groups[g]['name'], lights))
+            lights = []
+            
+        data.append("\nPress 'q' to quit, arrow keys are active...")    
+        
+        self.showdata(scn, data)
+        curses.curs_set(CURSOR_NORMAL)
+
+    def create_group(self, scn, hub):
+        title = 'Create new group'
+        value = [0,0,0,0,0,0,0,0,0]
+        data = ('Name of new group                :',\
+                'Lights to add coma seperated     :')
+
+        try:
+            popup = curses.newwin(10, 78, 4, 2)            
+            for i in range(len(data)):
+                popup.addstr(i+3, 2, data[i])
+                popup.addstr(7, 2, "Arrow Up/Down to select.")
+                popup.addstr(8, 2, "Press 'w' to write to HUE,  'q' to exit.")
+            popup.border('|','|','-','-','+','+','+','+')
+            popup.addstr(0,7,'[ ')
+            popup.addstr(0,9,title,curses.A_BOLD)
+            popup.addstr(' ]')
+            popup.nodelay(0)
+            popup.keypad(1)
+            curses.curs_set(0)
+            popup.refresh()
+        except:
+            return
+
+        name = ''
+        lights = ''
+        idx = 0
+        popup.addstr(idx+3,2,data[idx],curses.A_REVERSE)
+        popup.addstr(3,38, "Hit <Enter> to edit")
+        popup.refresh()
+        while True:
+            c = popup.getch()
+
+            if c == curses.KEY_DOWN:
+                if idx + 1 < len(data):
+                    popup.addstr(idx+3,2,data[idx],curses.A_NORMAL)
+                    idx += 1
+                    popup.addstr(idx+3,2,data[idx],curses.A_REVERSE)
+                    popup.refresh()
+            elif c == curses.KEY_UP:
+                if idx -1 >= 0:
+                    popup.addstr(idx+3,2,data[idx],curses.A_NORMAL)
+                    idx -= 1
+                    popup.addstr(idx+3,2,data[idx],curses.A_REVERSE)
+                    popup.refresh()
+
+            elif curses.keyname(c) == '^M':
+                if idx == 0:
+                    popup.addstr(3,38,"                           ")
+                    popup.refresh()
+                    curses.curs_set(CURSOR_NORMAL)
+                    curses.echo()
+                    name = popup.getstr(3,38)
+                    popup.addstr(idx+3,2,data[idx],curses.A_NORMAL)
+                    idx += 1
+                    popup.addstr(idx+3,2,data[idx],curses.A_REVERSE)
+                    popup.refresh()
+                    lights = popup.getstr(4,38)
+                    curses.curs_set(CURSOR_INVISIBLE)
+                    curses.noecho()
+                    curses.flushinp()
+                    popup.addstr(idx+3,2,data[idx],curses.A_NORMAL)
+                    idx -= 1
+                    popup.addstr(idx+3,2,data[idx],curses.A_REVERSE)
+                    popup.refresh()
+
+                else:
+                    popup.addstr(4,38,"                           ")
+                    popup.refresh()
+                    curses.curs_set(CURSOR_NORMAL)
+                    curses.echo()
+                    lights = popup.getstr(4,38)
+                    curses.curs_set(CURSOR_INVISIBLE)
+                
+            elif curses.keyname(c) == 'w' or curses.keyname(c) == 'W':
+                if name == '' or lights == '':
+                    break
+                else:
+                    llist = []
+                    for l in lights.split(','):
+                        llist.append(int(l))
+                    result = hub.create_group(name, llist)
+
+                    if result[0].has_key('success'):
+                        return
+                    else:
+                        self.popup_error(scn, "     Could not create group     ")
+                        return
+                        
+            elif curses.keyname(c) == 'q' or curses.keyname(c) == 'Q':
+                break
+        self.popup_destroy(scn, popup)
+
+    def delete_group(self, scn, hub):
+        if hub != False:
+            line = self.select_light_or_group(scn, hub, 'G')
+            if line != None:
+                group = int(line[0:2])
+                if group == self.group:
+                    self.group = None
+                else:
+                    hub.delete_group(group)
+
+    def select_light_or_group(self, scn, hub, LorG):
         blank = "                                                                          "
         cl = []
         bridge_config = hub.get_api()
-        lights = bridge_config['lights']
-
-        for l in lights:
-            cl.append("{0:<4}{1:<9}{2:<19}{3:<23}{4}".format(l, lights[l]['modelid'], lights[l]['name'], \
+        if LorG == 'L':
+            title = 'Light Bulb Selection'
+            lights = bridge_config['lights']
+            for l in lights:
+                cl.append("{0:<4}{1:<9}{2:<19}{3:<23}{4}".format(l, lights[l]['modelid'], lights[l]['name'], \
                                                          lights[l]['type'], lights[l]['manufacturername']))
-
-        #TERM = curses.termname()
+        elif LorG == 'G':
+            title = 'Group Selection'
+            lights = bridge_config['groups']
+            for l in lights:
+                cl.append("{0:<4}{1:<25}{2}".format(l, lights[l]['name'], lights[l]['lights']))
+        else:
+            return
         
         try:
             popup = curses.newwin(20, 78, 1, 2)
@@ -443,7 +666,9 @@ class Hue():
                     break
             popup.addstr(18, 2, "<Enter> to select, 'q' quits")
             popup.border('|','|','-','-','+','+','+','+')
-            popup.addstr(0,7,'[Light Bulb Selection]')
+            popup.addstr(0,7,'[ ')
+            popup.addstr(0,9,title,curses.A_BOLD)
+            popup.addstr(' ]')
             popup.nodelay(0)
             popup.keypad(1)
             popup.scrollok(1)
@@ -549,18 +774,19 @@ class Hue():
         scn.refresh()
         return curses.keyname(c)
 
-    def popup_dialog(self, scn, hub, cl, title):
-        TERM = curses.termname()
+    def popup_colour_dialog(self, scn, hub, cl, title):
         try:
             popup = curses.newwin(20, 64, 4, 8)            
             for i in range(len(cl)):
                 popup.addstr(i+3, 9, cl[i])
-                popup.addstr(14, 2, "Arrow Up/Down to select.")
+                popup.addstr(14, 2, "Arrow Up/Down to select. Left/Right to turn on/off.")
                 popup.addstr(15, 2, "Page Up/Page Down or + and - to change values.")
                 popup.addstr(16, 2, "0 to 9 jump to itermediate values - great for hue.")
                 popup.addstr(17, 2, "Press 'w' to write to HUE,  'q' to exit.")
             popup.border('|','|','-','-','+','+','+','+')
-            popup.addstr(0,7,'[' + title + ']')
+            popup.addstr(0,7,'[ ')
+            popup.addstr(0,9,title,curses.A_BOLD)
+            popup.addstr(' ]')
             popup.nodelay(0)
             popup.keypad(1)
             curses.curs_set(0)
@@ -580,49 +806,58 @@ class Hue():
 
         
     def popup_menu(self, scn):
-        cmds = 'aAgGnNcClLqQsS'
+        cmds = 'aAdDgGnNcClLoOqQrRsS'
         c = 0
         text = """
-                    Huecmdr Command Summary
-        
+                    
                   
-    Authenticate system with Bridge..........A   
-    Select light to use......................S
-    Add new bulb to Bridge...................N
-    Adjust colours...........................C
-    List bulbs connected to Bridge...........L
-    List groups configured in Bridge.........G
-    Exit Huecmdr.............................Q
+    Authenticate system with Bridge....................A 
+    Select light to use................................S 
+    Select group to use................................O 
+    Add new bulb to Bridge.............................N
+    Adjust colours | toggle light on/off...............C
+    List bulbs connected to Bridge.....................L
+    List groups configured in Bridge...................G
+    Create new group...................................R
+    Delete group.......................................D
+    Exit Huecmdr.......................................Q
         
-
     Press command key, can be upper or lower case. [   ]
 
     Currently Selected:  Light [      ] - Group [      ]
+    Bridge IP Address :  
         """
 
         try:
-            popup = curses.newwin(19, 64, 2, 6)
+            popup = curses.newwin(21, 64, 2, 6)
             popup.addstr(1, 1, text)
             popup.border('|','|','-','-','+','+','+','+')
-            
-            if self.light == None:
-                popup.addstr(16,33,str(self.light))
-            else:
-                popup.addstr(16,34,"{0:0>2}".format(self.light))
-            
-            if self.group == None:
-                popup.addstr(16,50,str(self.group))
-            else:
-                popup.addstr(16,51,"{0:0>2}".format(self.group))
-
+            popup.addstr(0,7,'[ ')
+            popup.addstr(0,9,"Huecmdr Command Summary",curses.A_BOLD)
+            popup.addstr(' ]')
             popup.nodelay(0)
             curses.curs_set(CURSOR_INVISIBLE)
             popup.refresh()
         except:
             pass
+
+        if self.light == None:
+            popup.addstr(17,33,str(self.light))
+        else:
+            popup.addstr(17,34,"{0:0>2}".format(self.light))
+        
+        if self.group == None:
+            popup.addstr(17,50,str(self.group))
+        else:
+            popup.addstr(17,51,"{0:0>2}".format(self.group))
+
+        popup.addstr(18,25,"[ {0} ]".format(self.ip))
+        popup.move(15,53)
+        popup.refresh()
+
         while curses.keyname(c) not in cmds:
             c = popup.getch()
-            popup.addstr(14,53, curses.keyname(c))
+            popup.addstr(15,53, curses.keyname(c))
             popup.refresh()
             time.sleep(.2)
             popup.addstr(14,53, '  ')
@@ -691,9 +926,16 @@ class Hue():
                 self.authenticate(scn)
             elif c == 's' or c == 'S':
                 if hub != False:
-                    line = self.select_light(scn, hub)
+                    line = self.select_light_or_group(scn, hub, 'L')
                     if line != None:
                         self.light = int(line[0:2])
+                        self.group = None
+            elif c == 'o' or c == 'O':
+                if hub != False:
+                    line = self.select_light_or_group(scn, hub, 'G')
+                    if line != None:
+                        self.group = int(line[0:2])
+                        self.light = None
             elif c == 'n' or c == 'N':
                 if hub != False:
                     self.add_new_bulb(scn, hub)
@@ -703,6 +945,17 @@ class Hue():
             elif c == 'l' or c == 'L':
                 if hub != False:
                     self.list_bulbs(scn, hub)
+            elif c == 'g' or c == 'G':
+                if hub != False:
+                    self.list_groups(scn, hub)
+            elif c == 'r' or c == 'R':
+                if hub != False:
+                    self.create_group(scn, hub)
+            elif c == 'd' or c == 'D':
+                if hub != False:
+                    self.delete_group(scn, hub)
+
+
                 
 if __name__ == "__main__":
     hue = Hue()
