@@ -42,7 +42,8 @@ License:
 
 Versions and changes:
     Initial version created on Nov 29, 2015
-    2015/11/29 - 1.0 - Initial version
+    Nov 29, 2015 - 1.0 - Initial version
+    Jan 06, 2016 - 1.1 - Added support for groups
     
 """
 import threading
@@ -57,7 +58,7 @@ from .ha_interface import HAInterface
 
 
 class PhillipsHue(HAInterface):
-    VERSION = '1.0'
+    VERSION = '1.1'
     valid_commands = ('bri','hue','sat','ct','rgb','tr','eft')        
     
     def __init__(self, *args, **kwargs):
@@ -121,16 +122,35 @@ class PhillipsHue(HAInterface):
                  
     def on(self, address):
         # TODO Check the type of bulb and then command accordingly
-
+        
         # an 'on' command always sets level to 100% and colour to white
         cmd =  {'transitiontime' : 0, 'on' : True, 'bri' : 255, 'ct' : 370}
-        result = self.interface.set_light(address, cmd)                        
+        
+        if address[:1] == 'L':
+            result = self.interface.set_light(int(address[1:]), cmd)
+        elif address[:1] == 'G':
+            result = self.interface.set_group(int(address[1:]), cmd)            
+        else:
+            self._logger.error("{name} not a valid HUE address {addr}".format(
+                                                                                name=self.name,
+                                                                                addr=address,
+                                                                                ))
+            return
         # TODO parse result 
 
 
     def off(self, address):
         cmd =  {'transitiontime' : 0, 'on' : False}
-        result = self.interface.set_light(address, cmd)                        
+        if address[:1] == 'L':
+            result = self.interface.set_light(int(address[1:]), cmd)
+        elif address[:1] == 'G':
+            result = self.interface.set_group(int(address[1:]), cmd)            
+        else:
+            self._logger.error("{name} not a valid HUE address {addr}".format(
+                                                                                    name=self.name,
+                                                                                    addr=address,
+                                                                                     ))
+            return
 
         
     # Level for the HUE is capable of setting the following:
@@ -140,10 +160,10 @@ class PhillipsHue(HAInterface):
     #   hue and sat: level = ('hue':int', 'sat:int') - int is from 0 to 65535
     #   ct         : level = ('ct':int') - int is from 153 to 500
     #   rgb        : level = ('rgb':hex) - hex is from 000000 to ffffff
-    #   transition : level = ('tr':int') int is from 0 to 3000 in milliseconds
+    #   transition : level = ('tr':int') int is from 0 to 3000 in 1/10 seconds
     #   effect     : level = ('eft':colorloop|none') put bulb in colour loop
     # Not all RGB colours will produce a colour in the HUE lamps.
-    # ct values are translated kelvin temperature values fro 2000K to 6500K
+    # ct values are translated kelvin temperature values from 2000K to 6500K
     # 2000K maps to 500 and 6500K maps to 153
     # If the lamp is already on don't send an on command
     
@@ -157,7 +177,17 @@ class PhillipsHue(HAInterface):
                     i = 'bri:{0}'.format(i)
                 cmd = dict(self._build_hue_command(i).items() + cmd.items())
             #print cmd    
-            result = self.interface.set_light(address, cmd)
+            if address[:1] == 'L':
+                result = self.interface.set_light(int(address[1:]), cmd)
+            elif address[:1] == 'G':
+                result = self.interface.set_group(int(address[1:]), cmd)            
+            else:
+                self._logger.error("{name} not a valid HUE address {addr}".format(
+                                                                                    name=self.name,
+                                                                                    addr=address,
+                                                                                     ))
+                return
+
         else:
             if isinstance(level, int):    #classic pytomation brightness
                 level = 'bri:{0}'.format(level)
@@ -169,7 +199,16 @@ class PhillipsHue(HAInterface):
                                                                                      ))
                 return
             cmd = self._build_hue_command(level)
-            result = self.interface.set_light(address, cmd)
+            if address[:1] == 'L':
+                result = self.interface.set_light(int(address[1:]), cmd)
+            elif address[:1] == 'G':
+                result = self.interface.set_group(int(address[1:]), cmd)            
+            else:
+                self._logger.error("{name} not a valid HUE address {addr}".format(
+                                                                                    name=self.name,
+                                                                                    addr=address,
+                                                                                     ))
+                return
         
     def hue(self, address):
         pass
