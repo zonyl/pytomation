@@ -44,6 +44,7 @@ Versions and changes:
     Initial version created on Nov 29, 2015
     Nov 29, 2015 - 1.0 - Initial version
     Jan 06, 2016 - 1.1 - Added support for groups
+    Jan 09, 2016 - 1.2 - Added update_status command
     
 """
 import threading
@@ -58,7 +59,7 @@ from .ha_interface import HAInterface
 
 
 class PhillipsHue(HAInterface):
-    VERSION = '1.1'
+    VERSION = '1.2'
     valid_commands = ('bri','hue','sat','ct','rgb','tr','eft')        
     
     def __init__(self, *args, **kwargs):
@@ -111,7 +112,8 @@ class PhillipsHue(HAInterface):
                             #contact = Command.ON
                         else:
                             contact = Command.OFF
-                    self._onCommand(address=l,command=contact)
+                        self._logger.debug('Light L{0} status -> {1}'.format(l, contact))
+                        self._onCommand(address="L{0}".format(l),command=contact)
             except Exception, ex:
                 self._logger.error('Could not process data from bridge: '+ str(ex))
 
@@ -281,6 +283,19 @@ class PhillipsHue(HAInterface):
                     return {'on' : True, 'effect' : hueval}
                 else:
                     return None
+
+    def update_status(self):
+        lights = self.interface.get_light_objects('id')
+        for d in self._devices:
+            print "Getting status for HUE -> ", d.address
+            if lights[int(d.address[1:])].on == True:
+                bri = int(round(int(lights[int(d.address[1:])].brightness) / 255.0 * 100))                        
+                contact = (Command.LEVEL, bri)
+            else:
+                contact = Command.OFF
+            self._logger.debug('Light L{0} status -> {1}'.format(d.address, contact))
+            self._onCommand(address="{0}".format(d.address),command=contact)
+
 
     def _check_range(self, cmd, val, minv, maxv):
         if val > maxv or val < minv:
