@@ -815,7 +815,6 @@ class StateDevice(PytomationObject):
                 result = conditions.get((command[0], source), None)
         return result
                     
-    
     def _match_condition_item(self, item):
         if not item:
             return None
@@ -824,14 +823,9 @@ class StateDevice(PytomationObject):
         if start:
             end = item.get(Attribute.END, None)
             if end:
-                now = datetime.now().timetuple()[3:6]
-                now_cron = CronTimer.to_cron("{h}:{m}:{s}".format(
-                                                                  h=now[0],
-                                                                  m=now[1],
-                                                                  s=now[2],
-                                                                  ))
-                result = crontime_in_range(now_cron, start, end)
-                self._logger.debug("Compare Time Range:("+ str(result) +")->" + str(now_cron) +"-" + str(start) + "-"+ str(end))
+                now = datetime.now()
+                result = crontime_in_range(now, start, end)
+                self._logger.debug("Compare times: Now -> {0}  -  Start-> {1}  -  End {2}".format(now,start,end))
                 return result 
         return item
 
