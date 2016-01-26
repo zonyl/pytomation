@@ -45,6 +45,7 @@ Versions and changes:
     Nov 29, 2015 - 1.0 - Initial version
     Jan 06, 2016 - 1.1 - Added support for groups
     Jan 09, 2016 - 1.2 - Added update_status command
+    Jan 25, 2016 - 1.3 - Updated status check so it won't trigger unless required
     
 """
 import threading
@@ -59,7 +60,7 @@ from .ha_interface import HAInterface
 
 
 class PhillipsHue(HAInterface):
-    VERSION = '1.2'
+    VERSION = '1.3'
     valid_commands = ('bri','hue','sat','ct','rgb','tr','eft')        
     
     def __init__(self, *args, **kwargs):
@@ -103,17 +104,21 @@ class PhillipsHue(HAInterface):
                 # get dictionary of lights
                 lights = self.interface.get_light_objects('id')
                 #print lights
-                if self.last_status != {} or self.last_status != lights:
-                    self.last_status = lights
-                    for l in lights.keys():
-                        if lights[l].on == True:
+                for d in self._devices:
+                    #print d.address,d.state,lights[int(d.address[1:])].on
+                    if d.state == 'off' and lights[int(d.address[1:])].on == True:
+                        time.sleep(.01)     #wait 10ms to see if state will change
+                        if d.state == 'off' and lights[int(d.address[1:])].on == True:
+                            contact = Command.OFF
+                            self._logger.debug('Light {0} status -> {1}'.format(d.address, contact))
+                            self._onCommand(address="{0}".format(d.address),command=contact)
+                    elif d.state == 'on' and lights[int(d.address[1:])].on == False:
+                        time.sleep(.01)     #wait 10ms to see if state will change
+                        if d.state == 'on' and lights[int(d.address[1:])].on == False:
                             bri = int(round(int(lights[l].brightness) / 255.0 * 100))                        
                             contact = (Command.LEVEL, bri)
-                            #contact = Command.ON
-                        else:
-                            contact = Command.OFF
-                        self._logger.debug('Light L{0} status -> {1}'.format(l, contact))
-                        self._onCommand(address="L{0}".format(l),command=contact)
+                            self._logger.debug('Light {0} status -> {1}'.format(d.address, contact))
+                            self._onCommand(address="{0}".format(d.address),command=contact)    
             except Exception, ex:
                 self._logger.error('Could not process data from bridge: '+ str(ex))
 
