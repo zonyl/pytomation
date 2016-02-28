@@ -4,7 +4,12 @@
 This repository is out of date all development now takes place at:
 https://github.com/king-dopey/pytomation
 
-
+.
+.
+.
+.
+.
+.
 
 Pytomation is an extensible device communication and automation system written in Python. It's uses 
 include home automation and lighting control but is certainly not limited to 
