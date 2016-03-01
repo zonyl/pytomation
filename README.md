@@ -82,7 +82,7 @@ Optional Packages:
 
 Additional packages are required for development and testing. See `requirements.txt` for a more complete list.
 
-Debian packages are available for pySerial, pytz, pythone-gevent, and python-openssl. They can be installed with : 
+Debian packages are available for pySerial, pytz, python-gevent, and python-openssl. They can be installed with : 
 
     sudo apt-get install git python-dev python-serial python-tz python-gevent python-openssl
 
@@ -110,40 +110,15 @@ The gevent-websocket server is pretty fast, but can be accelerated further by in
 
 Build openzwave and python-openzwave
 ====================================
-Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. The instructions below list how to build from the development repositories. There is also prepared source avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz, but that didn't work for me.
+Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. It's highly recommend you use the archived source code. Version 3.0+ no longer requires Cython, which was the source of most of the build/seg fault issues with python-openzwave. 3.0beta2 has been tested to work on both a 64bit Ubuntu 14.04 system and a Raspberry PI. Instructions are at https://github.com/OpenZWave/python-openzwave/blob/master/INSTALL_ARCH.txt.
 
-The following was extracted and adapted from the python-openzwave INSTALL_MAN.txt:
+The config for OpenZwave will be located in the extracted archive, at openzwave/config. I recommend copying the config to your system /etc:
 
-    sudo apt-get install mercurial subversion python-pip python-dev python-setuptools python-louie python-sphinx make build-essential libudev-dev g++
-    sudo pip install cython==0.14
-    sudo pip install sphinxcontrib-blockdiag sphinxcontrib-actdiag
-    sudo pip install sphinxcontrib-nwdiag sphinxcontrib-seqdiag
+    sudo cp -R openzwave/config /etc/openzwave
+    sudo chown -R pyto:root /etc/openzwave
+    sudo chmod 660 /etc/openzwave/options.xml
 
-    hg clone https://code.google.com/p/python-openzwave/
-    cd python-openzwave
-    svn checkout http://open-zwave.googlecode.com/svn/trunk/ openzwave
-
-#### Method 1 (Install Everything via Scripts)
-
-    ./compile.sh
-    sudo ./install.sh
-
-#### Method 2 (Install Manually)
-If you installed everthing, stop here. Otherwise, go to the openzwave directory and build it:
-
-    cd openzwave/cpp/build
-    make
-    cd ../../..
-
-Build python-openzwave:
-
-    python setup-lib.py build
-    python setup-api.py build
-
-And install them:
-
-    sudo python setup-lib.py install
-    sudo python setup-api.py install
+Also note that if you have any security devices in your Zwave network, you will need to set the NetworkKey option in options.xml. That network key is why it's recommend to change the file permissions on options.xml, so only root and the pyto user can read it. 
 
 #### Permissions
 Like with all other interfaces. Make sure the pyto user account owns or otherwise has permissions to use the device. You may want to give your own usr account access as well.
@@ -157,7 +132,7 @@ or
     sudo chmod 770 /dev/yourzwavestick
     
 #### Make Permissions Permanent 
-Add the following either `/etc/udev/rules.d` or `/lib/udev/rules.d` (Simmilar procedure can be used for other serial interfaces. `lsusb -v` can grab the neccessary ATTRS info.)
+Add the following either `/etc/udev/rules.d` or `/lib/udev/rules.d` (Similar procedure can be used for other serial interfaces. `lsusb -v` can grab the necessary ATTRS info.)
 
     SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ATTRS{serial}=="0001", SYMLINK+="zwave", GROUP="pyto", OWNER="pyto"
 
@@ -176,7 +151,7 @@ The install.sh command does the following:
  
   - Confirms where you are installing Pytomation to.
   - Makes a "pyto" user and creates the home directory.
-  - Copies all the necessary files into Pytomations HOME.
+  - Copies all the necessary files into Pytomation's HOME.
   - Creates an /etc/init.d/pytomation init script for starting Pytomation on boot.
   - Configures pytomation to start automatically at boot time
 

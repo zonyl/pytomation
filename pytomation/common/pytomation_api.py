@@ -9,7 +9,8 @@ class PytomationAPI(PytomationObject):
     """
     Provides a REST WebAPI for Pytomation.
     """
-    VERSION = '3.0'
+    # only change major version when breaking existing functionality
+    VERSION = '3.1' 
     JSON = 'json'
     WEBSOCKET = 'websocket'
 
@@ -18,9 +19,13 @@ class PytomationAPI(PytomationObject):
                    ('get', 'devices'): PytomationAPI.get_devices,
                    ('get', 'device'): PytomationAPI.get_device,
                    ('post', 'device'): self.update_device,
+                   ('get', 'devicename'): PytomationAPI.get_deviceByName,
+                   ('post', 'devicename'): self.update_deviceByName,
                    ('post', 'voice'): self.run_voice_command
         }
-        
+    
+    
+    
     def run_voice_command(self, levels, data, source):
         for command in data:
             command =  command.lower()
@@ -146,6 +151,18 @@ class PytomationAPI(PytomationObject):
         detail.update({'id': id})
         del detail['instance']
         return detail
+    
+    @staticmethod
+    def get_deviceByName(levels, *args, **kwargs):
+        """
+        Returns one device's status by name in JSON.
+        """
+        levels[1] = PytomationAPI.name_to_id_map[urllib.unquote(levels[1])]
+        return PytomationAPI.get_device(levels, *args, **kwargs)
+
+    def update_deviceByName(self, levels, data=None, source=None, *args, **kwargs):
+        levels[1] = PytomationAPI.name_to_id_map[urllib.unquote(levels[1].lower())]
+        return self.update_device(levels, data=data, source=source, *args, **kwargs)
     
     def update_device(self, levels, data=None, source=None, *args, **kwargs):
         """

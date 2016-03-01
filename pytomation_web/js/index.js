@@ -11,6 +11,8 @@ var auth;
 var onServer = false;
 var resizeTimer;
 var ws;
+var wsAttempts = 0;
+var wsRetrying = false;
 var upgradeConnection;
 var style = "compact";
 var changingStyle = false;
@@ -20,6 +22,9 @@ var isMobile;
 //document.addEventListener("deviceready", init, false);
 
 function init() {
+    //Prevents sending toggle command when opening command popup
+    $.event.special.tap.emitTapOnTaphold = false;
+    
     //set isMobile
     if (isCordovaApp)
         isMobile = true;
@@ -39,11 +44,7 @@ function init() {
     }); //resizeTimer
     
     // Voice Command pulldown
-    if(window.isAndroid && isCordovaApp){
-        $(".iscroll-wrapper", $('#main')).bind( {
-            iscroll_onpulldown : doVoice
-        } );
-    } else if (window.chrome && !isMobile) {
+    if((window.isAndroid && isCordovaApp) || (window.chrome && !isMobile)) {
         $(".iscroll-wrapper", $('#main')).bind( {
             iscroll_onpulldown : doVoice
         } );
@@ -206,6 +207,7 @@ function get_device_data_callback(data) {
 
 function setup_ws_connection() {
     try {
+        wsAttempts += 1;
         if (ws){
             try {
                 ws.close();
@@ -251,18 +253,27 @@ function setup_ws_connection() {
         };
         ws.onerror = function(e) {
             upgradeConnection = false;
-            alert("upgrade Failed");
+            wsRetrying = true;
+            if (wsAttempts === 0) setup_ws_connection();
+            else if (wsAttempts < 20) setTimeout(setup_ws_connection,3000);
+            else if (wsAttempts < 60) setTimeout(setup_ws_connection,10000);
+            else setTimeout(setup_ws_connection,60000);
         };
         ws.onopen = function(e) {
             upgradeConnection = true;
+            wsAttempts = 0;
+            if (wsRetrying) {
+                wsRetrying = false;
+                ws.send(JSON.stringify({
+                    path: "devices"
+                }));
+            }
         };
     }
     catch(e){
         //can't do web sockets
         upgradeConnection = false;
-        alert("upgrade Failed");
     }
-    
 }
 
 function check_ws_connection(){
@@ -499,8 +510,8 @@ function reload_device_grid() {
     $(".ui-slider").mouseup(send_level);
     $(".ui-slider").touchend(send_level);
     $('.thermostatMode').bind("change", changeMode);
-    if (style === "compact" && isMobile) 
-        $(".toggle").bind("taphold", commandsPopup);
+    if (style === "compact" && isMobile){
+        $(".toggle").bind("taphold", commandsPopup);}
     else
         $(".toggle").contextmenu(function(e) {
             e.preventDefault();
@@ -727,7 +738,7 @@ function decrementSetpoint(eventObject){
     deviceID = $(this).attr('deviceId');
     var setpoint = 0;
     $.each(deviceData[deviceID]['state'], function(stateIndex, statePart) {
-        if (statePart[0] === 'setpoint') {setpoint = statePart[1] - 1;}
+        if (statePart[0] === 'setpoint') {setpoint = --statePart[1];}
     }); //each
     send_command(deviceID,'setpoint,' + setpoint);
 }
@@ -736,16 +747,16 @@ function incrementSetpoint(eventObject){
     deviceID = $(this).attr('deviceId');
     var setpoint = 0;
     $.each(deviceData[deviceID]['state'], function(stateIndex, statePart) {
-        if (statePart[0] === 'setpoint') {setpoint = statePart[1] + 1;}
+        if (statePart[0] === 'setpoint') {setpoint = ++statePart[1];}
     }); //each
     send_command(deviceID,'setpoint,' + setpoint);
 }
 
 function commandsPopup(deviceID) {
     var myDeviceID;
-    if (typeof deviceID !== 'undefined')
+     if (typeof deviceID !== 'object')
         myDeviceID = deviceID;
-    else
+    else 
         myDeviceID = $(this).attr('deviceId');
     $("#tableCommands").find("tr").remove();
     $("#tableCommands").append(build_command_list(myDeviceID, "full")).trigger('create');

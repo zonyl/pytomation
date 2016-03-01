@@ -14,7 +14,10 @@ from .mochad import *
 from .mh_send import *
 from .hw_thermostat import *
 from .venstar_colortouch import *
-from .websocket_server import *
+try:
+    from .websocket_server import *
+except:
+    print 'unable to load websocket server'
 try:
     from .wemo import *
 except:
@@ -40,10 +43,19 @@ try:
 except:
     print "Could not import RPI library"
 try:    
-    from .honeywell_thermostat import *
+    #from .honeywell_thermostat import *
+    from .honeywelltcc import *
 except:
     print "Could not load Honeywell Thermostat library"
 try:
     from .open_zwave import *
 except:
     print "Could not load Open Zwave library"
+try:
+    from .arp import *
+except:
+    print "Could not load Arp scanning library"
+try:
+    from .foscam_interface import *
+except:
+    print "Could not load foscam interface library"

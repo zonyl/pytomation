@@ -30,9 +30,16 @@ htmlcov
 
 #Mr Developer
 .mr.developer.cfg
+<<<<<<< HEAD
+/instances/*
+/ssl/*
+.idea/*
+.bash_history
+=======
 /instances/*.py
 
 /ssl/*
 .idea/*
 .bash_history
 
+>>>>>>> af60a2e0b0788736fc91c3712de8edbc5bc0c6c2

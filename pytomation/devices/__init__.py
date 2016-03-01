@@ -10,6 +10,7 @@ from .scene import *
 from .attributes import *
 from .room import *
 from .thermostat import *
+from .lock import *
 try:
     from .xmpp_client import *
 except:
@@ -19,5 +20,11 @@ try:
     from .google_voice import *
 except:
     print "Could not import Google Voice"
-
-
+try:
+    from .kodi import *
+except:
+    print "Could not import Kodi/XBMC"
+try:
+    from .pushbullet import *
+except:
+    print "Missing python-requests"

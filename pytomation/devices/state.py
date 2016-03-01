@@ -18,7 +18,7 @@ class State(object):
     MOTION = 'motion'
     STILL = 'still'
     OPEN = 'open'
-    CLOSED = "close"
+    CLOSED = "closed"
     LIGHT = "light"
     DARK = "dark"
     ACTIVE = 'active'
@@ -30,13 +30,18 @@ class State(object):
     CIRCULATE = 'circulate'
     AUTOMATIC = 'automatic'
     HOLD = 'hold'
+    LOCKED = 'locked'
+    UNLOCKED = 'unlocked'
 
 class CommandStateMap(object):
     state_to_command = {
         State.ACTIVE: Command.ACTIVATE,
         State.INACTIVE: Command.DEACTIVATE,
         State.OCCUPIED: Command.OCCUPY,
-        State.VACANT: Command.VACATE
+        State.VACANT: Command.VACATE,
+        State.LOCKED: Command.LOCK,
+        State.UNLOCKED: Command.UNLOCK,
+        State.CLOSED: Command.CLOSE
     }
 
     command_to_state = {v: k for k, v in state_to_command.items()}
@@ -127,11 +132,11 @@ class StateDevice(PytomationObject):
     
     def _set_state(self, value, *args, **kwargs):
         source = kwargs.get('source', None)
-        if value != self._state:
-            self._previous_state = self._state
-            self._delegate_state_change(value, prev=self._state, source=source)
+        self._previous_state = self._state
         self._last_set = datetime.now()
-        self._state = value
+        if value != self._state:
+            self._state = value
+            self._delegate_state_change(value, prev=self._state, source=source)
         return self._state
     
     def __getattr__(self, name):
@@ -274,8 +279,14 @@ class StateDevice(PytomationObject):
     def toggle_state(self):
         if self.state == State.ON:
             state = State.OFF
-        else:
+        elif self.state == State.OFF:
             state = State.ON
+        elif self.state == State.LOCKED:
+            state = State.UNLOCKED
+        elif self.state == State.UNLOCKED:
+            state = State.LOCKED
+        else:
+            state = State.OFF #default to toggle off, to account for dimmed lights
         return state
     
     def _command_to_state(self, command, state):
@@ -337,9 +348,15 @@ class StateDevice(PytomationObject):
             except Exception, ex:
                 getattr(self, 'devices')( kwargs['devices'])
 
+        if kwargs.get('commands', None):
+            self.COMMANDS = kwargs.get('commands')
+
+        if kwargs.get('states', None):
+            self.COMMANDS = kwargs.get('states')
+
         # run through the rest
         for k, v in kwargs.iteritems():
-            if k.lower() != 'devices':
+            if k.lower() not in ('devices','commands','states'):
                 attribute = getattr(self, k)
                 if not attribute:
                     self._logger.error('Keyword: "{0}" not found in object construction.'.format(k))

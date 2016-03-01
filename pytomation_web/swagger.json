@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "This an API guide to Pytomation's API\n\n[Learn about Pytomation](http://pytomation.com).\n",
-        "version": "3.0",
+        "version": "3.1",
         "title": "Pytomation",
         "license": {
             "name": "GNU",
@@ -84,7 +84,7 @@
                 ],
                 "summary": "Sends command to device",
                 "description": "",
-                "operationId": "sendCommandtoDevice",
+                "operationId": "sendCommandtoDeviceId",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -95,6 +95,84 @@
                     {
                         "in": "path",
                         "name": "deviceId",
+                        "description": "ID of device to be controlled",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "command",
+                        "description": "Updated status",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Status"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            }
+        },
+        "/devicename/{deviceName}": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "summary": "Get device status",
+                "description": "Returns status from a device e.g. 'Office lamp'",
+                "operationId": "getDeviceByName",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "deviceName",
+                        "description": "ID of device to be inquired",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Status"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "device"
+                ],
+                "summary": "Sends command to device",
+                "description": "",
+                "operationId": "sendCommandtoDevice",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "deviceName",
                         "description": "ID of device to be controlled",
                         "required": true,
                         "type": "string"
