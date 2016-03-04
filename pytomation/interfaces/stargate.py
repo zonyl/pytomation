@@ -40,8 +40,6 @@ from .common import *
 from .ha_interface import HAInterface
 
 class Stargate(HAInterface):
-#    MODEM_PREFIX = '\x12'
-    MODEM_PREFIX = ''
     VERSION = '1.4'
 
     def __init__(self, interface, *args, **kwargs):
@@ -143,28 +141,6 @@ class Stargate(HAInterface):
         decoded.update({'l': activity[15]})
         decoded.update({'m': activity[16]})
         return decoded
-
-    def _processRegister(self, response, lastPacketHash):
-        foundCommandHash = None
-
-        #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
-        for (commandHash, commandDetails) in self._pendingCommandDetails.items():
-            if commandDetails['modemCommand'] == self._modemCommands['read_register']:
-                #Looks like this is our command.  Lets deal with it
-                self._commandReturnData[commandHash] = response[4:]
-
-                waitEvent = commandDetails['waitEvent']
-                waitEvent.set()
-
-                foundCommandHash = commandHash
-                break
-
-        if foundCommandHash:
-            del self._pendingCommandDetails[foundCommandHash]
-        else:
-            self._logger.warning("Unable to find pending command details for the following packet:")
-            self._logger.warning(hex_dump(response))
-
 
     def echoMode(self, timeout=None):
         command = '##%1d\r'

@@ -37,3 +37,9 @@ class MockInterface(object):
     
     def immediate_response(self, response):
         self._response_q = response
+
+    def close(self):
+        pass
+
+    def inWaiting(self):
+        return self._response_q is not None

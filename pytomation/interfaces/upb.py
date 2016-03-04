@@ -152,8 +152,6 @@ class UPBMessage(object):
         self.message_data = message[14:]
 
 class UPB(HAInterface):
-#    MODEM_PREFIX = '\x12'
-    MODEM_PREFIX = ''
     VERSION = '1.4'
 
     def __init__(self, interface, *args, **kwargs):

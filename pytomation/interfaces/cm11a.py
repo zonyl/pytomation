@@ -132,7 +132,6 @@ def simpleMap(value, in_min, in_max, out_min, out_max):
     
 class CM11a(HAInterface):
     VERSION = '1.0'
-    MODEM_PREFIX = ''
     
     def __init__(self, interface, *args, **kwargs):
         super(CM11a, self).__init__(interface, *args, **kwargs)

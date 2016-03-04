@@ -240,7 +240,7 @@ class Serial(Interface):
         print "Using %s for serial communication" % serialDevicePath
 #       self.__serialDevice = serial.Serial(serialDevicePath, 19200, timeout = 0.1) 
         try:
-            self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout)
+            self.__serialDevice = serial.Serial(serialDevicePath, serialSpeed, timeout = serialTimeout, rtscts=rtscts)
         except serial.serialutil.SerialException, ex:
             self._disabled = True
             self.__serialDevice = None
@@ -266,6 +266,10 @@ class Serial(Interface):
         if self.__serialDevice:
             return self.__serialDevice.inWaiting()
         return True
+
+    def close(self):
+        if self.__serialDevice:
+            return self.__serialDevice.close()
 
 class USB(Interface):
     def __init__(self, device):
