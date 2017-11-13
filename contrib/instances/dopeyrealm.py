@@ -3,17 +3,19 @@ import select
 import time
 
 # Import all the Pytomation interfaces we are going to use.
-from pytomation.interfaces import InsteonPLM, Serial, HTTP, VenstarThermostat, Command, PytoWebSocketServer, Open_zwave
+from pytomation.interfaces import InsteonHub, HTTP, VenstarThermostat, Command, PytoWebSocketServer, Open_zwave
+
+#from pytomation.interfaces import UPB, InsteonPLM, TCP, Serial, Stargate, W800rf32, \
+#NamedPipe, StateInterface
 
 # Import all the Pytomation Devices we will use.
-from pytomation.devices import Attribute, Light, Location, Thermostat, Room, Door, Lock
-#from pytomation.devices.scene import Scene
+from pytomation.devices import Attribute, Light, Location, Thermostat, Room, Door, Lock, Scene
 
 #Web Server
 websocket = PytoWebSocketServer()
 
 #Interfaces
-insteon = InsteonPLM(Serial('/dev/insteon', 19200, xonxoff=False))
+insteon = InsteonHub(HTTP(host='IPAddressOrNamedDHCPEntry', username='YourUserName',password='YourPassword', port='25105'))
 ozw = Open_zwave(serialDevicePath="/dev/zwave",config_path="/etc/openzwave")
 
 #Thermostat (override available commads)
@@ -28,7 +30,7 @@ ph_calculated = Location('38.576492', '-121.493375',
                          name='Calculated Photocell')
 
 #Front Door sensor, remove non functional status command
-d_front_door = Door(address='2A.F9.B7',
+d_front_door = Door(address='2AF9B7',
                      devices=(insteon),
                      name="Front Door Sensor",
                      commands=[Command.OPEN, Command.CLOSE])
@@ -43,85 +45,54 @@ l_office = Light(address='5',devices=ozw,name='Office Light')
 
 l_livingroom = Light(address="7",devices=ozw,name="Living Room Light")
 
-l_backporch = Light(address='2A.74.38',
+l_backporch = Light(address='2A7438',
                     devices=(insteon, ph_calculated),
                     name="Back Porch Light")
 
-l_frontporch = Light(address='2A.56.58',
+l_frontporch = Light(address='2A5658',
                      devices=(insteon, ph_calculated),
                      name="Front Porch Light")
 
-l_kitchen_recessed = Light(address='2A.31.66',
+l_kitchen_recessed = Light(address='2A3166',
                            devices=(insteon),
                            name="Kitchen Recessed Light")
 
-l_kitchen_back = Light(address='2A.74.6D',
+l_kitchen_back = Light(address='2A746D',
 		devices=(insteon),
 		name="Kitchen Light")
 
-l_kitchen_faucet = Light(address='2A.81.FD',
+l_kitchen_faucet = Light(address='2A81FD',
 		devices=(insteon),
 		name="Kitchen Faucet Light")
 
-l_bathroom = Light(address='2A.3F.9F',
+l_bathroom = Light(address='2A3F9F',
 		devices=(insteon),
 		verify_on_level = True,
 		name="Bathroom Light")
 
-f_bathroom = Light(address='21.8D.F5',
+f_bathroom = Light(address='218DF5',
 		devices=(insteon),
 		name="Bathroom Fan")
 
-l_foyer = Light(address='2A.57.E7',
+l_foyer = Light(address='2A57E7',
 		devices=(insteon),
 		name="Foyer Light")
 
-l_hallway = Light(address='2A.B8.F8',
+l_hallway = Light(address='2AB8F8',
         devices=(insteon),
         name="Hallway Light")
 
-l_hallway_switch = Light(address='2A.EB.30',
+l_hallway_switch = Light(address='2AEB30',
         devices=(insteon),
         name="Hallway Light Switch")
 
-l_master_bathroom = Light(address='2A.B2.AF',
+l_master_bathroom = Light(address='2AB2AF',
                 devices=(insteon),
                 name="Master Bathroom Light")
 
-l_master_faucet = Light(address='2A.9C.D9',
+l_master_faucet = Light(address='2A9CD9',
                 devices=(insteon),
                 name="Master Faucet Light")
-
-# KeypadLinc Buttons as Scenes (under construction, not currently functional)
-# s_kitchen_back_linc = Scene(address='2A.31.66.02',
-#                         devices=(insteon),
-#                         responders={l_kitchen_back: {'state': 'ON'},},
-#                         name = 'Kitchen Back Light')
-# 
-# s_kitchen_faucet_linc = Scene(address='2A.31.66.03',
-#                         devices=(insteon),
-#                         responders={l_kitchen_faucet: {'state': 'ON'},},
-#                         name = 'Kitchen Faucet Light Linc')
-# 
-# s_backporch_linc = Scene(address='2A.31.66.04',
-#                         devices=(insteon),
-#                         responders={l_backporch: {'state': 'ON'},},
-#                         name = 'Back Porch Light Linc')
-# 
-# s_frontporch_linc = Scene(address='2A.31.66.05',
-#                         devices=(insteon),
-#                         responders={l_frontporch: {'state': 'ON'},},
-#                         name = 'Front Porch Light Linc')
-# 
-# s_foyer_linc = Scene(address='2A.31.66.06',
-#                         devices=(insteon),
-#                         responders={l_foyer: {'state': 'ON'},},
-#                         name = 'Foyer Light Linc')
-# 
-# s_hallway_linc = Scene(address='2A.31.66.07',
-#                         devices=(insteon),
-#                         responders={l_hallway: {'state': 'ON'},l_hallway_switch: {'state': 'ON'}},
-#                         name = 'Hallway Light Linc')
 
 #Rooms (Device Grouping shouldn't add default command mappings, but does. Ignoring devices works-around. Fix under construction) 
 r_backporch = Room(name='Back Porch', devices=l_backporch)
@@ -142,13 +113,13 @@ r_master_bedroom = Room(name='Master Bedroom', ignore={Attribute.COMMAND: Comman
 
 def MainLoop(startup=False, *args, **kwargs):
     def kitchen_back_onStateChanged(state, source, prev, device):
-        if type(source) is InsteonPLM:
+        if type(source) is InsteonHub:
             l_kitchen_faucet.set_state(state)
     
     def hallway_onStateChanged(state, source, prev, device):
         if l_hallway_switch._state != state:
             try:
-                if type(source) is InsteonPLM:
+                if type(source) is InsteonHub:
                     l_hallway_switch.set_state(state)
                 elif type(state) is tuple:
                     l_hallway_switch.level(state[1])
@@ -162,7 +133,7 @@ def MainLoop(startup=False, *args, **kwargs):
     def hallway_switch_onStateChanged(state, source, prev, device):
         if l_hallway._state != state:
             try:
-                if type(source) is InsteonPLM:
+                if type(source) is InsteonHub:
                     l_hallway.set_state(state)
                 elif type(state) is tuple:
                     l_hallway.level(state[1])
