@@ -2,6 +2,7 @@ from .common import *
 from .ha_interface import *
 from .upb import *
 from .insteon import *
+from .insteon_hub import *
 from .stargate import *
 from .phillips_hue import *
 from .wtdio import *

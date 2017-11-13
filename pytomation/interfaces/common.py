@@ -275,13 +275,14 @@ class USB(Interface):
         return None
 
 class HTTP(Interface):
-    def __init__(self, protocol='http', host=None, username=None, password=None):
+    def __init__(self, protocol='http', host=None, username=None, password=None, port=None):
         super(HTTP, self).__init__()
 
         self._protocol = protocol
         self._host = host
         self._username = username
         self._password = password
+        self._port = port
         self._logger.debug("{name} HTTP Port created".format(
                                                                                     name=self.name
                                                                                                   ))
@@ -305,13 +306,11 @@ class HTTP(Interface):
 
         if _verb == None:
             _verb = "GET"
-# Expect the consumer to encode to allow for raw data formats      
-#         if _data:
-#             encdata = urllib.urlencode(_data)
-#         else:
-#             encdata = None
-
-        url = self._protocol + "://" + self._host + "/" + _path
+        if self._port:
+            url = self._protocol + "://" + self._host + ":" + self._port + "/" + _path
+        else:
+            url = self._protocol + "://" + self._host + "/" + _path
+            
         r = getattr(requests, _verb.lower())
         
         response = False
@@ -325,18 +324,6 @@ class HTTP(Interface):
               )
             
         return response.text
-# #         #print url + ":::" + _data
-# #         r = urllib2.Request(url=url)
-# #         r.add_data(_data)
-# #         response = False
-# #         try:
-# #             response_stream = urllib2.urlopen(r)
-# #     #        response_stream = urllib2.urlopen(url, _data)
-# #             response = response_stream.read()
-# #         except Exception, ex:
-# #             self._logger.error('Could not request: ' + str(ex))
-# #         #print url + ":" + str(_data) + ":" + str(response)
-# #         return response
 
     def read(self, path="", data=None, verb='GET', *args, **kwargs):
         return self.request(path, data, verb)
