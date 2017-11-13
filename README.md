@@ -11,7 +11,7 @@ Pytomation currently has support for the following hardware interfaces with
 more planned in the future.
 
    - [Insteon PLM](http://www.insteon.com/) / X10 (2412N, 2412S, 2413U)
-   - [Insteon Hub](http://www.insteon.com/) (2445-222)
+   - [Insteon Hub](http://www.insteon.com/) (2245-222, possibly others)
    - [UPB](http://www.pulseworx.com/products/products_.htm) Universal Powerline Bus (Serial PIM)
    - [Belkin WeMo](http://www.belkin.com/us/Products/home-automation/c/wemo-home-automation)  WeMo Wifi Switches 
    - [JDS Stargate](http://www.jdstechnologies.com/stargate.html) (RS232 / RS485)
