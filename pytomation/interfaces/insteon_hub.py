@@ -65,36 +65,26 @@ class InsteonHub(HAInterface):
         json_models = pkg_resources.resource_string(__name__, 'insteon/device_models.json')
         json_models_str = json_models.decode('utf-8')
         self.device_models = json.loads(json_models_str)
-
-    def _init(self, *args, **kwargs):
-        super(InsteonHub, self)._init(*args, **kwargs)        
-        self._command_waits = {}
-    
-    def _wait_for_command(self, deviceId, cmd, cmd2, timeout=3):
-        self._command_waits[deviceId][cmd+'ff']= False
-        itteration = 0
-        while itteration > timeout:
-            itteration += 1
-            device_waits = self._command_waits.get(deviceId, None)
-            if device_waits and not device_waits[cmd+cmd2]:
-                sleep(1)
-            del device_waits[cmd+cmd2]
-            if (len(self._command_waits[deviceId]) == 0):
-                del self._command_waits[deviceId]
-            return True
     
     def _readInterface(self, lastPacketHash):
-        stati = self._get_buffer_status()
-        for status in stati['msgs']:
-            'Status Update'
+        # only used if device_from passed in
+        return_record = OrderedDict()
+        return_record['success'] = False
+        return_record['error'] = True
+        
+        raw_text = self._interface.read('buffstatus.xml')
+        raw_text = raw_text.replace('<response><BS>', '')
+        raw_text = raw_text.replace('</BS></response>', '')
+        raw_text = raw_text.strip()
+        
+        for status in self._get_current_buffer_status(raw_text)['msgs']:
             address = status.get('id_from','')
-            device_waits = self._command_waits.get(address, None)
             cmd = status.get('cmd1','')
             cmd2 = status.get('cmd2','FF')
-            if (device_waits and not device_waits.get(cmd+cmd2,True)):
-                device_waits[cmd+cmd2] = True
-                
-            if (status.get('im_code','') == '50'):
+            modem_command = status.get('im_code','')
+            
+            
+            if (modem_command == '50'): #Standard message
                 if (cmd == '11'):
                         self._onCommand(address=address, command=Command.ON)
                 elif (cmd == '02'):
@@ -106,15 +96,21 @@ class InsteonHub(HAInterface):
                         self._onCommand(address=address, command=(Command.LEVEL,self.hex_to_brightness(cmd2)))
                 elif (cmd == '13'):
                     self._onCommand(address=address, command=Command.OFF)
-            if (status.get('im_code','') == '62'):
-                if (cmd == '13' or cmd == '11'):
-                    if (cmd2 == 'FF' or cmd2 == 'FE'): 
-                        self._onCommand(address=address, command=Command.ON)
-                    elif (cmd2 == '00'):
-                        self._onCommand(address=address, command=Command.OFF)
-                    else:
-                        self._onCommand(address=address, command=(Command.LEVEL,self.hex_to_brightness(cmd2)))
-        sleep(1)
+            if (modem_command == '62'): #set anything necessary for waiting commands
+                for (commandHash, commandDetails) in self._pendingCommandDetails.items():
+                    if (commandDetails['modemCommand'] == modem_command):
+                        if (status['ack_or_nak'] == '06'):
+                            commandDetails['waitEvent'].set()
+                        else:
+                            self._sendInterfaceCommand(address, cmd, cmd2)
+#                 if (cmd == '13' or cmd == '11'):
+#                     if (cmd2 == 'FF' or cmd2 == 'FE'): 
+#                         self._onCommand(address=address, command=Command.ON)
+#                     elif (cmd2 == '00'):
+#                         self._onCommand(address=address, command=Command.OFF)
+#                     else:
+#                         self._onCommand(address=address, command=(Command.LEVEL,self.hex_to_brightness(cmd2)))
+        sleep(1) ##TODO: Put in time based wait
     
     def brightness_to_hex(self, level):
         """Convert numeric brightness percentage into hex for insteon"""
@@ -130,28 +126,9 @@ class InsteonHub(HAInterface):
         new_level = int((level_int / 255.0) * 100.0)
         self._logger.debug("hex_to_brightness: %s to %s", level_hex, str(new_level))
         return str(new_level)
-
-
-    def _post_direct_command(self, command_url):
-        """Send raw command via post"""
-        self._logger.info("post_direct_command: %s", command_url)
-        return self._interface.write(command_url)
-
-
-    def _get_direct_command(self, command_url):
-        """Send raw command via get"""
-        self._logger.info("_get_direct_command: %s", command_url)
-        return self._interface.read(command_url)
     
-    def _clear_buffer(self):
-        """Clear the hub buffer"""
-        command_url = '1?XB=M=1'
-        response = self._post_direct_command(command_url)
-        self._logger.info("clear_buffer: %s", response)
-        return response
-
-    def _direct_command(self, device_id, command, command2, extended_payload=None):
-        """Wrapper to send posted direct command and get response. Level is 0-100.
+    def _sendInterfaceCommand(self, device_id, command, command2, extended_payload=None):
+        """Wrapper to queue posted direct command, with queued response (thread-safe). Level is 0-100.
         extended_payload is 14 bytes/28 chars..but last 2 chars is a generated checksum so leave off"""
         extended_payload = extended_payload or ''
         if not extended_payload:
@@ -191,59 +168,36 @@ class InsteonHub(HAInterface):
 
         self._logger.info("_direct_command: Device: %s Command: %s Command 2: %s Extended: %s MsgType: %s", device_id, command, command2, extended_payload, msg_type_desc)
         device_id = device_id.upper()
-        command_url = ('3?' + "0262"
-                       + device_id + msg_type + "F"
-                       + command + command2 + extended_payload + "=I=3")
-        return self._post_direct_command(command_url)
-
-
-    def _direct_command_hub(self, command):
-        """Send direct hub command"""
-        self._logger.info("direct_command_hub: Command %s", command)
-        command_url = ('3?' + command + "=I=3")
-        return self._post_direct_command(command_url)
-
-
-    def _direct_command_short(self, command):
-        """Wrapper for short-form commands (doesn't need device id or flags byte)"""
-        self._logger.info("direct_command_short: Command %s", command)
-        command_url = ('3?' + command + "=I=0")
-        return self._post_direct_command(command_url)
-    
-    def _get_buffer_status(self):
-        """Main method to read from buffer. Optionally pass in device to
-        only get response from that device"""
-
-        # only used if device_from passed in
-        return_record = OrderedDict()
-        return_record['success'] = False
-        return_record['error'] = True
-
-        command_url = 'buffstatus.xml'
-        self._logger.info("get_buffer_status: %s", command_url)
-
-        raw_text = self._get_direct_command(command_url)
-        raw_text = raw_text.replace('<response><BS>', '')
-        raw_text = raw_text.replace('</BS></response>', '')
-        raw_text = raw_text.strip()
-        buffer_length = len(raw_text)
-        self._logger.info('get_buffer_status: Got raw text with size %s and contents: %s',
-                         buffer_length, raw_text)
+#         command_url = ('3?' + "0262"
+#                        + device_id + msg_type + "F"
+#                        + command + command2 + extended_payload + "=I=3")
+        return super(InsteonHub, self)._sendInterfaceCommand('62', device_id + msg_type + "F"
+                                   + command + command2 + extended_payload + "=I=3", 
+                                   extraCommandDetails = { 'destinationDevice': device_id, 'commandId1': 'SD' + command, 'commandId2': command2},
+                                   modemCommandPrefix='3?02')
+            
+    def _get_current_buffer_status(self, modem_buffer):
+        """Translates the buffer string into command lists.
+        Will also strip any part of the buffer that it already received before
+        and ignore pieces of the buffer that is not complete"""
+        buffer_length = len(modem_buffer)
+        self._logger.info('_get_current_buffer_status: Got raw text with size %s and contents: %s',
+                         buffer_length, modem_buffer)
 
         if buffer_length == 202:
             # 2015 hub
             # the last byte in the buffer indicates where it stopped writing.
             # checking for text after that position would show if the buffer
             # has overlapped and allow ignoring the old stuff after
-            buffer_end = raw_text[-2:]
+            buffer_end = modem_buffer[-2:]
             buffer_end_int = int(buffer_end, 16)
-            raw_text = raw_text[0:buffer_end_int]
+            modem_buffer = modem_buffer[0:buffer_end_int]
             
-        full_buffer = raw_text
-        raw_text = raw_text.replace(self._previous_buffer, '')
+        full_buffer = modem_buffer
+        modem_buffer = modem_buffer.replace(self._previous_buffer, '')
         self._previous_buffer = full_buffer
         self._logger.info('bufferEnd hex %s dec %s', buffer_end, buffer_end_int)
-        self._logger.info('get_buffer_status: non wrapped %s', raw_text)
+        self._logger.info('get_buffer_status: non wrapped %s', modem_buffer)
         
         buffer_status = OrderedDict()
 
@@ -252,7 +206,7 @@ class InsteonHub(HAInterface):
         buffer_status['message'] = ''
         buffer_status['msgs'] = []
 
-        buffer_contents = StringIO(raw_text)
+        buffer_contents = StringIO(modem_buffer)
         while True:
 
             msg = buffer_contents.read(4)
@@ -678,10 +632,10 @@ class InsteonHub(HAInterface):
                 response_record['im_code_desc'] = 'Read 8 bytes from Database'
                 response_record['raw'] = msg
                 response_record['db_addr_high'] = msg[4:6]
-                response_record['db_addr_low'] = msg[6:8] # low nibble F, or 8
-                response_record['ack_or_nak'] = msg[8:10] # 06 ack
-                response_record['record'] = msg[10:34] # database record founnd
-                                                       # response 12 bytes
+                response_record['db_addr_low'] = msg[6:8]   # low nibble F, or 8
+                response_record['ack_or_nak'] = msg[8:10]   # 06 ack
+                response_record['record'] = msg[10:34]      # database record founnd
+                                                            # response 12 bytes
 
             # Write 8 bytes to Database
             elif im_cmd == '76':
@@ -767,7 +721,7 @@ class InsteonHub(HAInterface):
             
         buffer_contents.close()
         #pprint.pprint(buffer_status)
-        self._logger.debug("get_buffer_status: %s", pprint.pformat(buffer_status))
+        self._logger.debug("get_current_buffer_status: %s", pprint.pformat(buffer_status))
 
         return buffer_status
 
@@ -776,16 +730,16 @@ class InsteonHub(HAInterface):
             cmd = '12'
         else:
             cmd = '11'
-        self._direct_command(deviceId, cmd, 'ff')
-        return self._wait_for_command(deviceId, cmd, 'ff', timeout)
+        commandExecutionDetails = self._sendInterfaceCommand(deviceId, cmd, 'ff')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def off(self, deviceId, fast=None, timeout=3):
         if fast == 'fast':
             cmd = '14'
         else:
             cmd = '13'
-        self._direct_command(deviceId, cmd, '00')
-        return self._wait_for_command(deviceId, cmd, '00', timeout)    
+        commandExecutionDetails = self._sendInterfaceCommand(deviceId, cmd, '00')
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout) 
       
     # if rate the bits 0-3 is 2 x ramprate +1, bits 4-7 on level + 0x0F
     def level(self, deviceId, level, rate=None, timeout=3):
@@ -799,8 +753,8 @@ class InsteonHub(HAInterface):
             if rate == None:
                 # make it 0 to 255                                                                                     
                 level = int((int(level) / 100.0) * int(0xFF))
-                self._direct_command(deviceId, '11', '%02x' % level)
-                return self._wait_for_command(deviceId, '11', '%02x' % level, timeout)
+                commandExecutionDetails = self._sendInterfaceCommand(deviceId, '11', '%02x' % level)
+                return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
             else:
                 if rate > 15 or rate <1:
                     self._logger.error("{name} cannot set light ramp rate {rate} beyond 1-15".format(
@@ -809,14 +763,14 @@ class InsteonHub(HAInterface):
                                                                                      ))
                     return
                 else:
-                    lev = int(simpleMap(level, 1, 100, 1, 15))                                                                                     
+                    lev = int(simpleMap(level, 1, 100, 1, 15))
                     levelramp = (int(lev) << 4) + rate
-                    self._direct_command(deviceId, '2E', '%02x' % levelramp)
-                    return self._wait_for_command(deviceId, '2E', '%02x' % levelramp, timeout)
+                    commandExecutionDetails = self._sendInterfaceCommand(deviceId, '2E', '%02x' % levelramp)
+                    return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
     
     def status(self, deviceId, return_led='0', timeout=3):
-        self._direct_command(deviceId, '19', return_led)
-        return self._wait_for_command(deviceId, '19', return_led, timeout)
+        commandExecutionDetails = self._sendInterfaceCommand(deviceId, '19', return_led)
+        return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def version(self):
         self._logger.info("Insteon Hub Pytomation Wrapper Interface version " + self.VERSION + '\n')
