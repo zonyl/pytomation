@@ -88,6 +88,20 @@ class InsteonHub(HAInterface):
             modem_command = status.get('im_code','')
             
             if (modem_command == '50'): #Standard message
+                self._commandLock.acquire()
+                try:
+                    for (commandHash, commandDetails) in self._pendingCommandDetails.items():
+                        if (commandDetails['modemCommand'] == '62' and
+                            commandDetails['commandId1'] == '19' and
+                            commandDetails['destinationDevice'] == address):
+                            commandDetails['waitEvent'].set()
+                            del self._pendingCommandDetails[commandHash]
+                except:
+                    self._logger.debug("Error setting waiting events")
+                    return
+                finally:
+                    self._commandLock.release()
+                    
                 if (cmd == '11' or cmd == '12'): #on command
                     self._onCommand(address=address, command=Command.ON)
                     #Get the true on level in the next run
@@ -111,8 +125,10 @@ class InsteonHub(HAInterface):
                             commandDetails['commandId1'] == cmd and
                             commandDetails['commandId2'] == cmd2):
                             if (status['ack_or_nak'] == '06'):
-                                commandDetails['waitEvent'].set()
-                                del self._pendingCommandDetails[commandHash]
+                                #Acknowledge everything except for status request (acknowledge upon receiving status)
+                                if (commandDetails['commandId1'] != '19'):
+                                    commandDetails['waitEvent'].set()
+                                    del self._pendingCommandDetails[commandHash]
                             else:
                                 #Resend failed command
                                 self._sendInterfaceCommand(address, cmd, cmd2)
