@@ -61,11 +61,15 @@ class InsteonHub(HAInterface):
         json_cats_str = json_cats.decode('utf-8')
         self.device_categories = json.loads(json_cats_str)
         self._previous_buffer = ''
+        self._previous_buffer_end = 0
+        
+        #Clear the command buffer upon startup
+        self._interface.write('1?XB=M=1')
 
         json_models = pkg_resources.resource_string(__name__, 'insteon/device_models.json')
         json_models_str = json_models.decode('utf-8')
         self.device_models = json.loads(json_models_str)
-    
+        
     def _readInterface(self, lastPacketHash):
         # only used if device_from passed in
         return_record = OrderedDict()
@@ -83,33 +87,40 @@ class InsteonHub(HAInterface):
             cmd2 = status.get('cmd2','FF')
             modem_command = status.get('im_code','')
             
-            
             if (modem_command == '50'): #Standard message
-                if (cmd == '11'):
-                        self._onCommand(address=address, command=Command.ON)
-                elif (cmd == '02'):
+                if (cmd == '11' or cmd == '12'): #on command
+                    self._onCommand(address=address, command=Command.ON)
+                    #Get the true on level in the next run
+                    self._sendInterfaceCommand(address, '19', '00')
+                elif (cmd == '13' or cmd == '14'): #off command
+                    self._onCommand(address=address, command=Command.OFF)
+                elif (cmd == '02' or cmd == '04'): # response from status, includes level
                     if (cmd2 == 'FF' or cmd2 == 'FE'): 
                         self._onCommand(address=address, command=Command.ON)
                     elif (cmd2 == '00'):
                         self._onCommand(address=address, command=Command.OFF)
                     else:
                         self._onCommand(address=address, command=(Command.LEVEL,self.hex_to_brightness(cmd2)))
-                elif (cmd == '13'):
-                    self._onCommand(address=address, command=Command.OFF)
-            if (modem_command == '62'): #set anything necessary for waiting commands
-                for (commandHash, commandDetails) in self._pendingCommandDetails.items():
-                    if (commandDetails['modemCommand'] == modem_command):
-                        if (status['ack_or_nak'] == '06'):
-                            commandDetails['waitEvent'].set()
-                        else:
-                            self._sendInterfaceCommand(address, cmd, cmd2)
-#                 if (cmd == '13' or cmd == '11'):
-#                     if (cmd2 == 'FF' or cmd2 == 'FE'): 
-#                         self._onCommand(address=address, command=Command.ON)
-#                     elif (cmd2 == '00'):
-#                         self._onCommand(address=address, command=Command.OFF)
-#                     else:
-#                         self._onCommand(address=address, command=(Command.LEVEL,self.hex_to_brightness(cmd2)))
+                elif (cmd == '18'): #Light on level was manually adjusted, get real value
+                    self._sendInterfaceCommand(address, '19', '00')
+            if (modem_command == '62'): #Response from command, set anything necessary for waiting commands
+                self._commandLock.acquire()
+                try:
+                    for (commandHash, commandDetails) in self._pendingCommandDetails.items():
+                        if (commandDetails['modemCommand'] == modem_command and
+                            commandDetails['commandId1'] == cmd and
+                            commandDetails['commandId2'] == cmd2):
+                            if (status['ack_or_nak'] == '06'):
+                                commandDetails['waitEvent'].set()
+                                del self._pendingCommandDetails[commandHash]
+                            else:
+                                #Resend failed command
+                                self._sendInterfaceCommand(address, cmd, cmd2)
+                except:
+                    self._logger.debug("Error setting waiting events")
+                    return
+                finally:
+                    self._commandLock.release()
         sleep(1) ##TODO: Put in time based wait
     
     def brightness_to_hex(self, level):
@@ -173,7 +184,7 @@ class InsteonHub(HAInterface):
 #                        + command + command2 + extended_payload + "=I=3")
         return super(InsteonHub, self)._sendInterfaceCommand('62', device_id + msg_type + "F"
                                    + command + command2 + extended_payload + "=I=3", 
-                                   extraCommandDetails = { 'destinationDevice': device_id, 'commandId1': 'SD' + command, 'commandId2': command2},
+                                   extraCommandDetails = { 'destinationDevice': device_id, 'commandId1': command, 'commandId2': command2},
                                    modemCommandPrefix='3?02')
             
     def _get_current_buffer_status(self, modem_buffer):
@@ -183,19 +194,28 @@ class InsteonHub(HAInterface):
         buffer_length = len(modem_buffer)
         self._logger.info('_get_current_buffer_status: Got raw text with size %s and contents: %s',
                          buffer_length, modem_buffer)
-
+        
+        previous_buffer = ''
         if buffer_length == 202:
             # 2015 hub
-            # the last byte in the buffer indicates where it stopped writing.
-            # checking for text after that position would show if the buffer
-            # has overlapped and allow ignoring the old stuff after
+            # The last byte in the buffer indicates where it stopped writing.
+            # It however, wraps around from the right, with no indication of start
+            # We get the start from the previous entry, however, if one exists
+            # This will fail if the the buffer is being wrapped upon startup
+            # But only the initial command will get ignored
             buffer_end = modem_buffer[-2:]
             buffer_end_int = int(buffer_end, 16)
-            modem_buffer = modem_buffer[0:buffer_end_int]
+            if (buffer_end_int < self._previous_buffer_end):
+                modem_buffer = modem_buffer[self._previous_buffer_end:-2] + modem_buffer[0:buffer_end_int]
+                previous_buffer = modem_buffer[0:buffer_end_int]
+            else:
+                modem_buffer = modem_buffer[0:buffer_end_int]
+                previous_buffer = modem_buffer
+        else:
+            previous_buffer = modem_buffer
             
-        full_buffer = modem_buffer
         modem_buffer = modem_buffer.replace(self._previous_buffer, '')
-        self._previous_buffer = full_buffer
+        self._previous_buffer = previous_buffer
         self._logger.info('bufferEnd hex %s dec %s', buffer_end, buffer_end_int)
         self._logger.info('get_buffer_status: non wrapped %s', modem_buffer)
         
@@ -208,13 +228,16 @@ class InsteonHub(HAInterface):
 
         buffer_contents = StringIO(modem_buffer)
         while True:
-
-            msg = buffer_contents.read(4)
-            if (len(msg) < 4) or (msg == '') or (msg == '0000'):
+            msg = buffer_contents.read(2)
+            while (msg != '02' and msg != ''):
+                msg = buffer_contents.read(2)
+            
+            if (msg == ''):
                 break
-
-            #im_start = msg[0:2]
-            im_cmd = msg[2:4]
+            
+            msg = msg + buffer_contents.read(2)
+                        
+            im_cmd = msg[-2:]
 
             response_record = OrderedDict()
             response_record['im_code'] = im_cmd
@@ -768,8 +791,8 @@ class InsteonHub(HAInterface):
                     commandExecutionDetails = self._sendInterfaceCommand(deviceId, '2E', '%02x' % levelramp)
                     return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
     
-    def status(self, deviceId, return_led='0', timeout=3):
-        commandExecutionDetails = self._sendInterfaceCommand(deviceId, '19', return_led)
+    def status(self, deviceId, timeout=3):
+        commandExecutionDetails = self._sendInterfaceCommand(deviceId, '19', '00')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def version(self):
