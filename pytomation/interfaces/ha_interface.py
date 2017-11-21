@@ -274,6 +274,40 @@ class HAInterface(AsynchronousInterface, PytomationObject):
         except TypeError, ex:
             pass
 
+    def _resend_failed_command(self, commandHash, commandDetails):
+        """Resets the queues to resend a command
+        This function assumes a thread lock has already been acquired."""
+
+        if (self._retryCount[commandHash] < 5):
+            self._logger.debug("Timed out for %s - Requeueing (already had %d retries)" % \
+                                               (commandHash, self._retryCount[commandHash]))
+            try:
+                self._outboundQueue.remove(commandHash)
+            except:
+                pass
+            try:
+                del self._outboundCommandDetails[commandHash]
+            except:
+                pass
+            self._outboundCommandDetails[commandHash] = commandDetails
+            del self._pendingCommandDetails[commandHash]
+            self._outboundQueue.append(commandHash)
+            self._retryCount[commandHash] += 1
+        elif(self._command_retry_count >= 5):
+            self._logger.debug("Timed out for %s - Failing Command (already had %d retries)" % \
+                               (commandHash, self._retryCount[commandHash]))
+            try:
+                self._outboundQueue.remove(commandHash)
+            except:
+                pass
+            try:
+                del self._outboundCommandDetails[commandHash]
+            except:
+                pass
+            del self._pendingCommandDetails[commandHash]
+            return False
+        return True
+
     def _waitForCommandToFinish(self, commandExecutionDetails, timeout=None):
 
         if type(commandExecutionDetails) != type(dict()):

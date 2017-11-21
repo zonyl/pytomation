@@ -62,6 +62,8 @@ class InsteonHub(HAInterface):
         self.device_categories = json.loads(json_cats_str)
         self._previous_buffer = ''
         self._previous_buffer_end = 0
+        self._previous_command_hash = ''
+        self._command_wait_count = 0
         
         #Clear the command buffer upon startup
         self._interface.write('1?XB=M=1')
@@ -70,6 +72,30 @@ class InsteonHub(HAInterface):
         json_models_str = json_models.decode('utf-8')
         self.device_models = json.loads(json_models_str)
         
+    def _writeInterface(self):
+        try:
+            self._commandLock.acquire()
+            #Only write one command at a time
+            if (len(self._pendingCommandDetails) != 0):
+                #Don't allow a stale command to sit, wait for a while, then retry, then fail
+                for commandHash, commandDetails in self._pendingCommandDetails.items():
+                    if (commandHash == self._previous_command_hash):
+                        if (self._command_wait_count < 4):
+                            self._command_wait_count += 1
+                        else:
+                            self._command_wait_count = 0
+                            self._resend_failed_command(commandHash, commandDetails)
+                    else:
+                        self._previous_command_hash = commandHash
+                return
+        except:
+            self._logger.debug("Error checking for waiting events")
+            return
+        finally:
+            self._commandLock.acquire(False)
+            self._commandLock.release()
+        super(InsteonHub, self)._writeInterface()
+
     def _readInterface(self, lastPacketHash):
         # only used if device_from passed in
         return_record = OrderedDict()
@@ -88,27 +114,29 @@ class InsteonHub(HAInterface):
             modem_command = status.get('im_code','')
             
             if (modem_command == '50'): #Standard message
-                self._commandLock.acquire()
-                try:
-                    for (commandHash, commandDetails) in self._pendingCommandDetails.items():
-                        if (commandDetails['modemCommand'] == '62' and
-                            commandDetails['commandId1'] == '19' and
-                            commandDetails['destinationDevice'] == address):
-                            commandDetails['waitEvent'].set()
-                            del self._pendingCommandDetails[commandHash]
-                except:
-                    self._logger.debug("Error setting waiting events")
-                    return
-                finally:
-                    self._commandLock.release()
-                    
                 if (cmd == '11' or cmd == '12'): #on command
                     self._onCommand(address=address, command=Command.ON)
-                    #Get the true on level in the next run
-                    self._sendInterfaceCommand(address, '19', '00')
+                    self._sendInterfaceCommand(address, '19', '00') #This command fails, unless a breakpoint is set
                 elif (cmd == '13' or cmd == '14'): #off command
                     self._onCommand(address=address, command=Command.OFF)
                 elif (cmd == '02' or cmd == '04'): # response from status, includes level
+                    try:
+                        self._commandLock.acquire()
+                        #Acknowledge a successful status request, if we got the status back
+                        for (commandHash, commandDetails) in self._pendingCommandDetails.items():
+                            if (commandDetails['modemCommand'] == '62' and
+                                commandDetails['commandId1'] == '19' and
+                                commandDetails['destinationDevice'] == address):
+                                commandDetails['waitEvent'].set()
+                                del self._pendingCommandDetails[commandHash]
+                                break
+                    except:
+                        self._logger.debug("Error setting waiting events")
+                        return
+                    finally:
+                        self._commandLock.acquire(False)
+                        self._commandLock.release()
+
                     if (cmd2 == 'FF' or cmd2 == 'FE'): 
                         self._onCommand(address=address, command=Command.ON)
                     elif (cmd2 == '00'):
@@ -117,25 +145,29 @@ class InsteonHub(HAInterface):
                         self._onCommand(address=address, command=(Command.LEVEL,self.hex_to_brightness(cmd2)))
                 elif (cmd == '18'): #Light on level was manually adjusted, get real value
                     self._sendInterfaceCommand(address, '19', '00')
-            if (modem_command == '62'): #Response from command, set anything necessary for waiting commands
-                self._commandLock.acquire()
+            if (modem_command == '62'): #Response from command
                 try:
+                    self._commandLock.acquire()
+                    #Set anything necessary for waiting commands
                     for (commandHash, commandDetails) in self._pendingCommandDetails.items():
                         if (commandDetails['modemCommand'] == modem_command and
                             commandDetails['commandId1'] == cmd and
-                            commandDetails['commandId2'] == cmd2):
+                            commandDetails['commandId2'] == cmd2 and
+                            commandDetails['destinationDevice'] == address):
                             if (status['ack_or_nak'] == '06'):
                                 #Acknowledge everything except for status request (acknowledge upon receiving status)
                                 if (commandDetails['commandId1'] != '19'):
                                     commandDetails['waitEvent'].set()
                                     del self._pendingCommandDetails[commandHash]
+                                    break
                             else:
                                 #Resend failed command
-                                self._sendInterfaceCommand(address, cmd, cmd2)
+                                self._resend_failed_command(commandHash, commandDetails)
                 except:
                     self._logger.debug("Error setting waiting events")
                     return
                 finally:
+                    self._commandLock.acquire(False)
                     self._commandLock.release()
         sleep(1) ##TODO: Put in time based wait
     
@@ -195,9 +227,6 @@ class InsteonHub(HAInterface):
 
         self._logger.info("_direct_command: Device: %s Command: %s Command 2: %s Extended: %s MsgType: %s", device_id, command, command2, extended_payload, msg_type_desc)
         device_id = device_id.upper()
-#         command_url = ('3?' + "0262"
-#                        + device_id + msg_type + "F"
-#                        + command + command2 + extended_payload + "=I=3")
         return super(InsteonHub, self)._sendInterfaceCommand('62', device_id + msg_type + "F"
                                    + command + command2 + extended_payload + "=I=3", 
                                    extraCommandDetails = { 'destinationDevice': device_id, 'commandId1': command, 'commandId2': command2},
@@ -769,7 +798,7 @@ class InsteonHub(HAInterface):
             cmd = '12'
         else:
             cmd = '11'
-        commandExecutionDetails = self._sendInterfaceCommand(deviceId, cmd, 'ff')
+        commandExecutionDetails = self._sendInterfaceCommand(deviceId, cmd, 'FF')
         return self._waitForCommandToFinish(commandExecutionDetails, timeout = timeout)
 
     def off(self, deviceId, fast=None, timeout=3):
