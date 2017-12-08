@@ -39,7 +39,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
     
     def __init__(self, interface, *args, **kwargs):
         kwargs.update({'interface': interface})
-        self._po_common(*args, **kwargs)
+        #self._po_common(*args, **kwargs)
         super(HAInterface, self).__init__(*args, **kwargs)
 
 
@@ -79,9 +79,8 @@ class HAInterface(AsynchronousInterface, PytomationObject):
 
         while not self._shutdownEvent.isSet():
             try:
-                self._writeInterface()
-    
                 self._readInterface(self._lastPacketHash)
+                self._writeInterface()
             except Exception, ex:
                 self._logger.error("Problem with interface: " + str(ex))
                 
@@ -226,21 +225,16 @@ class HAInterface(AsynchronousInterface, PytomationObject):
                                    )
             else:
                 bytesToSend = commandExecutionDetails['bytesToSend']
-    
-    #            self._logger.debug("Transmit>" + str(hex_dump(bytesToSend, len(bytesToSend))))
                 try:
                     self._logger.debug("Transmit>" + Conversions.ascii_to_hex(bytesToSend))
                 except:
                     self._logger.debug("Transmit>" + str(bytesToSend))
-                    
-#                result = self._interface.write(bytesToSend)
+
+                self._pendingCommandDetails[commandHash] = commandExecutionDetails
                 result = self._writeInterfaceFinal(bytesToSend)
                 self._lastSendTime = time.time()
                 self._logger.debug("TransmitResult>" + str(result))
-    
-                self._pendingCommandDetails[commandHash] = commandExecutionDetails
                 del self._outboundCommandDetails[commandHash]
-                
         try:
             self._commandLock.release()
         except Exception, te:
@@ -293,7 +287,7 @@ class HAInterface(AsynchronousInterface, PytomationObject):
             del self._pendingCommandDetails[commandHash]
             self._outboundQueue.append(commandHash)
             self._retryCount[commandHash] += 1
-        elif(self._command_retry_count >= 5):
+        elif(self._retryCount[commandHash] >= 5):
             self._logger.debug("Timed out for %s - Failing Command (already had %d retries)" % \
                                (commandHash, self._retryCount[commandHash]))
             try:

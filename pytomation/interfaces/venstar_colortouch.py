@@ -33,12 +33,19 @@ class VenstarThermostat(HAInterface):
         self._away = None
         self._SetPointDelta = None
 
-        responses = self._interface.read()
-        self._logger.debug("[Venstar Thermostat] API> " + str(responses))
-        if json.loads(responses)['type'] == "commercial":
-            self._away_type = "holiday"
+        arg_type = kwargs.get('type', None)
+        if arg_type:
+            self._away_type = "holiday" if arg_type == 'commercial' else "away"
         else:
-            self._away_type = "away"
+            try:
+                responses = self._interface.read()
+                self._logger.debug("[Venstar Thermostat] API> " + str(responses))
+                if json.loads(responses)['type'] == "commercial":
+                    self._away_type = "holiday"
+                else:
+                    self._away_type = "away"
+            except: #default to residential, if the thermostat is not available
+                self._away_type = "away"
 
         #the delay to poll the thermostat
         self._poll_secs = kwargs.get('poll', 5)
@@ -68,7 +75,11 @@ class VenstarThermostat(HAInterface):
         if not self._iteration < self._poll_secs:
             self._iteration = 0
             #check to see if there is anything we need to read
-            responses = self._interface.read('query/info')
+            try:
+                responses = self._interface.read('query/info')
+            except:
+                responses = ''
+                
             if len(responses) != 0:
                 status = []
                 try:

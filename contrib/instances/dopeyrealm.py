@@ -20,7 +20,7 @@ ozw = Open_zwave(serialDevicePath="/dev/zwave",config_path="/etc/openzwave")
 
 #Thermostat (override available commads)
 thermostat_commands = [Command.AUTOMATIC, Command.COOL, Command.HEAT, Command.HOLD, Command.SCHEDULE, Command.OFF, Command.LEVEL, Command.CIRCULATE, Command.STILL, Command.VACATE, Command.OCCUPY, Command.SETPOINT]
-hall_thermostat = Thermostat(commands = thermostat_commands, name="Thermostat", devices=VenstarThermostat(HTTP(host='HallThermostat')))
+hall_thermostat = Thermostat(commands = thermostat_commands, name="Thermostat", devices=VenstarThermostat(HTTP(host='HallThermostat'), type='commercial'))
 
 #Sensors
 ph_calculated = Location('38.576492', '-121.493375',
@@ -67,7 +67,7 @@ l_kitchen_faucet = Light(address='2A81FD',
 
 l_bathroom = Light(address='2A3F9F',
 		devices=(insteon),
-		verify_on_level = True,
+		on_level = 30,
 		name="Bathroom Light")
 
 f_bathroom = Light(address='218DF5',
