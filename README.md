@@ -29,10 +29,9 @@ more planned in the future.
    - Z-Wave (Aeon Labs via python-Openzwave) DSA02203-ZWUS 
    - [Phillips HUE](http://www.meethue.com) Phillips HUE, Zigbee lighting
 
-### Future
-   - Weeder Analog I/O board (Wtaio/RS232)
-   - Ube Wifi Devices
-   - CoralStar WiFi Devices
+### Near Future
+   - Python 3 support
+   - Restrictive User security (beyond the current admin user)
 
 ### FEATURES
    - Written in Python
@@ -55,7 +54,8 @@ more planned in the future.
 
 ---
 
-###INSTALLATION
+INSTALLATION
+============
 
 
 #### DEPENDENCIES
@@ -100,6 +100,22 @@ The gevent-websocket server is pretty fast, but can be accelerated further by in
 
     sudo pip install wsaccel ujson
 
+#### Website encryption (SSL)
+1) Follow steps 1-5 from:
+https://help.ubuntu.com/lts/serverguide/certificates-and-security.html#certificate-authority
+
+2) Then follow the steps from:
+https://help.ubuntu.com/lts/serverguide/certificates-and-security.html#generating-a-csr
+
+3) Now continue to steps 6-8 from:
+https://help.ubuntu.com/lts/serverguide/certificates-and-security.html#certificate-authority
+
+4) Copy the key and crt you genterated from steps 2 and 3 (not the files from step 1) to folder that pytomation can access and name them server.key and server.crt.
+
+5) Set ssl_path, in pytomation/common/config.py, to the folder you created.
+
+6) To import the root CA, on your client devices, so all your generated certificates work on your devices follow the steps from:
+https://thomas-leister.de/en/how-to-import-ca-root-certificate/
 
 Build openzwave and python-openzwave
 ====================================
