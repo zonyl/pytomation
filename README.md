@@ -89,8 +89,8 @@ Again, under Debian distributions you can install the python-pip package:
 
 Once pip is installed it is easy to install the rest of the dependencies with the following commands:
 
-    sudo pip install pyephem 
-    sudo pip install APScheduler
+        sudo pip install pyephem 
+        sudo pip install APSchedu        le                            r
 
 To use the optional websocket server:
 
@@ -116,6 +116,21 @@ https://help.ubuntu.com/lts/serverguide/certificates-and-security.html#certifica
 
 6) To import the root CA, on your client devices, so all your generated certificates work on your devices follow the steps from:
 https://thomas-leister.de/en/how-to-import-ca-root-certificate/
+
+7) To create a cert that can be imported into the android system, using root privelege:
+https://blog.jeroenhd.nl/article/android-7-nougat-and-certificate-authorities#howto-install
+
+    ```
+    openssl x509 -inform PEM -subject_hash_old -in /etc/ssl/certs/cacert.pem | head -1
+    cat /etc/ssl/certs/cacert.pem > [outputFromFirstCommand].0
+    openssl x509 -inform PEM -text -in /etc/ssl/certs/cacert.pem -out /dev/null >> [outputFromFirstCommand].0
+    ```
+    Example
+    ```
+    cat /etc/ssl/certs/cacert.pem > 5ed36f99.0
+    openssl x509 -inform PEM -text -in /etc/ssl/certs/cacert.pem -out /dev/null >> 5ed36f99.0
+    ```
+    Resulting file must be copied to /system/etc/security/cacerts/ on android system.
 
 Build openzwave and python-openzwave
 ====================================
