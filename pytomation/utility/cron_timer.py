@@ -88,9 +88,9 @@ class CronTimer(object):
     def _check_for_event(self, *args, **kwargs):
         if datetime:
             t = datetime(*datetime.now().timetuple()[:6])
-    #        print 'Time: ' + str(t) + ":" + str(self.secs)
+            #print 'Time: ' + str(t) + ":" + str(self.secs)
             if self.matchtime(t):
-    #            print 'Run action'
+                #print 'Run action'
                 if len(self._action_args) > 0:
                     self._action(self._action_args)
                 else:
@@ -100,7 +100,10 @@ class CronTimer(object):
     def to_cron(string):
         if string == None:
             return None
-
+            
+        if isinstance(string, tuple):
+            return string
+            
         date_object = None
         try: # Hours / Minutes
             try:
@@ -111,20 +114,14 @@ class CronTimer(object):
                 except:
                         date_object = datetime.strptime(string, '%H:%M')
             return (
-                    0,
-                    date_object.minute,
-                    date_object.hour,
-                    allMatch,
-                    allMatch,
-                    allMatch,
-                    )
-#            td = timedelta(
-#                           years=0,
-#                           months=0,
-#                           days=0,
-#                           hours=date_object.hour, 
-#                           minutes=date_object.minute,
-#                           seconds=0)
+                0,
+                date_object.minute,
+                date_object.hour,
+                '*',
+                '*',
+                '*',
+                )
+        
         except Exception, e:
             try: # Hours / Minutes / Seconds
                 try:
@@ -138,11 +135,12 @@ class CronTimer(object):
                     date_object.second,
                     date_object.minute,
                     date_object.hour,
-                    allMatch,
-                    allMatch,
-                    allMatch,
+                    '*',
+                    '*',
+                    '*',
                     )
             except Exception, ex:
+                print '\nError in to_cron, check your date formats...\n'
                 raise ex
-#        date_object = datetime.strptime(string, '%b %d %Y %I:%M%p')
+                
         return None

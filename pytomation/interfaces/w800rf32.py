@@ -46,7 +46,8 @@ Versions and changes:
     2012/11/18 - 1.2 - Added logging
     2012/11/30 - 1.3 - Unify Command and State magic strings across the system
     2012/12/10 - 1.4 - New logging system
-    
+    2016/12/19 - 1.5 - Changed timeout Don't decode bytes 2 and 4, they are not required.
+                       Add error check
 """
 import threading
 import time
@@ -58,7 +59,7 @@ from .common import *
 from .ha_interface import HAInterface
 
 class W800rf32(HAInterface):
-    VERSION = '1.4'
+    VERSION = '1.5'
     MODEM_PREFIX = ''
     
     hcodeDict = {
@@ -76,32 +77,29 @@ class W800rf32(HAInterface):
     
     def _init(self, *args, **kwargs):
         super(W800rf32, self)._init(*args, **kwargs)
-#        if not debug.has_key('W800'):
-#            debug['W800'] = 0
         self.version()        
-        self._modemRegisters = ""
 
-        self._modemCommands = {
-                               }
-
-        self._modemResponse = {
-                               }
 
     def _readInterface(self, lastPacketHash):
         #check to see if there is anyting we need to read
         responses = self._interface.read()
+        
         if len(responses) >= 4:
-            x = "{0:08b}".format(ord(responses[0]))  # format binary string
-            b3 = int(x[::-1],2)   # reverse the string and assign to byte 3
-            x = "{0:08b}".format(ord(responses[1]))  # format binary string
-            b4 = int(x[::-1],2)   # reverse the string and assign to byte 4
-            x = "{0:08b}".format(ord(responses[2]))  # format binary string
-            b1 = int(x[::-1],2)   # reverse the string and assign to byte 1
-            x = "{0:08b}".format(ord(responses[3]))  # format binary string
-            b2 = int(x[::-1],2)   # reverse the string and assign to byte 2
-#            if debug['W800'] > 0:
-#                pylog(self,"[W800RF32] {0:02X} {1:02X} {2:02X} {3:02X}\n".format(b1,b2,b3,b4))
-            self._logger.debug("{0:02X} {1:02X} {2:02X} {3:02X}".format(b1,b2,b3,b4))
+            byte1 = ord(responses[0])
+            byte2 = ord(responses[1])
+            byte3 = ord(responses[2])
+            byte4 = ord(responses[3])
+            
+            if byte1 + byte2 != 255 or byte3 + byte4 != 255:
+                return
+            xb3 = "{0:08b}".format(byte1)  # format binary string
+            b3 = int(xb3[::-1],2)   # reverse the string and assign to byte 3
+#            xb4 = "{0:08b}".format(byte2)  # format binary string
+#            b4 = int(xb4[::-1],2)   # reverse the string and assign to byte 4
+            xb1 = "{0:08b}".format(byte3)  # format binary string
+            b1 = int(xb1[::-1],2)   # reverse the string and assign to byte 1
+#            xb2 = "{0:08b}".format(byte4)  # format binary string
+#            b2 = int(xb2[::-1],2)   # reverse the string and assign to byte 2
 
             # Get the house code
             self.houseCode = self.hcodeDict[b3 & 0x0f]
@@ -130,16 +128,16 @@ class W800rf32(HAInterface):
                 self.command = Command.ON
             
             self.x10 = "%s%d" % (self.houseCode, self.unitNumber)
-#            if debug['W800'] > 0:
-#                pylog(self, "[W800RF32] Command -> " + self.x10 + " " + self.command + "\n")
-            self._logger.debug("Command -> " + self.x10 + " " + self.command )
+            self._logger.info("{0} - {1:02X},  {2} - {3:02X} - {4}".format(xb1, b1, xb3, b3, len(responses)))
+            self._logger.info("Command -> " + self.x10 + " " + self.command )
                 
             self._processDigitalInput(self.x10, self.command)
         elif len(responses) < 3 and len(responses) > 0:
-            self._logger.error('We didnt expect a shorter packet. Probably should keep track of partial reads: ' + str(responses))
+            self._logger.error('Short packet...' + str(bytearray(responses)).encode('hex'))
         else:
-            time.sleep(0.5)
-                
+#            too fast and we get multiple responses - consider it debounce
+#            time.sleep(0.5)
+            time.sleep(0.3)
                 
 
     def _processDigitalInput(self, addr, cmd):
@@ -164,8 +162,6 @@ class W800rf32(HAInterface):
         if foundCommandHash:
             del self._pendingCommandDetails[foundCommandHash]
         else:
-#            pylog(self, "[W800RF32] Unable to find pending command details for the following packet:\n")
-#            pylog(self, hex_dump(response) + " " + len(response) + "n")
             self._logger.warning("Unable to find pending command details for the following packet:")
             self._logger.warning(hex_dump(response) + " " + len(response))
 
@@ -173,5 +169,4 @@ class W800rf32(HAInterface):
         pass
 
     def version(self):
-#        pylog(self, "W800RF32 Pytomation driver version " + self.VERSION + "\n")
         self._logger.info("W800RF32 Pytomation driver version " + self.VERSION)       

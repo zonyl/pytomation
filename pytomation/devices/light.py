@@ -6,10 +6,14 @@ class Light(InterfaceDevice):
     STATES = [State.UNKNOWN, State.ON, State.OFF, State.LEVEL]
     COMMANDS = [Command.ON, Command.OFF, Command.PREVIOUS, Command.TOGGLE, Command.INITIAL,
                 Command.AUTOMATIC, Command.MANUAL, Command.STATUS]
+    verify_on_level = False
+    on_level = None
 
     def _initial_vars(self, *args, **kwargs):
         super(Light, self)._initial_vars(*args, **kwargs)
         self._restricted = False
+        self.verify_on_level = kwargs.get('verify_on_level', False)
+        self.on_level = kwargs.get('on_level', None)
         self.mapped(command=Command.MOTION, mapped=Command.ON)
         self.mapped(command=Command.DARK, mapped=Command.ON)
         self.mapped(command=Command.OPEN, mapped=Command.ON)

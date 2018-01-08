@@ -19,7 +19,8 @@ that.  It is supported on any platform that support Python ( Windows, Mac OS-X, 
 Pytomation currently has support for the following hardware interfaces with 
 more planned in the future.
 
-   - [Insteon](http://www.insteon.com/) / X10 (2412N, 2412S, 2413U)
+   - [Insteon PLM](http://www.insteon.com/) / X10 (2412N, 2412S, 2413U)
+   - [Insteon Hub](http://www.insteon.com/) (2245-222, possibly others)
    - [UPB](http://www.pulseworx.com/products/products_.htm) Universal Powerline Bus (Serial PIM)
    - [Belkin WeMo](http://www.belkin.com/us/Products/home-automation/c/wemo-home-automation)  WeMo Wifi Switches 
    - [JDS Stargate](http://www.jdstechnologies.com/stargate.html) (RS232 / RS485)
@@ -35,11 +36,11 @@ more planned in the future.
    - [Misterhouse](http://misterhouse.sourceforge.net/) Voice Commands MHSend (TCP)
    - [Spark I/O](http://www.spark.io) WiFi devices
    - Z-Wave (Aeon Labs via python-Openzwave) DSA02203-ZWUS 
+   - [Phillips HUE](http://www.meethue.com) Phillips HUE, Zigbee lighting
 
-### Future
-   - Weeder Analog I/O board (Wtaio/RS232)
-   - Ube Wifi Devices
-   - CoralStar WiFi Devices
+### Near Future
+   - Python 3 support
+   - Restrictive User security (beyond the current admin user)
 
 ### FEATURES
    - Written in Python
@@ -62,7 +63,8 @@ more planned in the future.
 
 ---
 
-###INSTALLATION
+INSTALLATION
+============
 
 
 #### DEPENDENCIES
@@ -82,7 +84,7 @@ Optional Packages:
 
 Additional packages are required for development and testing. See `requirements.txt` for a more complete list.
 
-Debian packages are available for pySerial, pytz, pythone-gevent, and python-openssl. They can be installed with : 
+Debian packages are available for pySerial, pytz, python-gevent, and python-openssl. They can be installed with : 
 
     sudo apt-get install git python-dev python-serial python-tz python-gevent python-openssl
 
@@ -96,8 +98,8 @@ Again, under Debian distributions you can install the python-pip package:
 
 Once pip is installed it is easy to install the rest of the dependencies with the following commands:
 
-    sudo pip install pyephem 
-    sudo pip install APScheduler
+        sudo pip install pyephem 
+        sudo pip install APSchedu        le                            r
 
 To use the optional websocket server:
 
@@ -107,43 +109,49 @@ The gevent-websocket server is pretty fast, but can be accelerated further by in
 
     sudo pip install wsaccel ujson
 
+#### Website encryption (SSL)
+1) Follow steps 1-5 from:
+https://help.ubuntu.com/lts/serverguide/certificates-and-security.html#certificate-authority
+
+2) Then follow the steps from:
+https://help.ubuntu.com/lts/serverguide/certificates-and-security.html#generating-a-csr
+
+3) Now continue to steps 6-8 from:
+https://help.ubuntu.com/lts/serverguide/certificates-and-security.html#certificate-authority
+
+4) Copy the key and crt you genterated from steps 2 and 3 (not the files from step 1) to folder that pytomation can access and name them server.key and server.crt.
+
+5) Set ssl_path, in pytomation/common/config.py, to the folder you created.
+
+6) To import the root CA, on your client devices, so all your generated certificates work on your devices follow the steps from:
+https://thomas-leister.de/en/how-to-import-ca-root-certificate/
+
+7) To create a cert that can be imported into the android system, using root privelege:
+https://blog.jeroenhd.nl/article/android-7-nougat-and-certificate-authorities#howto-install
+
+    ```
+    openssl x509 -inform PEM -subject_hash_old -in /etc/ssl/certs/cacert.pem | head -1
+    cat /etc/ssl/certs/cacert.pem > [outputFromFirstCommand].0
+    openssl x509 -inform PEM -text -in /etc/ssl/certs/cacert.pem -out /dev/null >> [outputFromFirstCommand].0
+    ```
+    Example
+    ```
+    cat /etc/ssl/certs/cacert.pem > 5ed36f99.0
+    openssl x509 -inform PEM -text -in /etc/ssl/certs/cacert.pem -out /dev/null >> 5ed36f99.0
+    ```
+    Resulting file must be copied to /system/etc/security/cacerts/ on android system.
 
 Build openzwave and python-openzwave
 ====================================
-Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. The instructions below list how to build from the development repositories. There is also prepared source avaiable at http://bibi21000.no-ip.biz/python-openzwave/python-openzwave-0.2.6.tgz, but that didn't work for me.
+Aeon Labs Z-Wave requires python-openzwave, which  must be compiled from source. It's highly recommend you use the archived source code. Version 3.0+ no longer requires Cython, which was the source of most of the build/seg fault issues with python-openzwave. 3.0beta2 has been tested to work on both a 64bit Ubuntu 14.04 system and a Raspberry PI. Instructions are at https://github.com/OpenZWave/python-openzwave/blob/master/INSTALL_ARCH.txt.
 
-The following was extracted and adapted from the python-openzwave INSTALL_MAN.txt:
+The config for OpenZwave will be located in the extracted archive, at openzwave/config. I recommend copying the config to your system /etc:
 
-    sudo apt-get install mercurial subversion python-pip python-dev python-setuptools python-louie python-sphinx make build-essential libudev-dev g++
-    sudo pip install cython==0.14
-    sudo pip install sphinxcontrib-blockdiag sphinxcontrib-actdiag
-    sudo pip install sphinxcontrib-nwdiag sphinxcontrib-seqdiag
+    sudo cp -R openzwave/config /etc/openzwave
+    sudo chown -R pyto:root /etc/openzwave
+    sudo chmod 660 /etc/openzwave/options.xml
 
-    hg clone https://code.google.com/p/python-openzwave/
-    cd python-openzwave
-    svn checkout http://open-zwave.googlecode.com/svn/trunk/ openzwave
-
-#### Method 1 (Install Everything via Scripts)
-
-    ./compile.sh
-    sudo ./install.sh
-
-#### Method 2 (Install Manually)
-If you installed everthing, stop here. Otherwise, go to the openzwave directory and build it:
-
-    cd openzwave/cpp/build
-    make
-    cd ../../..
-
-Build python-openzwave:
-
-    python setup-lib.py build
-    python setup-api.py build
-
-And install them:
-
-    sudo python setup-lib.py install
-    sudo python setup-api.py install
+Also note that if you have any security devices in your Zwave network, you will need to set the NetworkKey option in options.xml. That network key is why it's recommend to change the file permissions on options.xml, so only root and the pyto user can read it. 
 
 #### Permissions
 Like with all other interfaces. Make sure the pyto user account owns or otherwise has permissions to use the device. You may want to give your own usr account access as well.
@@ -157,7 +165,7 @@ or
     sudo chmod 770 /dev/yourzwavestick
     
 #### Make Permissions Permanent 
-Add the following either `/etc/udev/rules.d` or `/lib/udev/rules.d` (Simmilar procedure can be used for other serial interfaces. `lsusb -v` can grab the neccessary ATTRS info.)
+Add the following either `/etc/udev/rules.d` or `/lib/udev/rules.d` (Similar procedure can be used for other serial interfaces. `lsusb -v` can grab the necessary ATTRS info.)
 
     SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ATTRS{serial}=="0001", SYMLINK+="zwave", GROUP="pyto", OWNER="pyto"
 
@@ -176,7 +184,7 @@ The install.sh command does the following:
  
   - Confirms where you are installing Pytomation to.
   - Makes a "pyto" user and creates the home directory.
-  - Copies all the necessary files into Pytomations HOME.
+  - Copies all the necessary files into Pytomation's HOME.
   - Creates an /etc/init.d/pytomation init script for starting Pytomation on boot.
   - Configures pytomation to start automatically at boot time
 

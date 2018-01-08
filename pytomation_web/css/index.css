@@ -35,6 +35,9 @@ div.ui-slider {
     padding-right: 0px;
     width:100%;
 }
+.thermSetpoint {
+    padding: .7em;
+}
 .commandContent{
     position: relative;
     top: 50%;
