@@ -15,9 +15,9 @@ gevent-websocket
 wsaccel
 ujson
 phue
+python_openzwave
 -e git://github.com/jcollie/pyjnest.git#egg=pyjnest
 -e git+https://github.com/zonyl/pyharmony.git#egg=pyharmony
 interruptingcow
 #-e git://github.com/pettazz/pygooglevoice.git#egg=pygooglevoice
 -e git://github.com/MikeRixWolfe/pygooglevoice.git#egg=pygooglevoice
-
