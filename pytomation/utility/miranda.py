@@ -8,7 +8,7 @@
 # Notes from Issac:
 # http://code.google.com/p/miranda-upnp/
 # Marks this file as GPL3 licensed by the author
-# I have made minor modificatinos to get it to work with the wemo
+# I have made minor modifications to get it to work with the wemo
 #
 ################################
 

@@ -271,7 +271,7 @@ function jqmIscrollviewRemoveLayerXYProps(e) {
   $window:            $(window),
   $wrapper:           [],  // The wrapper element
   $scroller:          [],  // The scroller element (first child of wrapper)
-  $scrollerContent:   [],  // Content of scroller, sandwitched between any pull-down/pull-up
+  $scrollerContent:   [],  // Content of scroller, sandwiched between any pull-down/pull-up
   $pullDown:          [],  // The pull-down element (if any)
   $pullUp:            [],  // The pull-up element (if any)
   $pullUpSpacer:      [],
@@ -1079,7 +1079,7 @@ function jqmIscrollviewRemoveLayerXYProps(e) {
 
   //-----------------------------------------------------------------------
   // Determine the box-sizing model of an element
-  // While jQuery normalizes box-sizing models when retriving geometry,
+  // While jQuery normalizes box-sizing models when retrieving geometry,
   // it doesn't consider it when SETTING geometry. So, this is useful when
   // setting geometry. (e.g. the height of the wrapper)
   //-----------------------------------------------------------------------
@@ -1126,7 +1126,7 @@ function jqmIscrollviewRemoveLayerXYProps(e) {
         // modifying it. This function is called before any removal of
         // padding, though. So, if $wrapper, use same calculation as for padding-box,
         // ignoring padding.
-        // (We actually don't call this for anything but $wrapper, but preseve
+        // (We actually don't call this for anything but $wrapper, but preserve
         // functionality in case we ever use it on another element)
           adjust = $elem.outerHeight($elem !== this.$wrapper ) - $elem.height();
           break;

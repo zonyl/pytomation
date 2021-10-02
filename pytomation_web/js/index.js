@@ -32,7 +32,7 @@ function init() {
     load_settings();
     if (currentTheme !== 'a') theme_changed(currentTheme);
     
-    //resize sliders, taking the hidden text box into accout
+    //resize sliders, taking the hidden text box into account
     $(window).resize(function() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(recalc_device_content_size, 200);
@@ -511,7 +511,7 @@ function reload_device_grid() {
         });
     if (style !== "compact") $(".command").click(on_device_command);
     
-    //resize slider, taking the hidden text box into accout 
+    //resize slider, taking the hidden text box into account 
     recalc_slider_size();
     
     //recalculate slider size when scrollbars appear (only in desktop version)
