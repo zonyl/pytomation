@@ -37,7 +37,7 @@ class SparkIO(HAInterface):
         # We need to dial back how often we check the thermostat.. Lets not bombard it!
         if not self._iteration < self._poll_secs:
             self._iteration = 0
-            #check to see if there is anyting we need to read
+            #check to see if there is anything we need to read
             responses = self._interface.read('v1/:id/events')
             if len(responses) != 0:
                 for response in responses.split():

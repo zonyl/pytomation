@@ -133,7 +133,7 @@ class Arduino(HAInterface):
         #self._interface.read(100)        
         		
     def _readInterface(self, lastPacketHash):
-        #check to see if there is anyting we need to read
+        #check to see if there is anything we need to read
         responses = self._interface.read()
         if len(responses) != 0:
             for response in responses.split():
@@ -172,7 +172,7 @@ class Arduino(HAInterface):
     def _processRegister(self, response, lastPacketHash):
         foundCommandHash = None
 
-        #find our pending command in the list so we can say that we're done (if we are running in syncronous mode - if not well then the caller didn't care)
+        #find our pending command in the list so we can say that we're done (if we are running in synchronous mode - if not well then the caller didn't care)
         for (commandHash, commandDetails) in self._pendingCommandDetails.items():
             if commandDetails['modemCommand'] == self._modemCommands['read_register']:
                 #Looks like this is our command.  Lets deal with it

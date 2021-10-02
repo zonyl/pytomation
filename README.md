@@ -82,7 +82,7 @@ Optional Packages:
 
 Additional packages are required for development and testing. See `requirements.txt` for a more complete list.
 
-Debian packages are available for pySerial, pytz, pythone-gevent, and python-openssl. They can be installed with : 
+Debian packages are available for pySerial, pytz, python-gevent, and python-openssl. They can be installed with : 
 
     sudo apt-get install git python-dev python-serial python-tz python-gevent python-openssl
 
